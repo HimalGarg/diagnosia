@@ -1,0 +1,22 @@
+# Shared dependencies across all sub-projects
+# ---- Core ----
+numpy
+streamlit
+watchdog
+opencv-python
+
+# ---- Skin Cancer Detection ----
+tensorflow
+keras
+keras-preprocessing
+matplotlib
+
+# ---- VisionTrack & Curl Counter ----
+mediapipe
+streamlit-shadcn-ui
+streamlit-webrtc
+
+# ---- Talkie (AI Chat) ----
+google-generativeai
+joblib
+python-dotenv

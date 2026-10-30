@@ -1,0 +1,40 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+**/.streamlit/secrets.toml
+
+# Model weights and datasets
+*.h5
+*.keras
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+backend/skin/weights/
+datasets/
+
+# Runtime data: patient uploads, audio, databases
+backend/storage/
+*.db
+*.sqlite3
+
+# Old local chat logs and upload leftovers
+**/talkie/data/
+**/skin_cancer/temp_image.jpg
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

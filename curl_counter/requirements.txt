@@ -1,0 +1,7 @@
+streamlit-webrtc
+streamlit
+opencv-python
+numpy
+mediapipe
+streamlit_shadcn_ui
+watchdog
