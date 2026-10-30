@@ -41,13 +41,12 @@
       document.addEventListener("DOMContentLoaded", function() {
          setTimeout(function() {
              document.getElementById('loader').style.display = 'none';
-             document.getElementById('content').style.display = 'block';
          }, 0);
      });
      </script>
       <div class="fixed-cta-container">
-         <a href="symptom_checker.html" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
-            <div>use now</div>
+         <a aria-disabled="true" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1; cursor: default;">
+            <div>coming soon</div>
          </a>
       </div>
       <div class="page-wrapper">
@@ -86,12 +85,6 @@
                         <div class="nav-text-hover" style="color: #fff;">about&nbsp;us</div>
                      </div>
                   </a>
-                  <a href="https://talkie-diagnosia.streamlit.app/" data-w-id="b282fa53-c876-a363-d487-995c7a386325" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text" style="color: #fff;">talkie</div>
-                        <div class="nav-text-hover" style="color: #fff;">talkie</div>
-                     </div>
-                  </a>
                </div>
                <a id="w-node-b282fa53-c876-a363-d487-995c7a38632b-a954070d" data-w-id="b282fa53-c876-a363-d487-995c7a38632b" href="" class="button secondary small nav-cta hide w-button">get in touch</a>
             </div>
@@ -99,8 +92,8 @@
          <div id="How-It-works" data-w-id="30c8d968-55fe-8251-987b-0e377becbfbb" class="section black">
             <div class="container">
                <div class="center-div max-720w margin-xl">
-                  <h2 class="heading-2-small text-white">Symptom Checker</h2>
-                  <p class="paragraph-m text-white">How our symptom checker works</p>
+                  <h2 class="heading-2-small text-white">DiagnoFast</h2>
+                  <p class="paragraph-m text-white">The patient's history is ready before they walk in</p>
                </div>
                <div class="w-layout-grid container small flex">
                   <div data-w-id="30c8d968-55fe-8251-987b-0e377becbfc3" class="timeline-wrapper">
@@ -117,8 +110,8 @@
                         <div class="step-1-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d52832008152eed11a_Figma Design.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Enter previous medical history, age & gender</h4>
-                              <p class="text-light-grey">Our AI model will utilise this information to better comprehend your symptoms and determine the disease you have.</p>
+                              <h4 class="step-heading margin-xs">A Form Built Around Each Doctor</h4>
+                              <p class="text-light-grey">Every doctor takes a history differently, so the Diagnosia team builds a custom form for each doctor, based on how they actually diagnose.</p>
                            </div>
                         </div>
                      </div>
@@ -130,8 +123,8 @@
                         <div class="step-2-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d428320078e0eed100_Feedback.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Input your symptoms</h4>
-                              <p class="text-light-grey">Select the symptoms you are experiencing, and then our AI model will process them.</p>
+                              <h4 class="step-heading margin-xs">Questions Asked Out Loud</h4>
+                              <p class="text-light-grey">In the waiting room, DiagnoFast speaks each question in the patient's own language, such as "Kya bimari hai?". There is nothing to read or type.</p>
                            </div>
                         </div>
                      </div>
@@ -143,12 +136,12 @@
                         <div class="step-3-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d42832008075eed0d7_Onboarding.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Processing your input</h4>
-                              <p class="text-light-grey">Our AI model analyses your given inputs and then provides you with youur detailed report.</p>
+                              <h4 class="step-heading margin-xs">Voice Answers Fill the Form</h4>
+                              <p class="text-light-grey">The patient answers out loud. Speech recognition transcribes the answer, and an AI agent fills in the doctor's form and asks a follow-up if something is missing.</p>
                            </div>
                         </div>
                      </div>
-                     <div class="step-wrapper">
+                     <div class="step-wrapper margin-l">
                         <div class="step">
                            <img src="./images/6063c4d4283200f459eed0e6_four.svg" loading="lazy" alt="" class="step-4-number" style="will-change: opacity; opacity: 0.15;">
                            <div class="black-line"></div>
@@ -156,8 +149,21 @@
                         <div class="step-4-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d4283200a1feeed101_Launch.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Obtain your Diagnosis Report</h4>
-                              <p class="text-light-grey">After analysing your provided information, your health report is ready. Review your report to understand potential conditions.</p>
+                              <h4 class="step-heading margin-xs">Past Records From ABHA</h4>
+                              <p class="text-light-grey">With the patient's consent, DiagnoFast adds their past diagnoses, prescriptions and lab reports from ABHA, India's national digital health ID.</p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="step-wrapper">
+                        <div class="step">
+                           <img src="./images/6063c4d428320017a3eed0e5_five.svg" loading="lazy" alt="" class="step-5-number" style="will-change: opacity; opacity: 0.15;">
+                           <div class="black-line"></div>
+                        </div>
+                        <div class="step-5-info-wrapper" style="will-change: opacity; opacity: 0.15;">
+                           <div class="process-image"><img src="./images/6063c4d4283200a684eed0d8_Webflow Dev.svg" loading="lazy" alt=""></div>
+                           <div class="step-info">
+                              <h4 class="step-heading margin-xs">A One-Page Report for the Doctor</h4>
+                              <p class="text-light-grey">The doctor gets a short report with the main complaint, the history and anything urgent at the top, plus the original voice note. The doctor stays in charge.</p>
                            </div>
                         </div>
                      </div>

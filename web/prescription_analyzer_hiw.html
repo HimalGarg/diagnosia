@@ -41,13 +41,12 @@
       document.addEventListener("DOMContentLoaded", function() {
          setTimeout(function() {
              document.getElementById('loader').style.display = 'none';
-             document.getElementById('content').style.display = 'block';
          }, 0);
      });
      </script>
       <div class="fixed-cta-container">
-         <a href="prescription.html" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
-            <div>use now</div>
+         <a aria-disabled="true" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1; cursor: default;">
+            <div>coming soon</div>
          </a>
       </div>
       <div class="page-wrapper">
@@ -86,12 +85,6 @@
                         <div class="nav-text-hover" style="color: #fff;">about&nbsp;us</div>
                      </div>
                   </a>
-                  <a href="https://talkie-diagnosia.streamlit.app/" data-w-id="b282fa53-c876-a363-d487-995c7a386325" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text" style="color: #fff;">talkie</div>
-                        <div class="nav-text-hover" style="color: #fff;">talkie</div>
-                     </div>
-                  </a>
                </div>
                <a id="w-node-b282fa53-c876-a363-d487-995c7a38632b-a954070d" data-w-id="b282fa53-c876-a363-d487-995c7a38632b" href="" class="button secondary small nav-cta hide w-button">get in touch</a>
             </div>
@@ -99,8 +92,8 @@
          <div id="How-It-works" data-w-id="30c8d968-55fe-8251-987b-0e377becbfbb" class="section black">
             <div class="container">
                <div class="center-div max-720w margin-xl">
-                  <h2 class="heading-2-small text-white">Prescription Generator</h2>
-                  <p class="paragraph-m text-white">How our prescription generator works</p>
+                  <h2 class="heading-2-small text-white">Prescription Analyzer</h2>
+                  <p class="paragraph-m text-white">A prescription the patient can actually understand</p>
                </div>
                <div class="w-layout-grid container small flex">
                   <div data-w-id="30c8d968-55fe-8251-987b-0e377becbfc3" class="timeline-wrapper">
@@ -117,8 +110,8 @@
                         <div class="step-1-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d52832008152eed11a_Figma Design.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Input Disease or Symptoms</h4>
-                              <p class="text-light-grey">Users enter diagnosed disease or symptoms into the system.</p>
+                              <h4 class="step-heading margin-xs">Take a Photo</h4>
+                              <p class="text-light-grey">The patient takes a photo of their prescription, handwritten or printed.</p>
                            </div>
                         </div>
                      </div>
@@ -130,21 +123,47 @@
                         <div class="step-2-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d428320078e0eed100_Feedback.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Database Query and Analysis</h4>
-                              <p class="text-light-grey">The system queries a medicine and diet chart database, analyzing input to match recommendations.</p>
+                              <h4 class="step-heading margin-xs">AI Reads It</h4>
+                              <p class="text-light-grey">AI picks out the medicine names, doses, timings, duration and any follow-up date. Anything it can't read clearly is marked, never guessed.</p>
                            </div>
                         </div>
                      </div>
-                     <div class="step-wrapper">
+                     <div class="step-wrapper margin-l">
                         <div class="step">
                            <img src="./images/6063c4d42832004006eed0e7_three.svg" loading="lazy" alt="" class="step-3-number" style="will-change: opacity; opacity: 0.15;">
                            <div class="black-line"></div>
                         </div>
                         <div class="step-3-info-wrapper" style="will-change: opacity; opacity: 0.15;">
+                           <div class="process-image"><img src="./images/6063c4d42832008075eed0d7_Onboarding.svg" loading="lazy" alt=""></div>
+                           <div class="step-info">
+                              <h4 class="step-heading margin-xs">Shorthand Decoded</h4>
+                              <p class="text-light-grey">Notation such as 1-0-1, BD, TDS, HS and SOS becomes plain language. For example, 1-0-1 means one in the morning, none in the afternoon, one at night.</p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="step-wrapper margin-l">
+                        <div class="step">
+                           <img src="./images/6063c4d4283200f459eed0e6_four.svg" loading="lazy" alt="" class="step-4-number" style="will-change: opacity; opacity: 0.15;">
+                           <div class="black-line"></div>
+                        </div>
+                        <div class="step-4-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d4283200a1feeed101_Launch.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Generate and Display Prescription</h4>
-                              <p class="text-light-grey">The system generates and displays a personalized prescription with medications, dosages, and diet chart.</p>
+                              <h4 class="step-heading margin-xs">The Patient Confirms</h4>
+                              <p class="text-light-grey">The patient checks what was read against their prescription. Anything unreadable goes to "ask your pharmacist" instead of being explained.</p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="step-wrapper">
+                        <div class="step">
+                           <img src="./images/6063c4d428320017a3eed0e5_five.svg" loading="lazy" alt="" class="step-5-number" style="will-change: opacity; opacity: 0.15;">
+                           <div class="black-line"></div>
+                        </div>
+                        <div class="step-5-info-wrapper" style="will-change: opacity; opacity: 0.15;">
+                           <div class="process-image"><img src="./images/6063c4d4283200a684eed0d8_Webflow Dev.svg" loading="lazy" alt=""></div>
+                           <div class="step-info">
+                              <h4 class="step-heading margin-xs">Clear Guidance</h4>
+                              <p class="text-light-grey">In their own language, with audio: what each medicine is for, a daily schedule, foods to eat and avoid, yoga and the next appointment. It never changes a dose.</p>
                            </div>
                         </div>
                      </div>

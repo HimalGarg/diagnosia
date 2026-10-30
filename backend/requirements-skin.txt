@@ -1,0 +1,9 @@
+# Skin Cancer Detection. Kept separate because PyTorch is large.
+# For a GPU, install torch and torchvision first from https://pytorch.org/get-started
+torch==2.*
+torchvision==0.*
+timm==0.9.16
+numpy<2.3
+pandas==2.*
+scikit-learn==1.*
+pillow>=10

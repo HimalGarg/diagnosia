@@ -1,7 +1,3 @@
-<?php
-session_start();
-?>
-
 <!DOCTYPE html>
 <html data-wf-domain="diagnosia.netlify.app" data-wf-page="6063be94db8e104fa954070d" data-wf-site="6063be93db8e103fd1540700" class=" w-mod-js w-mod-ix">
    <head>
@@ -45,30 +41,31 @@ session_start();
       document.addEventListener("DOMContentLoaded", function() {
          setTimeout(function() {
              document.getElementById('loader').style.display = 'none';
-             document.getElementById('content').style.display = 'block';
          }, 1500);
      });
      
      </script>
       <div class="fixed-cta-container">
-         <?php
-            if (isset($_SESSION['email'])) {
-               // User is logged in, show logout button
-               echo '<a href="dashboard.php" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
-            <div>DASHBOARD</div>
-         </a>';
-            } else {
-               // User is not logged in, show login button
-               echo '<a href="login.php" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
+         <a id="account-cta" href="login.html" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
             <div>LOGIN</div>
-         </a>';
-            }
-         ?>
+         </a>
       </div>
+      <script>
+         // Show DASHBOARD instead of LOGIN when the visitor is signed in.
+         fetch('/api/me')
+            .then(function(response) { return response.ok ? response.json() : null; })
+            .then(function(user) {
+               if (!user) return;
+               var cta = document.getElementById('account-cta');
+               cta.href = 'dashboard.html';
+               cta.firstElementChild.textContent = 'DASHBOARD';
+            })
+            .catch(function() {});
+      </script>
       <div class="page-wrapper">
          <div class="navbar">
             <div class="navbar-container">
-               <a id="w-node-b282fa53-c876-a363-d487-995c7a386309-a954070d" href="index.php" class="home w-inline-block">
+               <a id="w-node-b282fa53-c876-a363-d487-995c7a386309-a954070d" href="index.html" class="home w-inline-block">
                   <div class="relume-logo-primary w-embed">
                      <svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 155 34" width="155" height="34">
                         <defs>
@@ -101,12 +98,6 @@ session_start();
                         <div class="nav-text-hover">about&nbsp;us</div>
                      </div>
                   </a>
-                  <a href="https://talkie-diagnosia.streamlit.app/" data-w-id="b282fa53-c876-a363-d487-995c7a386325" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">talkie</div>
-                        <div class="nav-text-hover">talkie</div>
-                     </div>
-                  </a>
                </div>
                <a id="w-node-b282fa53-c876-a363-d487-995c7a38632b-a954070d" data-w-id="b282fa53-c876-a363-d487-995c7a38632b" href="" class="button secondary small nav-cta hide w-button">get in touch</a>
             </div>
@@ -117,7 +108,7 @@ session_start();
                <div class="w-layout-grid hero-grid">
                   <div id="w-node-b282fa53-c876-a363-d487-995c7a386331-a954070d" class="hero-content-wrap design-to-webflow">
                      <h1 class="hero-heading">Revolutionizing healthcare with <span class="with-underline long-underline">Advanced </span> Diagnosis</h1>
-                     <p class="paragraph-m max-560w margin-l margin-0-t-m">Experience advanced healthcare with our skin cancer detection tool, symptom checker, and seamless doctors directory, all ensuring you stay healthy and informed.</p>
+                     <p class="paragraph-m max-560w margin-l margin-0-t-m">AI tools that give India's doctors back their time, and give patients understanding and independence.</p>
                   </div>
                   <div class="figma-embed-wrapper">
                      <div class="figma-embed w-embed w-iframe">
@@ -134,30 +125,30 @@ session_start();
                   <div class="benefits-wrapper-2">
                      <div class="icon-image-wrapper margin-s">
                         <img src="./images/6063c4d4283200ca97eed0fe_User-friendly CMS.svg" loading="lazy" alt="" class="benefits-icon">
-                        <h4 class="margin-0">Accessibility</h4>
+                        <h4 class="margin-0">Doctors Stay in Charge</h4>
                      </div>
-                     <p>Accessible from anywhere, allowing users to receive diagnoses on the go.</p>
+                     <p>Every clinical tool supports the doctor's judgement and never replaces it.</p>
                   </div>
                   <div class="benefits-wrapper-2">
                      <div class="icon-image-wrapper margin-s">
                         <img src="./images/6063c4d4283200ca97eed0fe_User-friendly CMS.svg" loading="lazy" alt="" class="benefits-icon">
-                        <h4 class="margin-0">Real-Time Results</h4>
+                        <h4 class="margin-0">Made for India</h4>
                      </div>
-                     <p>Provides real-time results for immediate feedback.</p>
+                     <p>Built around voice and Indian languages, so patients don't need to read or type.</p>
                   </div>
                   <div class="benefits-wrapper-2">
                      <div class="icon-image-wrapper margin-s">
                         <img src="./images/6063c4d4283200ca97eed0fe_User-friendly CMS.svg" loading="lazy" alt="" class="benefits-icon">
-                        <h4 class="margin-0">Health Assessment</h4>
+                        <h4 class="margin-0">Honest About Limits</h4>
                      </div>
-                     <p>Offers a range of tools for a comprehensive health assessment.</p>
+                     <p>Each tool shows how confident it is, and says so when it's unsure.</p>
                   </div>
                   <div class="benefits-wrapper-2">
                      <div class="icon-image-wrapper margin-s">
                         <img src="./images/6063c4d4283200ca97eed0fe_User-friendly CMS.svg" loading="lazy" alt="" class="benefits-icon">
-                        <h4 class="margin-0">User-Friendly Interface</h4>
+                        <h4 class="margin-0">Consent First</h4>
                      </div>
-                     <p>Easy-to-use interface for a seamless user experience.</p>
+                     <p>Patient information is used only with consent, and only for the job at hand.</p>
                   </div>
                </div>
             </div>
@@ -167,39 +158,29 @@ session_start();
             <div class="container">
                 <div class="center-div max-720w margin-xl">
                     <h2 class="heading-2-small text-white">Medical Tools</h2>
-                    <p class="paragraph-m text-white">Our advanced diagnostic tools are designed to provide you with accurate insights and convenient access to healthcare professionals.</p>
+                    <p class="paragraph-m text-white">Four tools that follow a patient's journey: before the consultation, during it, after it, and for anyone who needs hands-free access.</p>
                 </div>
                 
                 <div class="boxes">
-                    <a href="symptom_checker_hiw.html" class="box">
-                        <h4>Symptom Checker</h4>
-                        <p>Receive possible disease diagnoses from our extensive database, helping you understand your health better and seek appropriate care promptly.</p>
-                        <button class="use-now">USE NOW</button>
-                    </a>
-                    <a href="prescription_hiw.html" class="box">
-                        <h4>Prescription Generator</h4>
-                        <p>Get a personalized prescription for your disease, including recommended medicines and tailored diet charts, ensuring comprehensive care and optimal health management.</p>
-                        <button class="use-now">USE NOW</button>
+                    <a href="diagnofast_hiw.html" class="box">
+                        <h4>DiagnoFast</h4>
+                        <p>Takes the patient's history by voice, in their own language, while they wait, so the doctor starts the consultation with a ready-made report.</p>
+                        <button class="use-now">LEARN MORE</button>
                     </a>
                     <a href="skin_cancer_hiw.html" class="box">
                         <h4>Skin Cancer Detection</h4>
-                        <p>Upload an image of your skin for advanced analysis and receive accurate results on potential skin cancer, empowering you with crucial health insights for timely medical consultation.</p>
-                        <button class="use-now">USE NOW</button>
+                        <p>A screening aid for doctors. Analyses an image of a skin lesion and gives an early second opinion before costly tests such as a biopsy.</p>
+                        <button class="use-now">LEARN MORE</button>
                     </a>
-                    <a href="docfinder.html" class="box">
-                        <h4>DocFinder</h4>
-                        <p>Easily find nearby doctors across India using our comprehensive directory, ensuring convenient access to healthcare professionals when you need them most.</p>
-                        <button class="use-now">USE NOW</button>
+                    <a href="prescription_analyzer_hiw.html" class="box">
+                        <h4>Prescription Analyzer</h4>
+                        <p>Reads a prescription from a photo and explains it in plain language, with a medicine schedule, diet, yoga and follow-up guidance.</p>
+                        <button class="use-now">LEARN MORE</button>
                     </a>
-                    <a href="bmi.html" class="box">
-                        <h4>BMI Calculator</h4>
-                        <p>Quickly calculate your Body Mass Index (BMI) by entering your height and weight, helping you understand your health status and make informed lifestyle choices.</p>
-                        <button class="use-now">USE NOW</button>
-                     </a>
-                     <a href="visiontrack_hiw.html" class="box">
-                        <h4>VisionTrack</h4>
-                        <p>Our innovative device analyzes your facial expressions, body structure to detect related health issues, promoting better posture and overall well-being.</p>
-                        <button class="use-now">USE NOW</button>
+                    <a href="optikinesis_hiw.html" class="box">
+                        <h4>OptiKinesis</h4>
+                        <p>Hands-free computer control for people who can't use their hands. Move the cursor with your head and click with a blink, using an ordinary webcam.</p>
+                        <button class="use-now">LEARN MORE</button>
                     </a>
                   </div>
                 <div class="circle-blur-bottom-left safari"></div>
@@ -221,7 +202,7 @@ session_start();
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Diagnosia is a healthcare platform offering a symptom checker, doctor info, skin cancer detection, prescriptions, and posture analysis.<br></p>
+                        <p class="faq-answer">Diagnosia is a healthcare platform with four AI tools: DiagnoFast, Skin Cancer Detection, Prescription Analyzer and OptiKinesis. They help doctors work faster and help patients understand their care.<br></p>
                      </div>
                   </div>
                   <div class="faq-block">
@@ -230,43 +211,43 @@ session_start();
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">It uses advanced image analysis for accurate results, but consult a doctor for confirmation.</p>
+                        <p class="faq-answer">It's a research demo, not a diagnosis. It gives doctors a second opinion with a confidence score, and a doctor's judgement and a biopsy are still needed.</p>
                      </div>
                   </div>
                   <div class="faq-block">
                      <div class="faq-top">
-                        <h5 class="margin-0">How does the symptom checker work?</h5>
+                        <h5 class="margin-0">How does DiagnoFast work?</h5>
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Input your medical history, age, and symptoms. Diagnosia analyzes this info to suggest possible diseases.<br></p>
+                        <p class="faq-answer">DiagnoFast asks the patient questions out loud in their own language while they wait, fills in the doctor's custom form from their answers, and gives the doctor a one-page report.<br></p>
                      </div>
                   </div>
                   <div class="faq-block">
                      <div class="faq-top">
-                        <h5 class="margin-0">What do I need for the prescription feature?</h5>
+                        <h5 class="margin-0">What do I need for the Prescription Analyzer?</h5>
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Input your diagnosed disease to get a prescription with recommended medicines and diet charts.</p>
+                        <p class="faq-answer">Just a clear photo of your prescription. It explains each medicine and when to take it, and what to eat and avoid. It never changes a dose, and if it can't read something it tells you to check with your pharmacist.</p>
                      </div>
                   </div>
                   <div class="faq-block">
                      <div class="faq-top">
-                        <h5 class="margin-0">How does the posture analysis work?</h5>
+                        <h5 class="margin-0">What is OptiKinesis?</h5>
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Our device analyzes facial expressions, body structure, and posture to detect related health issues.</p>
+                        <p class="faq-answer">OptiKinesis lets people who can't use their hands control a computer with head movements and blinks, using an ordinary webcam. It's a free beta download for Windows.</p>
                      </div>
                   </div>
                   <div class="faq-block">
                      <div class="faq-top">
-                        <h5 class="margin-0">Can Diagnosia help me find a doctor?</h5>
+                        <h5 class="margin-0">Does Diagnosia replace my doctor?</h5>
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Yes, it provides a directory of doctors in India and lets you find them easily.</p>
+                        <p class="faq-answer">No. Every tool supports your doctor's care and never replaces it. Always follow your doctor's advice.</p>
                      </div>
                   </div>
                </div>

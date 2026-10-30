@@ -4474,8 +4474,9 @@ p {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   padding: 20px;
-  flex: 1 1 calc(25% - 20px);
-  max-width: calc(25% - 20px);
+  box-sizing: border-box;
+  flex: 1 1 calc(25% - 15px);
+  max-width: calc(25% - 15px);
   text-decoration: none;
   color: #fff;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -4520,18 +4521,18 @@ p {
   cursor: pointer;
   font-size: 14px;
   transition: background-image 0.3s ease;
-  width: 1rem;
   margin-top: auto;
   margin-bottom: 0.5rem;
   height: 40px;
-  width: 40%;
+  min-width: 40%;
+  white-space: nowrap;
   align-self: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .box {
-      flex: 1 1 calc(50% - 20px);
-      max-width: calc(50% - 20px);
+      flex: 1 1 calc(50% - 10px);
+      max-width: calc(50% - 10px);
   }
 }
 
@@ -4539,5 +4540,55 @@ p {
   .box {
       flex: 1 1 100%;
       max-width: 100%;
+  }
+}
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+  text-decoration: none;
+}
+
+.boxes.info-boxes .box {
+  flex: 1 1 calc(50% - 10px);
+  max-width: calc(50% - 10px);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.boxes.info-boxes .box:hover {
+  transform: none;
+}
+
+.info-boxes ul,
+.info-boxes ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.info-boxes li {
+  margin-bottom: 8px;
+}
+
+.box p.info-note {
+  margin: 12px 0 0;
+  color: #fff;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .boxes.info-boxes .box {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper.footer-logo {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 }

@@ -41,13 +41,12 @@
       document.addEventListener("DOMContentLoaded", function() {
          setTimeout(function() {
              document.getElementById('loader').style.display = 'none';
-             document.getElementById('content').style.display = 'block';
          }, 0);
      });
      </script>
       <div class="fixed-cta-container">
-         <a href="https://diagnosia-skin-cancer.streamlit.app" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
-            <div>use now</div>
+         <a aria-disabled="true" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1; cursor: default;">
+            <div>coming soon</div>
          </a>
       </div>
       <div class="page-wrapper">
@@ -86,12 +85,6 @@
                         <div class="nav-text-hover" style="color: #fff;">about&nbsp;us</div>
                      </div>
                   </a>
-                  <a href="https://talkie-diagnosia.streamlit.app/" data-w-id="b282fa53-c876-a363-d487-995c7a386325" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text" style="color: #fff;">talkie</div>
-                        <div class="nav-text-hover" style="color: #fff;">talkie</div>
-                     </div>
-                  </a>
                </div>
                <a id="w-node-b282fa53-c876-a363-d487-995c7a38632b-a954070d" data-w-id="b282fa53-c876-a363-d487-995c7a38632b" href="" class="button secondary small nav-cta hide w-button">get in touch</a>
             </div>
@@ -100,7 +93,7 @@
             <div class="container">
                <div class="center-div max-720w margin-xl">
                   <h2 class="heading-2-small text-white">Skin Cancer Detection</h2>
-                  <p class="paragraph-m text-white">How our skin cancer detection tool works</p>
+                  <p class="paragraph-m text-white">A screening aid that gives doctors an early second opinion</p>
                </div>
                <div class="w-layout-grid container small flex">
                   <div data-w-id="30c8d968-55fe-8251-987b-0e377becbfc3" class="timeline-wrapper">
@@ -117,8 +110,8 @@
                         <div class="step-1-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d52832008152eed11a_Figma Design.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Image Acquisition and Preprocessing</h4>
-                              <p class="text-light-grey">Users upload skin images, which are resized, normalized, and augmented to enhance quality and prepare for analysis.</p>
+                              <h4 class="step-heading margin-xs">Capture the Lesion</h4>
+                              <p class="text-light-grey">The doctor or an assistant takes a dermoscopic image of the lesion and uploads it. The image is prepared automatically for analysis.</p>
                            </div>
                         </div>
                      </div>
@@ -130,8 +123,8 @@
                         <div class="step-2-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d428320078e0eed100_Feedback.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Feature Extraction with EfficientB0 Algorithm</h4>
-                              <p class="text-light-grey">EfficientB0 algorithm extracts essential features from preprocessed images using advanced computer vision techniques, ensuring efficient and accurate processing</p>
+                              <h4 class="step-heading margin-xs">Analysis With PanDerm</h4>
+                              <p class="text-light-grey">The image is analysed by a classifier built on PanDerm, an AI model for dermatology published in Nature Medicine.</p>
                            </div>
                         </div>
                      </div>
@@ -143,12 +136,12 @@
                         <div class="step-3-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d42832008075eed0d7_Onboarding.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Classification Using Deep Learning Neural Networks</h4>
-                              <p class="text-light-grey">Besnet5O algorithm classifies extracted features, distinguishing between normal and infected skin with high accuracy using deep learning networks</p>
+                              <h4 class="step-heading margin-xs">Ranked Possible Conditions</h4>
+                              <p class="text-light-grey">The doctor sees which conditions the lesion most resembles, such as melanoma, basal cell carcinoma or a benign mole, each with a confidence score.</p>
                            </div>
                         </div>
                      </div>
-                     <div class="step-wrapper">
+                     <div class="step-wrapper margin-l">
                         <div class="step">
                            <img src="./images/6063c4d4283200f459eed0e6_four.svg" loading="lazy" alt="" class="step-4-number" style="will-change: opacity; opacity: 0.15;">
                            <div class="black-line"></div>
@@ -156,8 +149,21 @@
                         <div class="step-4-info-wrapper" style="will-change: opacity; opacity: 0.15;">
                            <div class="process-image"><img src="./images/6063c4d4283200a1feeed101_Launch.svg" loading="lazy" alt=""></div>
                            <div class="step-info">
-                              <h4 class="step-heading margin-xs">Heatmap Plotting for Infected Areas</h4>
-                              <p class="text-light-grey">Generates heatmaps highlighting suspicious skin regions, guiding users and healthcare providers in identifying areas needing further medical attention.</p>
+                              <h4 class="step-heading margin-xs">A Heatmap the Doctor Can Check</h4>
+                              <p class="text-light-grey">A highlight map shows which parts of the image drove the result, so the doctor can check the model's reasoning instead of trusting a bare number.</p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="step-wrapper">
+                        <div class="step">
+                           <img src="./images/6063c4d428320017a3eed0e5_five.svg" loading="lazy" alt="" class="step-5-number" style="will-change: opacity; opacity: 0.15;">
+                           <div class="black-line"></div>
+                        </div>
+                        <div class="step-5-info-wrapper" style="will-change: opacity; opacity: 0.15;">
+                           <div class="process-image"><img src="./images/6063c4d4283200a684eed0d8_Webflow Dev.svg" loading="lazy" alt=""></div>
+                           <div class="step-info">
+                              <h4 class="step-heading margin-xs">The Doctor Decides</h4>
+                              <p class="text-light-grey">The tool suggests a priority, such as refer for biopsy soon or monitor. It is a research demo, not a diagnosis, and the final call always stays with the doctor.</p>
                            </div>
                         </div>
                      </div>
