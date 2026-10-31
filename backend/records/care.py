@@ -15,6 +15,8 @@ CONSENT_PURPOSES = {
     "transcript_retention": "Keeping a consultation transcript after the note is signed",
     "referral_sharing": "Sharing referral details with the receiving specialist or service",
     "external_messaging": "Sending reminders by SMS or voice call through an outside provider",
+    "patient_pack": "Keeping a searchable copy of this patient's finished records with Meko, an outside provider, and sending them to our AI services when their doctor asks for a summary",
+    "pack_sharing": "Letting a doctor who accepts this patient's referral see their whole pack until the referral closes",
 }
 
 

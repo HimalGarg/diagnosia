@@ -33,6 +33,7 @@ from backend.auth import require_doctor
 from backend.careflow import events
 from backend.db import connect, get_db
 from backend.diagnofast import abha, agent, recordings
+from backend.patient_pack import sync as pack
 from backend.records.access import READ, WRITE, open_patient
 
 MAX_AUDIO_BYTES = 5 * 1024 * 1024
@@ -259,6 +260,8 @@ def _build_report(intake_id: int) -> None:
                 "UPDATE intakes SET report = ?, status = 'done' WHERE id = ?",
                 (report.model_dump_json(), intake_id),
             )
+            if row["patient_id"]:  # an intake with no record has no patient to attach it to
+                pack.enqueue(db, row["patient_id"], "intake", intake_id)
             events.emit(db, MODULE, "intake.review_required", _workflow(db, row), "review_required", key=str(intake_id), metadata={"review_required": True}, used_ai=True)
         except (llm.AIUnavailable, llm.AIDeclined) as error:
             # The doctor can still read the answers and transcript.

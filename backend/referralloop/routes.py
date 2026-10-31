@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from backend.auth import require_doctor, require_user
 from backend.db import get_db
+from backend.patient_pack import sync as pack
 from backend.records import access as gate
 from backend.records import audit, care, documents
 from backend.records.access import CLINICAL
@@ -178,6 +179,7 @@ def _payload(db: sqlite3.Connection, referral: sqlite3.Row, side: str) -> dict:
     payload["patient"] = dict(patient)
     payload["referring_clinician"] = f"{sender['first_name']} {sender['last_name']}"
     payload["side"] = side
+    payload["pack_shared"] = care.active_consent(db, referral["patient_id"], pack.SHARE_PURPOSE) is not None
     payload["appointments"] = rows(
         db.execute("SELECT * FROM referral_appointments WHERE referral_id = ? ORDER BY created_at", (referral_id,))
     )
@@ -556,7 +558,7 @@ def record_outcome(
         db.execute(
             "INSERT OR IGNORE INTO referral_documents (referral_id, document_id) VALUES (?, ?)", (referral_id, document_id)
         )
-    insert(
+    outcome_id = insert(
         db,
         "referral_outcomes",
         referral_id=referral_id,
@@ -569,6 +571,7 @@ def record_outcome(
         created_at=now_iso(),
     )
     _move(db, referral, "outcome_returned", user["id"], side)
+    pack.enqueue(db, referral["patient_id"], "referral_outcome", outcome_id)
     # A note that only lands in the chart gets missed, so review is a task for a named person.
     care.create_task(
         db,

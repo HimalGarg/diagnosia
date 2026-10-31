@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from backend.auth import require_doctor, require_user
 from backend.db import get_db
+from backend.patient_pack import sync as pack
 from backend.records import access as gate
 from backend.records import audit, care
 from backend.records.access import CLINICAL
@@ -353,6 +354,7 @@ def approve(episode_id: str, user=Depends(require_doctor), db: sqlite3.Connectio
     care.notify(db, patient["user_id"], "Your discharge checklist is ready", "", episode["patient_id"], "dischargecare")
     audit.record(db, user, "dischargecare.episode.approved", episode["patient_id"], "discharge_episode", episode_id)
     care.add_timeline(db, episode["patient_id"], "dischargecare", "Discharge plan approved", episode["destination"], "discharge_episode", episode_id)
+    pack.enqueue(db, episode["patient_id"], "discharge", episode_id)
     return _payload(db, _episode(db, episode_id))
 
 

@@ -15,6 +15,7 @@ from backend.auth import require_doctor, require_user
 from backend.careflow import events
 from backend.clinscribe import drafting, verifier
 from backend.db import get_db
+from backend.patient_pack import sync as pack
 from backend.records import access as gate
 from backend.records import audit, care, fhir
 from backend.records.access import CLINICAL
@@ -426,6 +427,7 @@ def approve_note(
     )
     audit.record(db, user, "clinscribe.note.signed", note["patient_id"], "clinical_note", note_id, reason=f"{flags} open flags")
     care.add_timeline(db, note["patient_id"], "clinscribe", "Consultation note signed", _author_name(user), "clinical_note", note_id)
+    pack.enqueue(db, note["patient_id"], "clinical_note", note_id)
 
     retained = care.active_consent(db, note["patient_id"], "transcript_retention") is not None
     if not retained:

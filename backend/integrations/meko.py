@@ -41,6 +41,10 @@ class MekoRejected(MekoUnavailable):
     """Meko refused this key or this datapack. Retrying won't help until someone changes that."""
 
 
+class MekoNotFound(MekoUnavailable):
+    """Meko has no such thing, which for a deletion is the wanted result."""
+
+
 class MekoUnsupported(MekoUnavailable):
     """The server doesn't offer that tool or argument, so nothing was sent."""
 
@@ -152,6 +156,8 @@ class MekoClient:
             # Meko reports most failures as an ordinary result, so they have to be looked for.
             if found["error"] in ACCESS_ERRORS:
                 raise MekoRejected(f"{tool}: {found['error']}")
+            if found["error"] == "NOT_FOUND":
+                raise MekoNotFound(f"{tool}: {found['error']}")
             raise MekoUnavailable(f"{tool}: {found['error']}")
         return found
 

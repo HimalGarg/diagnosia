@@ -94,6 +94,11 @@ def _delivery_detail(db: sqlite3.Connection) -> None:
     db.execute("ALTER TABLE careflow_deliveries ADD COLUMN mirrored INTEGER NOT NULL DEFAULT 0")
 
 
+def _document_description(db: sqlite3.Connection) -> None:
+    """A person's words about a file, such as an X-ray, which is what a patient's pack can search."""
+    db.execute("ALTER TABLE clinical_documents ADD COLUMN description TEXT NOT NULL DEFAULT ''")
+
+
 MIGRATIONS: List[Tuple[int, str, Callable[[sqlite3.Connection], None]]] = [
     (1, "account_states", _account_states),
     (2, "organization_verification", _organization_verification),
@@ -102,6 +107,7 @@ MIGRATIONS: List[Tuple[int, str, Callable[[sqlite3.Connection], None]]] = [
     (5, "medication_rule_authority", _medication_rule_authority),
     (6, "intake_patient_link", _intake_patient_link),
     (7, "delivery_detail", _delivery_detail),
+    (8, "document_description", _document_description),
 ]
 
 

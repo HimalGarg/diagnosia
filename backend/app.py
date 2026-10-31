@@ -30,6 +30,8 @@ from backend.integrations import execution
 from backend.lablens import extract as lablens_jobs
 from backend.lablens import mappings as lablens_mappings
 from backend.lablens import routes as lablens
+from backend.patient_pack import routes as patient_pack
+from backend.patient_pack import sync as pack_sync
 from backend.prescription import routes as prescription
 from backend.prescription.medicines import get_medicine_list
 from backend.records import audit, care, vault
@@ -88,6 +90,10 @@ async def _deliver_forever() -> None:
             await run_in_threadpool(careflow_delivery.deliver_once)
         except Exception as error:  # An optional integration must never stop the app.
             logger.warning("CareFlow delivery pass failed: %s", type(error).__name__)
+        try:
+            await run_in_threadpool(pack_sync.run_once)
+        except Exception as error:  # An optional integration must never stop the app.
+            logger.warning("Patient pack pass failed: %s", type(error).__name__)
 
 
 def _prepare_content() -> None:
@@ -126,6 +132,7 @@ app.include_router(staff.router)
 app.include_router(lablens_mappings.router)
 app.include_router(settings_store.router)
 app.include_router(careflow.router)
+app.include_router(patient_pack.router)
 
 
 def _tool(router, name: str) -> None:

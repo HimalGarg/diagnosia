@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from backend.auth import require_user
 from backend.db import get_db
 from backend.lablens import extract, parser
+from backend.patient_pack import sync as pack
 from backend.records import access as gate
 from backend.records import audit, care, documents, fhir
 from backend.records.access import WRITE
@@ -302,6 +303,7 @@ def confirm_report(
         identity_acknowledged_by=user["id"] if request.acknowledge_identity else None,
     )
     audit.record(db, user, "lablens.report.confirmed", report["patient_id"], "lab_report", report_id)
+    pack.enqueue(db, report["patient_id"], "lab_report", report_id)
     care.add_timeline(
         db, report["patient_id"], "lablens", "Lab report confirmed", f"{saved} results", "lab_report", report_id, collected
     )

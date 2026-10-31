@@ -533,6 +533,18 @@ def integrations_migrate(_args) -> int:
     return 0
 
 
+def pack_rebuild(args) -> int:
+    """Queues a patient's records for their pack again. SQLite holds them all, so nothing is lost."""
+    from backend.patient_pack import sync
+
+    db = connect()
+    count = sync.rebuild(db, args.patient)
+    db.commit()
+    db.close()
+    print(f"Queued {count} records again.")
+    return 0
+
+
 def readiness(_args) -> int:
     init_db()
     db = connect()
@@ -562,6 +574,7 @@ def parser() -> argparse.ArgumentParser:
     command("migrate-documents", migrate_documents, (("--dry-run",), {"action": "store_true"}))
     command("delete-migrated-originals", delete_originals, (("--retention-approval",), required))
     command("verify-documents", verify_documents)
+    command("pack-rebuild", pack_rebuild, (("--patient",), required))
     command("backup", backup, (("--to",), required))
     command(
         "restore", restore, (("--source",), required), (("--database",), required), (("--documents",), required)

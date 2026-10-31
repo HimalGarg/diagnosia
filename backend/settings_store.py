@@ -52,6 +52,7 @@ SETTINGS: Dict[str, dict] = {
     "ai.model.lablens_read": {"section": "AI models", "label": "LabLens: reading scanned reports", "type": "model", "choices": VISION_MODELS, "default": "qwen/qwen3.8-27b"},
     "ai.model.diagnofast_turn": {"section": "AI models", "label": "DiagnoFast: choosing the next question", "type": "model", "choices": TEXT_MODELS, "default": "openai/gpt-oss-20b"},
     "ai.model.diagnofast_report": {"section": "AI models", "label": "DiagnoFast: writing the doctor's report", "type": "model", "choices": TEXT_MODELS, "default": "openai/gpt-oss-120b"},
+    "ai.model.patient_pack": {"section": "AI models", "label": "Patient packs: briefs and questions", "type": "model", "choices": TEXT_MODELS, "default": "openai/gpt-oss-120b"},
     "ai.model.transcription": {"section": "AI models", "label": "Speech to text", "type": "model", "choices": SPEECH_MODELS, "default": "whisper-large-v3"},
     "ai.primary": {"section": "AI providers", "label": "Provider tried first", "type": "choice", "choices": list(PROVIDERS), "default": "groq"},
     "ai.strategy": {"section": "AI providers", "label": "When both providers have a key", "type": "choice", "choices": ["fallback", "round_robin"], "default": "fallback"},

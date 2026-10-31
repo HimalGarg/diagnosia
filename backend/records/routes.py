@@ -13,6 +13,8 @@ from backend.auth import require_doctor, require_staff_account, require_user
 from backend import safety, settings_store
 from backend.db import get_db
 from backend.records import access as gate
+from backend.patient_pack import access as pack_access
+from backend.patient_pack import sync as pack
 from backend.records import audit, care, documents, fhir, vault
 from backend.records.access import CLINICAL, WRITE
 from backend.records.store import clean, insert, now_iso, one, rows, update
@@ -56,7 +58,8 @@ class JoinRequest(BaseModel):
 
 class ConsentRequest(BaseModel):
     purpose: Literal[
-        "ai_processing", "ai_scribe", "transcript_retention", "referral_sharing", "external_messaging"
+        "ai_processing", "ai_scribe", "transcript_retention", "referral_sharing", "external_messaging",
+        "patient_pack", "pack_sharing",
     ]
     scope: str = Field(default="", max_length=200)
 
@@ -412,6 +415,8 @@ def revoke_consent(
     if consent is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "That consent isn't active.")
     update(db, "consents", consent_id, revoked_at=now_iso(), revoked_by=user["id"])
+    if consent["purpose"] == pack.STORE_PURPOSE:
+        pack.request_erasure(db, patient_id)
     return {"revoked": True}
 
 
@@ -557,6 +562,7 @@ def upload_document(
     patient_id: str,
     file: UploadFile = File(...),
     document_type: str = Form("other", max_length=40),
+    description: str = Form("", max_length=2000),
     user=Depends(require_user),
     db: sqlite3.Connection = Depends(get_db),
 ) -> dict:
@@ -570,6 +576,9 @@ def upload_document(
         "clinician_entered" if access.is_clinician else "patient_entered",
         user["id"],
     )
+    if description.strip():
+        update(db, "clinical_documents", document["id"], description=description.strip())
+    pack.enqueue(db, patient_id, "document", document["id"])
     return documents.public(document)
 
 
@@ -583,7 +592,11 @@ def download_document(
     document = one(db.execute("SELECT * FROM clinical_documents WHERE id = ?", (document_id,)).fetchone())
     if document is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "We couldn't find that document.")
-    allowed = gate.lookup(db, user, document["patient_id"]) is not None or _shared_by_referral(db, user, document_id)
+    allowed = (
+        gate.lookup(db, user, document["patient_id"]) is not None
+        or _shared_by_referral(db, user, document_id)
+        or pack_access.accepted_referral(db, user, document["patient_id"]) is not None
+    )
     if not allowed:
         audit.record_denied(user, "document.download", document["patient_id"], "no access")
         raise HTTPException(status.HTTP_404_NOT_FOUND, "We couldn't find that document.")

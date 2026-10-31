@@ -36,7 +36,7 @@ POLL_ATTEMPTS = 30
 # Anything shaped like a person's details or a credential stops the upload for a person to look at.
 FORBIDDEN = {
     "email address": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
-    "phone number": re.compile(r"(?<![\d.])(?:\+?91[ -]?)?[6-9]\d{9}(?![\d.])"),
+    "phone number": re.compile(r"(?<![\d.])(?:\+?91[ -]?)?[6-9]\d{9}(?!\d|\.\d)"),  # a sentence can end right after one
     "key or token": re.compile(r"\b(?:gsk_|mko_tkn_|AIza|sk-)[A-Za-z0-9_-]{10,}"),
     "connection string": re.compile(r"\b(?:mongodb(?:\+srv)?|postgres(?:ql)?)://\S+:\S+@"),
     "date of birth": re.compile(r"\b(?:DOB|date of birth)\s*[:=]\s*\d", re.IGNORECASE),
