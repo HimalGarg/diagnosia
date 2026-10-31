@@ -256,12 +256,12 @@ def generate_ics_calendar(slots: List[dict]) -> str:
         clean_desc = (
             item["description"]
             .replace("\\", "\\\\")
-            .replace(";", "\\;")
-            .replace(",", "\\,")
-            .replace("\n", "\\n")
+            .replace(";", r"\;")
+            .replace(",", r"\,")
+            .replace("\n", r"\n")
         )
         clean_summary = (
-            item["title"].replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+            item["title"].replace("\\", "\\\\").replace(";", r"\;").replace(",", r"\,")
         )
         event = (
             "BEGIN:VEVENT\r\n"
