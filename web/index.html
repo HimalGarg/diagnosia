@@ -41,7 +41,7 @@
       document.addEventListener("DOMContentLoaded", function() {
          setTimeout(function() {
              document.getElementById('loader').style.display = 'none';
-         }, 1500);
+         }, 0);
      });
      
      </script>
@@ -50,18 +50,6 @@
             <div>LOGIN</div>
          </a>
       </div>
-      <script>
-         // Show DASHBOARD instead of LOGIN when the visitor is signed in.
-         fetch('/api/me')
-            .then(function(response) { return response.ok ? response.json() : null; })
-            .then(function(user) {
-               if (!user) return;
-               var cta = document.getElementById('account-cta');
-               cta.href = 'dashboard.html';
-               cta.firstElementChild.textContent = 'DASHBOARD';
-            })
-            .catch(function() {});
-      </script>
       <div class="page-wrapper">
          <div class="navbar">
             <div class="navbar-container">
@@ -82,8 +70,8 @@
                <div class="nav-menu">
                   <a href="#How-It-works" data-w-id="b282fa53-c876-a363-d487-995c7a38630d" class="nav-link-dope-edition right-32 w-inline-block">
                      <div class="nav-text-wrap">
-                        <div class="nav-text">medical&nbsp;tools</div>
-                        <div class="nav-text-hover">medical&nbsp;tools</div>
+                        <div class="nav-text">tools</div>
+                        <div class="nav-text-hover">tools</div>
                      </div>
                   </a>
                   <a href="#FAQ" data-w-id="b282fa53-c876-a363-d487-995c7a38631f" class="nav-link-dope-edition right-32 w-inline-block">
@@ -108,13 +96,16 @@
                <div class="w-layout-grid hero-grid">
                   <div id="w-node-b282fa53-c876-a363-d487-995c7a386331-a954070d" class="hero-content-wrap design-to-webflow">
                      <h1 class="hero-heading">Revolutionizing healthcare with <span class="with-underline long-underline">Advanced </span> Diagnosis</h1>
-                     <p class="paragraph-m max-560w margin-l margin-0-t-m">AI tools that give India's doctors back their time, and give patients understanding and independence.</p>
+                     <p class="paragraph-m max-560w margin-l margin-0-t-m">Twelve AI tools on one patient record, from the waiting room to long-term care. Doctors get back their time, and patients understand their care.</p>
+                     <div class="hero-actions"><a class="use-now" href="care.html">Open Diagnosia</a><a class="hero-link" href="#How-It-works">See all twelve tools</a></div>
                   </div>
-                  <div class="figma-embed-wrapper">
-                     <div class="figma-embed w-embed w-iframe">
-                         <img src="images/reviews.png" alt="Reviews" style="width: 100%; height: 100%; border: 0px solid rgba(0, 0, 0, 0.1);">
-                     </div>
-                 </div>
+                  <ol class="visit-path" aria-label="The tools, in the order of a visit">
+                     <li><strong>Before the visit</strong><span>DiagnoFast</span></li>
+                     <li><strong>During the visit</strong><span>ClinScribe, LabLens, MedGuard, Skin Cancer Detection</span></li>
+                     <li><strong>After the visit</strong><span>Prescription Analyzer, ReferralLoop, DischargeCare, ChronicCare</span></li>
+                     <li><strong>Long-term programmes</strong><span>MaternaCare, AMR Guard</span></li>
+                     <li><strong>Access for everyone</strong><span>OptiKinesis</span></li>
+                  </ol>
                </div>
             </div>
             <div class="circle-blur-top-left-2 safari"></div>
@@ -156,40 +147,99 @@
          </div>
          <div id="How-It-works" data-w-id="30c8d968-55fe-8251-987b-0e377becbfbb" class="section black">
             <div class="container">
-                <div class="center-div max-720w margin-xl">
-                    <h2 class="heading-2-small text-white">Medical Tools</h2>
-                    <p class="paragraph-m text-white">Four tools that follow a patient's journey: before the consultation, during it, after it, and for anyone who needs hands-free access.</p>
-                </div>
-                
-                <div class="boxes">
-                    <a href="diagnofast_hiw.html" class="box">
-                        <h4>DiagnoFast</h4>
-                        <p>Takes the patient's history by voice, in their own language, while they wait, so the doctor starts the consultation with a ready-made report.</p>
-                        <button class="use-now">LEARN MORE</button>
-                    </a>
-                    <a href="skin_cancer_hiw.html" class="box">
-                        <h4>Skin Cancer Detection</h4>
-                        <p>A screening aid for doctors. Analyses an image of a skin lesion and gives an early second opinion before costly tests such as a biopsy.</p>
-                        <button class="use-now">LEARN MORE</button>
-                    </a>
-                    <a href="prescription_analyzer_hiw.html" class="box">
-                        <h4>Prescription Analyzer</h4>
-                        <p>Reads a prescription from a photo and explains it in plain language, with a medicine schedule, diet, yoga and follow-up guidance.</p>
-                        <button class="use-now">LEARN MORE</button>
-                    </a>
-                    <a href="optikinesis_hiw.html" class="box">
-                        <h4>OptiKinesis</h4>
-                        <p>Hands-free computer control for people who can't use their hands. Move the cursor with your head and click with a blink, using an ordinary webcam.</p>
-                        <button class="use-now">LEARN MORE</button>
-                    </a>
-                  </div>
-                <div class="circle-blur-bottom-left safari"></div>
+               <div class="center-div max-720w margin-l">
+                  <h2 class="heading-2-small text-white">One platform for the whole visit</h2>
+                  <p class="paragraph-m text-white">Twelve tools on one record, with one sign-in. They draft, read and flag. Doctors and patients review and decide. Everything here is in pilot and pending clinical validation.</p>
+               </div>
+               <div class="catalogue">
+                  <section class="catalogue-stage">
+                     <h3>Before the visit</h3>
+                     <div class="catalogue-tools">
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/diagnofast">DiagnoFast</a></h4>
+                           <p>A spoken interview in the waiting room, in Hindi or English, ready as a one-page report. Urgent symptoms stop it and go straight to reception.</p>
+                           <p class="catalogue-who">For clinics <a class="catalogue-more" href="diagnofast_hiw.html">How it works</a></p>
+                        </article>
+                     </div>
+                  </section>
+                  <section class="catalogue-stage">
+                     <h3>During the visit</h3>
+                     <div class="catalogue-tools">
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/clinscribe">ClinScribe</a></h4>
+                           <p>Turns a consultation into a draft note, checks it against the transcript, and waits for the doctor to sign.</p>
+                           <p class="catalogue-who">For doctors</p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/lablens">LabLens</a></h4>
+                           <p>Reads lab reports into results you can check against the original and follow over time.</p>
+                           <p class="catalogue-who">For clinics</p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/medguard">MedGuard</a></h4>
+                           <p>Compares medicine lists from every source and raises questions for a doctor or pharmacist to review.</p>
+                           <p class="catalogue-who">For clinics</p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/skin">Skin Cancer Detection</a></h4>
+                           <p>A research screening aid that gives doctors an early second opinion, with a heatmap of what it looked at.</p>
+                           <p class="catalogue-who">For doctors <a class="catalogue-more" href="skin_cancer_hiw.html">How it works</a></p>
+                        </article>
+                     </div>
+                  </section>
+                  <section class="catalogue-stage">
+                     <h3>After the visit</h3>
+                     <div class="catalogue-tools">
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/prescription">Prescription Analyzer</a></h4>
+                           <p>Reads a prescription photo, asks you to confirm each medicine, then explains it in plain words.</p>
+                           <p class="catalogue-who">For patients <a class="catalogue-more" href="prescription_analyzer_hiw.html">How it works</a></p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/referrals">ReferralLoop</a></h4>
+                           <p>Follows a referral from request to returned outcome, so it can't quietly get lost.</p>
+                           <p class="catalogue-who">For clinics</p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/discharge">DischargeCare</a></h4>
+                           <p>Turns a discharge plan into a checklist for the family and tracked tasks for the team.</p>
+                           <p class="catalogue-who">For patients and clinics</p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/chroniccare">ChronicCare</a></h4>
+                           <p>Tracks readings, symptoms and medicines around a plan your clinician approved.</p>
+                           <p class="catalogue-who">For patients and clinics</p>
+                        </article>
+                     </div>
+                  </section>
+                  <section class="catalogue-stage">
+                     <h3>Long-term programmes</h3>
+                     <div class="catalogue-tools">
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/materna">MaternaCare</a></h4>
+                           <p>Keeps pregnancy and postnatal care in one place, and sends every worry to a named person.</p>
+                           <p class="catalogue-who">For patients and clinics</p>
+                        </article>
+                        <article class="catalogue-tool">
+                           <h4><a href="care.html#/amr">AMR Guard</a></h4>
+                           <p>For hospital stewardship teams: local antibiograms, culture follow-up and review records.</p>
+                           <p class="catalogue-who">For hospitals</p>
+                        </article>
+                     </div>
+                  </section>
+                  <section class="catalogue-stage">
+                     <h3>Access for everyone</h3>
+                     <div class="catalogue-tools">
+                        <article class="catalogue-tool">
+                           <h4><a href="optikinesis_hiw.html">OptiKinesis</a></h4>
+                           <p>Control a computer with head movements and blinks, using an ordinary webcam. A free beta for Windows.</p>
+                           <p class="catalogue-who">For people who can't use their hands</p>
+                        </article>
+                     </div>
+                  </section>
+               </div>
             </div>
-        </div>        
          </div>
-            <div class="circle-blur-middle-left safari"></div>
-         </div>
-         
          <div id="FAQ" class="section grain testimonial">
             <div class="container centred">
                <div class="center-div margin-xxl">
@@ -202,16 +252,25 @@
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Diagnosia is a healthcare platform with four AI tools: DiagnoFast, Skin Cancer Detection, Prescription Analyzer and OptiKinesis. They help doctors work faster and help patients understand their care.<br></p>
+                        <p class="faq-answer">A healthcare platform for India with twelve AI tools on one patient record. It follows a patient from the waiting room to long-term care, gives doctors back their time, and helps patients understand their care.</p>
                      </div>
                   </div>
                   <div class="faq-block">
                      <div class="faq-top">
-                        <h5 class="margin-0">How accurate is the skin cancer detection?</h5>
+                        <h5 class="margin-0">Which tools are there, and who are they for?</h5>
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">It's a research demo, not a diagnosis. It gives doctors a second opinion with a confidence score, and a doctor's judgement and a biopsy are still needed.</p>
+                        <p class="faq-answer">Before the visit: DiagnoFast. During it: ClinScribe, LabLens, MedGuard and Skin Cancer Detection. After it: Prescription Analyzer, ReferralLoop, DischargeCare and ChronicCare. For long-term care: MaternaCare and AMR Guard. OptiKinesis is for anyone who can't use their hands. Each tool shows you only what fits your account.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">Do I need a separate account for each tool?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">No. One sign-in opens everything, and the patient you have open stays with you as you move between tools. Doctors and other clinic staff are verified by their organization before clinical tools open. Patients answering a DiagnoFast interview need no account at all.</p>
                      </div>
                   </div>
                   <div class="faq-block">
@@ -220,7 +279,34 @@
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">DiagnoFast asks the patient questions out loud in their own language while they wait, fills in the doctor's custom form from their answers, and gives the doctor a one-page report.<br></p>
+                        <p class="faq-answer">Reception creates a single-use link for each patient. The patient answers spoken questions in Hindi or English while they wait, or types instead. It fills in the doctor's own form and writes a one-page report. Urgent symptoms such as chest pain stop the interview and send the patient to reception. It never diagnoses.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">What does ClinScribe do with my consultation?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">With the patient's consent, it transcribes the consultation and drafts a note. It flags anything the transcript doesn't support, and nothing reaches the record until a clinician signs. The audio isn't kept.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">How do LabLens and MedGuard help?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">LabLens reads a lab report and shows each result beside the original, so a person can confirm it. MedGuard lines up medicine lists to find shared ingredients and allergy matches. Its interaction rules stay off until a pharmacist has reviewed them, and it tells you what it didn't check.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">How accurate is the skin cancer detection?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">It's a research demo, not a diagnosis, and not an approved medical device. On 3,619 unseen images it sent 90.1% of melanomas for referral, and also 42.7% of harmless lesions, so it's a cautious screener rather than a precise classifier. A doctor's judgement and a biopsy are still needed.</p>
                      </div>
                   </div>
                   <div class="faq-block">
@@ -229,7 +315,25 @@
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">Just a clear photo of your prescription. It explains each medicine and when to take it, and what to eat and avoid. It never changes a dose, and if it can't read something it tells you to check with your pharmacist.</p>
+                        <p class="faq-answer">A clear photo of your prescription, or up to four if it has several sides. You confirm each medicine, then it explains how to take it and what to eat and avoid, in Hindi or English. It never changes a dose. Anything it can't read goes on a list for your pharmacist.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">What happens after the visit?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">ReferralLoop follows a referral until the outcome comes back. DischargeCare gives the family a checklist and the team tracked tasks. ChronicCare tracks readings around a plan your clinician approved. Reminders that aren't confirmed become follow-up work for staff, so nobody is quietly missed.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">What are MaternaCare and AMR Guard?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">MaternaCare keeps pregnancy and postnatal care in one place and sends every worry to a named person. AMR Guard helps hospital stewardship teams with local antibiograms, culture follow-up and review records. Neither one recommends a treatment.</p>
                      </div>
                   </div>
                   <div class="faq-block">
@@ -239,6 +343,33 @@
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
                         <p class="faq-answer">OptiKinesis lets people who can't use their hands control a computer with head movements and blinks, using an ordinary webcam. It's a free beta download for Windows.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">Who can see my health information?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">Only people on your care team, and you can see who opened your record. Consent is recorded for each purpose, such as AI drafting or sharing a referral, and revoking it takes effect straight away. Stored documents and recordings are encrypted.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">Is my information sent to outside services?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">Yes, when a tool needs AI. Text, photos and speech go to Groq in the United States, or to Google Gemini when Groq is down, and medicine names go to public drug references. Prescription and skin photos aren't kept. That's why this pilot uses made-up patients only. Our privacy notice has the details.</p>
+                     </div>
+                  </div>
+                  <div class="faq-block">
+                     <div class="faq-top">
+                        <h5 class="margin-0">Can a clinic use Diagnosia with real patients today?</h5>
+                        <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                     </div>
+                     <div class="faq-bottom" style="height: 0px;">
+                        <p class="faq-answer">Not yet. Diagnosia is a pilot for synthetic data only. Real patient use needs clinical review, legal and regulatory approval, a data agreement with our AI provider, and an independent security test. The application refuses to accept real patient data until those are recorded.</p>
                      </div>
                   </div>
                   <div class="faq-block">
@@ -253,7 +384,7 @@
                </div>
                <h4>Have more questions?</h4>
                <p class="paragraph-m text-centred margin-l">Mail us at diagnosia.health@gmail.com and we'll reach out to you as soon as possible.</p>
-               <a href="mailto:teambrackets.india@gmail.com" class="button secondary small w-button">mail us</a>
+               <a href="mailto:diagnosia.health@gmail.com" class="button secondary small w-button">mail us</a>
             </div>
             <div class="circle-blur-bottom-right safari"></div>
          </div>
@@ -266,7 +397,7 @@
                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3500.256277381642!2d77.16827687541627!3d28.68197947563779!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0244ccdd9561%3A0x3df6d72cef2f0888!2sMaharaja%20Agarsain%20Public%20School!5e0!3m2!1sen!2sin!4v1716310555324!5m2!1sen!2sin" style="border:1px; border-radius: 15px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                      </div>
                      <div class="text1">
-                       <p style="font-size: 18px;">At Diagnosia, we are a passionate team of two students—Tanish Tomar, Khushal Goel of Maharaja Agarsain Public School. Our revolutionary medical website is designed to empower users with accurate symptom analysis, advanced skin cancer detection, and a seamless Doctors Directory. Driven by innovation and a commitment to improving healthcare access, we strive to provide a user-friendly platform that supports better health outcomes for everyone.</p>
+                       <p style="font-size: 18px;">At Diagnosia, we are a passionate team of two students—Tanish Tomar, Khushal Goel of Maharaja Agarsain Public School. Diagnosia brings twelve tools together around one patient record, so doctors get back their time and patients understand their care. Driven by innovation and a commitment to improving healthcare access, we strive to provide a user-friendly platform that supports better health outcomes for everyone.</p>
                      </div>
                    </div>
                </div>
@@ -292,5 +423,6 @@
          </div>
       </div>
       <script src="./js/jquery.min.js" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script><script src="./js/index.js" type="text/javascript"></script>
+      <script src="js/site.js"></script>
    </body>
 </html>

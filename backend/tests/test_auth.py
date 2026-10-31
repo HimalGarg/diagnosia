@@ -145,7 +145,7 @@ def test_sql_injection_in_name_is_stored_as_plain_text(client, details):
 
 
 def test_require_doctor_refuses_patients():
-    doctor = {"role": "doctor"}
+    doctor = {"role": "doctor", "account_status": "verified"}
     assert require_doctor(doctor) is doctor
     with pytest.raises(HTTPException) as refused:
         require_doctor({"role": "patient"})

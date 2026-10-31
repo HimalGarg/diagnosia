@@ -110,30 +110,32 @@ which can be monitored.
 
 ### How it works
 
-1. **Capture.** The doctor or an assistant takes a photo of the lesion with a
-   phone camera or a dermatoscope and uploads it.
-2. **Stage 1: Is it suspicious?** A first neural network decides whether the
-   image looks like healthy skin or a possible lesion.
-3. **Stage 2: What type could it be?** If it looks suspicious, a second,
-   stronger network (based on EfficientNet-B0) estimates which of these it is
-   most likely to be:
+1. **Capture.** The doctor or an assistant takes a dermoscopic image of the
+   lesion and uploads it. Phone photos are accepted with a warning, because the
+   model was trained on dermoscopic images.
+2. **Is this a lesion image at all?** Anything unlike the training images, such
+   as a blurry photo or the wrong picture, is marked "uncertain" and gets no
+   score.
+3. **What type could it be?** A classifier built on PanDerm, a dermatology AI
+   model published in Nature Medicine, estimates which of these it most
+   resembles:
 
    | Code | Condition | Type |
    |---|---|---|
-   | `mel` | Melanoma | Malignant (most dangerous) |
-   | `bcc` | Basal cell carcinoma | Malignant |
-   | `akiec` | Actinic keratoses / intraepithelial carcinoma (Bowen's disease) | Pre-cancerous or early cancer |
-   | `bkl` | Benign keratosis-like lesions | Benign |
-   | `df` | Dermatofibroma | Benign |
-   | `nv` | Melanocytic nevi (moles) | Benign |
-   | `vasc` | Vascular lesions | Usually benign |
-   | `healthy` | Healthy skin | — |
+   | `MEL` | Melanoma | Malignant (most dangerous) |
+   | `BCC` | Basal cell carcinoma | Malignant |
+   | `SCC` | Squamous cell carcinoma | Malignant |
+   | `AK` | Actinic keratosis | Pre-cancerous |
+   | `BKL` | Benign keratosis-like lesions | Benign |
+   | `DF` | Dermatofibroma | Benign |
+   | `NV` | Melanocytic nevi (moles) | Benign |
+   | `VASC` | Vascular lesions | Usually benign |
 
 4. **Report for the doctor.** The doctor sees:
    - the most likely conditions, ranked with confidence scores;
-   - a **highlight map** showing which parts of the image drove the result,
-     so the doctor can check the model's reasoning instead of trusting a bare
-     number;
+   - a **highlight map** showing which parts of the image raised the concern
+     score, measured by hiding each part of the image in turn. The doctor can
+     see when the model is relying on the lesion, and when it isn't;
    - a suggested priority, for example *"refer for biopsy soon"* or *"monitor
      and review"*.
 5. **The doctor decides.** The final call on biopsies, scans or treatment
@@ -141,16 +143,35 @@ which can be monitored.
 
 ### Training data
 
-The models are trained on **HAM10000** ("Human Against Machine with 10,000
-training images"), a widely used public collection of dermatoscopic images of
-skin lesions, published on the Harvard Dataverse. Healthy skin images were added
-to it.
+The classifier is trained on the **ISIC 2019** training set: 25,331 dermoscopic
+images from 13,931 lesions, drawn from BCN20000, HAM10000 and MSK. All photos of
+one lesion stay in the same split, so the test results aren't inflated.
+
+### Measured results
+
+Measured on 3,619 images the model never saw during training:
+
+| Measure | Result |
+|---|---|
+| Ranking across all conditions (AUROC) | 0.934 |
+| Ranking melanoma against everything else (AUROC) | 0.881 |
+| Naming the exact condition (balanced accuracy) | 60.5% |
+| Concerning lesions sent for referral | 94.3% |
+| Melanomas sent for referral | 90.1% |
+| Benign lesions also sent for referral | 42.7% |
+| Real lesions marked "uncertain" | 1.2% |
+
+All 95 non-skin test images were marked "uncertain". These are research results
+on dermoscopic data from mostly lighter skin, not clinical validation.
 
 ### Responsible use
 
 - The tool supports a doctor's judgement; it never replaces it.
-- HAM10000 mostly contains images of lighter skin. Before wide use in India,
-  the models need to be retrained and tested on Indian skin tones.
+- ISIC 2019 mostly contains images of lighter skin. Before wide use in India,
+  the model needs to be retrained and tested on Indian skin tones.
+- The current model is a research demo. PanDerm is licensed for non-commercial
+  academic research only (CC-BY-NC-ND 4.0), and ISIC 2019 is non-commercial
+  (CC-BY-NC), so the model must be replaced before this tool is sold.
 - Accuracy will be measured against biopsy-confirmed cases before any clinical
   claims are made, and the tool will go through the regulatory review that
   medical software needs in India.
@@ -306,7 +327,8 @@ and medicine information for a disease chosen from a list.
 
 ### How it works
 
-1. **The patient takes a photo** of the prescription, handwritten or printed.
+1. **The patient takes a photo** of the prescription, handwritten or printed,
+   with up to four photos for the front and back.
 2. **AI reads it.** Handwriting recognition picks out medicine names, doses,
    timings, duration, the doctor's notes and any follow-up date.
 3. **It decodes the shorthand.** Common prescription notation becomes plain
@@ -378,14 +400,14 @@ principles apply across every tool:
 ## 9. Current status
 
 Diagnosia began as a school project in 2023 with a set of basic health tools.
-It is now being rebuilt around the four tools described above.
+It is now being rebuilt around the four tools described above, joined by eight more on one shared patient record.
 
 | Tool | Status |
 |---|---|
-| **Skin Cancer Detection** | Working prototype: both models are trained on HAM10000 and run in a web app. Being redesigned as a doctor-facing tool with proper highlight maps and validation. |
-| **DiagnoFast** | In design. Replaces the old Symptom Checker. |
-| **OptiKinesis** | Working Windows prototype: head-pose cursor, 5-point calibration, blink click, keyboard with word suggestions and voice typing, web reader and SOS. MotionGlass is planned. |
-| **Prescription Analyzer** | In design. Replaces the old Prescription Generator. |
+| **Skin Cancer Detection** | Working research demo with measured results (see section 3). Not clinically validated, and not licensed for sale. |
+| **DiagnoFast** | Built: voice interview, per-doctor forms, doctor dashboard and report. Tested with stand-ins for the AI and speech services; not yet run with live services. ABHA records are simulated and labelled as demo data. |
+| **OptiKinesis** | Working Windows prototype: head-pose cursor, 5-point calibration, blink click, keyboard with word suggestions and voice typing, web reader and SOS. The free beta download leaves out the web reader, email and SOS. MotionGlass is planned. |
+| **Prescription Analyzer** | Built: photo reading, shorthand decoding, patient confirmation and plain-language guidance. Tested with stand-ins for the AI and speech services; not yet run with live services or real prescriptions. |
 
 The earlier basic features (the Talkie chatbot, Curl Counter, BMI Calculator
 and DocFinder doctor directory) have been removed to keep Diagnosia focused.
@@ -396,13 +418,13 @@ and DocFinder doctor directory) have been removed to keep Diagnosia focused.
 
 | Area | Technology |
 |---|---|
-| Skin lesion analysis | TensorFlow / Keras, EfficientNet-B0, OpenCV; trained on HAM10000 |
+| Skin lesion analysis | PyTorch, PanDerm (ViT-L) encoder, a classifier trained on ISIC 2019 |
 | Head and face tracking (OptiKinesis) | MediaPipe Face Landmarker, OpenCV, PyQt5 desktop overlay, PyAutoGUI |
-| Voice questions and answers (DiagnoFast) | Text-to-speech and speech-to-text for Indian languages |
-| Form filling and summaries (DiagnoFast) | An AI agent built on a large language model |
+| Voice questions and answers (DiagnoFast) | Groq speech-to-text and English voice, with the browser's voice for Hindi |
+| Form filling and summaries (DiagnoFast) | A controlled interview loop using open models on Groq |
 | Health records (DiagnoFast) | ABHA / Ayushman Bharat Digital Mission integration, with patient consent |
-| Prescription reading | Handwriting recognition with a vision-capable AI model |
-| Web platform | Web front end, with a back end for doctor accounts, forms and reports |
+| Prescription reading | Open vision models on Groq, plain rules for decoding shorthand, and a check against about 250,000 Indian medicine listings |
+| Web platform | HTML, CSS and JavaScript front end; FastAPI and SQLite back end |
 
 ---
 

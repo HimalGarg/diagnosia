@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/skin")
 def classifier_dependency() -> SkinClassifier:
     try:
         return get_classifier()
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, OSError, ImportError):  # weights missing, or torch not installed
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE, "The skin model isn't installed yet."
         ) from None

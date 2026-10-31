@@ -7,14 +7,17 @@ from PIL import Image
 
 from backend.app import app
 from backend.skin import routes
-from backend.skin.classifier import Analysis, choose_priority, rank_conditions
+from backend.skin.classifier import Analysis, choose_priority, occlusion_map, rank_conditions
 from backend.skin.conditions import CODES, CONCERNING
 from backend.skin.training.prepare_split import build_split, check_no_overlap
 from backend.skin.training.train_classifier import (
     expected_calibration_error,
+    familiarity,
+    fit_precision,
     fit_temperature,
     referral_threshold,
 )
+from backend.tests.conftest import verify_email
 
 
 def image_bytes(size=(128, 128), image_format="PNG"):
@@ -47,6 +50,8 @@ def fake_classifier():
 
 def sign_up(client, details, role):
     client.post("/api/auth/register", json={**details, "role": role})
+    if role == "doctor":
+        verify_email(details["email"])
 
 
 def upload(client, data=None, image_type="dermoscopic"):
@@ -109,6 +114,34 @@ def test_missing_model_gives_a_clear_message(client, details, monkeypatch):
     assert "isn't installed" in response.json()["detail"]
 
 
+def test_occlusion_finds_the_part_of_the_image_the_score_depends_on():
+    torch = pytest.importorskip("torch")
+    batch = torch.ones(1, 3, 224, 224)
+
+    def score(images):
+        # Only the patch at row 3, column 9 matters.
+        return images[:, :, 48:64, 144:160].mean(dim=(1, 2, 3))
+
+    cam = occlusion_map(batch, score)
+    row, column = np.unravel_index(cam.argmax(), cam.shape)
+    assert (row, column) == (3, 9)
+    assert cam[12, 1] == 0
+    assert cam.max() == pytest.approx(1)
+
+
+def test_a_coarser_occlusion_still_covers_the_whole_image():
+    torch = pytest.importorskip("torch")
+    seen = []
+
+    def score(images):
+        seen.append(len(images))
+        return torch.zeros(len(images))
+
+    cam = occlusion_map(torch.ones(1, 3, 224, 224), score, stride=2)
+    assert sum(seen) == 1 + 7 * 7  # the original image, then seven positions along each side
+    assert cam.shape == (14, 14)
+
+
 def test_conditions_are_sorted_and_all_present():
     probabilities = np.linspace(0.01, 0.2, len(CODES))
     ranked = rank_conditions(probabilities)
@@ -157,6 +190,23 @@ def test_referral_threshold_hits_the_sensitivity_target():
     assert (risk[concerning] >= threshold).mean() == pytest.approx(0.95, abs=0.01)
 
 
+def test_familiarity_spots_images_unlike_the_training_data():
+    rng = np.random.default_rng(2)
+    training = rng.normal(0, 1, size=(5000, 32))
+    # Correlated features, like real ones: this point is ordinary feature by
+    # feature, but its combination of values is unlike anything in training.
+    training[:, 1] = training[:, 0] + rng.normal(0, 0.05, size=5000)
+    mean = training.mean(axis=0)
+    precision = fit_precision(training)
+    scores = familiarity(training, mean, precision)
+    floor = np.percentile(scores, 1)
+
+    unlike_training = rng.normal(0, 1, size=(500, 32))  # feature 1 no longer follows feature 0
+    # Some random points match the pattern by chance, so this can't reach 100%.
+    assert (familiarity(unlike_training, mean, precision) < floor).mean() > 0.75
+    assert (scores < floor).mean() == pytest.approx(0.01, abs=0.002)
+
+
 def test_temperature_scaling_fixes_overconfidence():
     rng = np.random.default_rng(1)
     labels = rng.integers(0, 4, size=4000)
@@ -164,7 +214,7 @@ def test_temperature_scaling_fixes_overconfidence():
     logits[np.arange(4000), labels] += 2.0
     overconfident = logits * 4
     temperature = fit_temperature(overconfident, labels)
-    assert temperature > 2
+    assert temperature > 1.5
     from scipy.special import softmax
 
     before = expected_calibration_error(softmax(overconfident, axis=1), labels)

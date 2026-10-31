@@ -1,0 +1,51 @@
+{
+  "version": "2026.10-starter",
+  "jurisdiction": "India",
+  "effective_date": "2026-10-31",
+  "review_status": "unreviewed",
+  "review_owner": null,
+  "update_cadence": "not set",
+  "note": "A deliberately small starter set of widely recognised interactions, so the workflow can be tested. It is far from complete: no alert does not mean no interaction. A qualified pharmacist must review, replace or license this content before clinical use.",
+  "rules": [
+    {"id": "vka-nsaid", "a": {"class": "vitamin_k_antagonist"}, "b": {"class": "nsaid"}, "severity": "high", "summary": "Possible raised bleeding risk", "basis": "An anticoagulant combined with an NSAID"},
+    {"id": "vka-aspirin", "a": {"class": "vitamin_k_antagonist"}, "b": {"ingredient": "aspirin"}, "severity": "high", "summary": "Possible raised bleeding risk", "basis": "An anticoagulant combined with an antiplatelet"},
+    {"id": "vka-fluoroquinolone", "a": {"class": "vitamin_k_antagonist"}, "b": {"class": "fluoroquinolone"}, "severity": "moderate", "summary": "Possible raised anticoagulant effect", "basis": "Reported effect on INR"},
+    {"id": "vka-macrolide", "a": {"class": "vitamin_k_antagonist"}, "b": {"class": "macrolide"}, "severity": "moderate", "summary": "Possible raised anticoagulant effect", "basis": "Reported effect on INR"},
+    {"id": "nitrate-pde5", "a": {"class": "nitrate"}, "b": {"class": "pde5_inhibitor"}, "severity": "high", "summary": "Possible severe fall in blood pressure", "basis": "Additive vasodilation"},
+    {"id": "acei-k-sparing", "a": {"class": "ace_inhibitor"}, "b": {"class": "potassium_sparing_diuretic"}, "severity": "moderate", "summary": "Possible raised potassium", "basis": "Both can raise serum potassium"},
+    {"id": "arb-k-sparing", "a": {"class": "arb"}, "b": {"class": "potassium_sparing_diuretic"}, "severity": "moderate", "summary": "Possible raised potassium", "basis": "Both can raise serum potassium"},
+    {"id": "acei-nsaid", "a": {"class": "ace_inhibitor"}, "b": {"class": "nsaid"}, "severity": "moderate", "summary": "Possible reduced kidney function and blood pressure control", "basis": "Combined effect on renal blood flow"},
+    {"id": "arb-nsaid", "a": {"class": "arb"}, "b": {"class": "nsaid"}, "severity": "moderate", "summary": "Possible reduced kidney function and blood pressure control", "basis": "Combined effect on renal blood flow"},
+    {"id": "lithium-nsaid", "a": {"ingredient": "lithium"}, "b": {"class": "nsaid"}, "severity": "high", "summary": "Possible raised lithium level", "basis": "Reduced renal lithium clearance"},
+    {"id": "methotrexate-trimethoprim", "a": {"ingredient": "methotrexate"}, "b": {"ingredient": "trimethoprim"}, "severity": "high", "summary": "Possible bone marrow suppression", "basis": "Additive antifolate effect"},
+    {"id": "methotrexate-nsaid", "a": {"ingredient": "methotrexate"}, "b": {"class": "nsaid"}, "severity": "moderate", "summary": "Possible raised methotrexate level", "basis": "Reduced renal methotrexate clearance"},
+    {"id": "simvastatin-clarithromycin", "a": {"ingredient": "simvastatin"}, "b": {"class": "strong_cyp3a4_inhibitor"}, "severity": "high", "summary": "Possible muscle damage", "basis": "Raised statin level from CYP3A4 inhibition"},
+    {"id": "ssri-maoi", "a": {"class": "ssri"}, "b": {"class": "maoi"}, "severity": "high", "summary": "Possible serotonin syndrome", "basis": "Additive serotonergic effect"},
+    {"id": "ssri-nsaid", "a": {"class": "ssri"}, "b": {"class": "nsaid"}, "severity": "moderate", "summary": "Possible raised bleeding risk", "basis": "Reported additive effect on bleeding"},
+    {"id": "clopidogrel-omeprazole", "a": {"ingredient": "clopidogrel"}, "b": {"ingredient": "omeprazole"}, "severity": "moderate", "summary": "Possible reduced clopidogrel effect", "basis": "CYP2C19 inhibition"},
+    {"id": "digoxin-amiodarone", "a": {"ingredient": "digoxin"}, "b": {"ingredient": "amiodarone"}, "severity": "high", "summary": "Possible raised digoxin level", "basis": "Reduced digoxin clearance"},
+    {"id": "levothyroxine-calcium", "a": {"ingredient": "levothyroxine"}, "b": {"class": "calcium_supplement"}, "severity": "moderate", "summary": "Possible reduced levothyroxine absorption", "basis": "Binding in the gut when taken together"},
+    {"id": "ciprofloxacin-tizanidine", "a": {"ingredient": "ciprofloxacin"}, "b": {"ingredient": "tizanidine"}, "severity": "high", "summary": "Possible severe fall in blood pressure and sedation", "basis": "CYP1A2 inhibition"},
+    {"id": "ciprofloxacin-theophylline", "a": {"ingredient": "ciprofloxacin"}, "b": {"ingredient": "theophylline"}, "severity": "moderate", "summary": "Possible raised theophylline level", "basis": "CYP1A2 inhibition"}
+  ],
+  "allergy_cross_reactions": [
+    {"id": "penicillin-cephalosporin", "allergy_class": "penicillin", "drug_class": "cephalosporin", "summary": "Possible cross-reaction between penicillins and cephalosporins"}
+  ],
+  "allergy_terms": {
+    "penicillin": "penicillin",
+    "penicillins": "penicillin",
+    "cephalosporin": "cephalosporin",
+    "cephalosporins": "cephalosporin",
+    "nsaid": "nsaid",
+    "nsaids": "nsaid",
+    "sulfa": "sulfonamide",
+    "sulpha": "sulfonamide",
+    "sulfonamide": "sulfonamide",
+    "macrolide": "macrolide",
+    "macrolides": "macrolide",
+    "quinolone": "fluoroquinolone",
+    "fluoroquinolone": "fluoroquinolone",
+    "statin": "statin",
+    "statins": "statin"
+  }
+}

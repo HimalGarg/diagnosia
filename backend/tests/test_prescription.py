@@ -5,7 +5,7 @@ import pytest
 from PIL import Image
 
 from backend import llm
-from backend.prescription import analyzer
+from backend.prescription import analyzer, routes
 from backend.prescription.analyzer import (
     ConfirmedMedicine,
     Guidance,
@@ -71,6 +71,32 @@ def test_shorthand_is_decoded(raw, expected):
 @pytest.mark.parametrize("raw", ["", "as directed", "squiggle", "1-2", "10-0-1", "1-0-1-0-1"])
 def test_unknown_shorthand_is_never_guessed(raw):
     assert decode(raw) is None
+
+
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("1 - 1", "One in the morning, none in the afternoon, one at night"),
+        ("- 1 -", "None in the morning, one in the afternoon, none at night"),
+        ("x x 1", "None in the morning, none in the afternoon, one at night"),
+        ("1 x 1", "One in the morning, none in the afternoon, one at night"),
+        ("BBF", "Before breakfast"),
+    ],
+)
+def test_column_marks_and_bbf_are_decoded(raw, expected):
+    assert decode(raw) == expected
+
+
+def test_a_schedule_is_withheld_when_the_marks_disagree_with_the_frequency():
+    assert daily_slots("1 - 1", "BD") == {"morning": "one", "night": "one"}
+    assert daily_slots("- 1 -", "OD") == {"afternoon": "one"}
+    assert daily_slots("1 - 1", "OD") == {}
+    assert daily_slots("x x 1", "TDS") == {}
+
+
+def test_medicines_taken_when_needed_never_get_a_fixed_time():
+    assert daily_slots("x x 1", "SOS") == {}
+    assert daily_slots("1-0-1", "PRN") == {}
 
 
 def test_ordinary_words_are_not_mistaken_for_shorthand():
@@ -141,6 +167,15 @@ def test_nothing_is_sent_when_nothing_could_be_read(monkeypatch):
     assert result["ask_pharmacist"] == ["A medicine we couldn't read"]
 
 
+def test_doctors_notes_and_ingredients_reach_the_explanation(monkeypatch):
+    ai = RecordingAI(guidance())
+    monkeypatch.setattr(llm, "ask", ai)
+    entry = medicine().model_copy(update={"contains": "Amoxycillin"})
+    explain_prescription([entry], "en-IN", doctor_notes="Bronchiectasis")
+    assert "Bronchiectasis" in ai.calls[0]["content"]
+    assert "Amoxycillin" in ai.calls[0]["content"]
+
+
 def test_the_explanation_prompt_forbids_changing_doses():
     text = analyzer.EXPLAIN_SYSTEM.lower()
     assert "never change a dose" in text
@@ -185,8 +220,9 @@ def read_result():
                 {
                     "name": {"value": "Amoxicillin", "legibility": "unsure"},
                     "dose": {"value": "500 mg", "legibility": "clear"},
-                    "frequency": {"value": "1-0-1", "legibility": "clear"},
-                    "duration": {"value": "x 5 days", "legibility": "clear"},
+                    "frequency": {"value": "BD", "legibility": "clear"},
+                    "day_pattern": {"value": "1-0-1", "legibility": "clear"},
+                    "duration": {"value": "5 days", "legibility": "clear"},
                     "notes": empty,
                 }
             ],
@@ -196,10 +232,10 @@ def read_result():
     )
 
 
-def post_photo(client, consent="true"):
+def post_photo(client, consent="true", photos=1):
     return client.post(
         "/api/prescription/read",
-        files={"image": ("rx.jpg", photo_bytes(), "image/jpeg")},
+        files=[("images", (f"rx{n}.jpg", photo_bytes(), "image/jpeg")) for n in range(photos)],
         data={"consent": consent},
     )
 
@@ -233,8 +269,45 @@ def test_the_photo_is_sent_as_an_image_to_the_ai(client, details, monkeypatch):
     monkeypatch.setattr(llm, "ask", ai)
     signed_in(client, details)
     post_photo(client)
-    assert ai.calls[0]["content"][0]["type"] == "image"
+    first = ai.calls[0]["content"][0]
+    assert first["type"] == "image"
+    assert first["source"]["media_type"] == "image/jpeg"
+    assert first["source"]["data"]
     assert ai.calls[0]["schema"] is ReadPrescription
+
+
+def test_front_and_back_photos_are_read_as_one_prescription(client, details, monkeypatch):
+    ai = RecordingAI(read_result())
+    monkeypatch.setattr(llm, "ask", ai)
+    signed_in(client, details)
+    assert post_photo(client, photos=2).status_code == 200
+    assert len(ai.calls) == 1
+    content = ai.calls[0]["content"]
+    assert [part["type"] for part in content] == ["image", "image", "text"]
+    assert "2 photos" in content[-1]["text"]
+
+
+def test_too_many_photos_are_refused(client, details, monkeypatch):
+    ai = RecordingAI(read_result())
+    monkeypatch.setattr(llm, "ask", ai)
+    signed_in(client, details)
+    assert post_photo(client, photos=routes.MAX_PHOTOS + 1).status_code == 422
+    assert ai.calls == []
+
+
+@pytest.mark.parametrize(
+    "status, expected",
+    [("found", "clear"), ("unchecked", "clear"), ("close", "unsure"), ("not_found", "unsure")],
+)
+def test_a_name_not_on_the_medicine_list_must_be_checked(client, details, monkeypatch, status, expected):
+    result = read_result()
+    result.medicines[0].name.legibility = "clear"
+    monkeypatch.setattr(llm, "ask", RecordingAI(result))
+    monkeypatch.setattr(analyzer, "check_name", lambda name: {"status": status, "name": None, "contains": None})
+    signed_in(client, details)
+    entry = post_photo(client).json()["medicines"][0]
+    assert entry["name"]["legibility"] == expected
+    assert entry["name"]["value"] == "Amoxicillin"  # never changed
 
 
 def test_explain_endpoint_returns_a_schedule(client, details, monkeypatch):
@@ -257,3 +330,13 @@ def test_ai_outage_gives_a_clear_message(client, details, monkeypatch):
     response = post_photo(client)
     assert response.status_code == 503
     assert "no key" not in response.text
+
+
+def test_more_photos_than_one_vision_request_takes_are_read_in_groups(client, details, monkeypatch):
+    ai = RecordingAI(read_result())
+    monkeypatch.setattr(llm, "ask", ai)
+    signed_in(client, details)
+    response = post_photo(client, photos=routes.MAX_PHOTOS)
+    assert response.status_code == 200
+    assert [sum(part["type"] == "image" for part in call["content"]) for call in ai.calls] == [3, 1]
+    assert len(response.json()["medicines"]) == 2 * len(read_result().medicines)

@@ -1,4 +1,15 @@
 // Sign in and sign up against the Diagnosia API.
+
+// Back to the tool that sent them here. Only places inside the workspace are accepted.
+function destination() {
+    const next = new URLSearchParams(window.location.search).get('next') || '';
+    return /^care\.html(#\/[a-z0-9/-]*)?$/.test(next) ? next : 'care.html';
+}
+
+fetch('/api/me').then((response) => {
+    if (response.ok) window.location.replace(destination());
+}).catch(() => {});
+
 async function submitAuth(form, url, body) {
     const error = form.querySelector('.form-error');
     error.hidden = true;
@@ -9,7 +20,7 @@ async function submitAuth(form, url, body) {
             body: JSON.stringify(body),
         });
         if (response.ok) {
-            window.location.href = 'index.html';
+            window.location.href = destination();
             return;
         }
         const data = await response.json().catch(() => ({}));

@@ -38,3 +38,12 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Real prescriptions must never reach GitHub
+Prescriptions*.jpg
+Prescriptions*.jpeg
+Prescriptions*.png
+Prescriptions*.pdf
+
+# Test audio
+sarvam_first_call.wav

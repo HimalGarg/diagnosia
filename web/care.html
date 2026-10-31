@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="robots" content="noindex">
+   <title>Diagnosia</title>
+   <link rel="stylesheet" href="css/care.css">
+   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+</head>
+<body>
+   <a class="skip" href="#main">Skip to the main content</a>
+   <div id="pilot-banner" class="pilot-banner" role="status">Pilot software. Use synthetic data only. Not for patient care.</div>
+   <header class="topbar">
+      <a class="brand" href="#/home" aria-label="Diagnosia home"><img src="images/logo_inv.svg" alt="" width="155" height="34"></a>
+      <button class="link-button" id="open-nav" type="button" aria-expanded="false" aria-controls="rail">Tools</button>
+      <div class="topbar-actions">
+         <a class="link-button" href="index.html#FAQ">Help</a>
+         <a class="link-button" href="#/inbox" id="inbox-link">Inbox <span id="inbox-count"></span></a>
+         <a class="link-button" href="#/account" id="who"></a>
+         <button class="link-button" id="sign-out" type="button">Sign out</button>
+      </div>
+   </header>
+   <section id="wristband" class="wristband" aria-label="Current patient"></section>
+   <div class="shell">
+      <nav id="rail" class="rail" aria-label="Tools"></nav>
+      <main id="main" class="chart" tabindex="-1"></main>
+   </div>
+   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+   <script type="module" src="js/care/app.js"></script>
+</body>
+</html>

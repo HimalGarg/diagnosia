@@ -149,3 +149,9 @@ select{
     font-size:14px;
     margin:0.5rem 0;
 }
+
+.form-note{
+    color:#757575;
+    font-size:.8rem;
+    margin:.25rem 0 .5rem;
+}

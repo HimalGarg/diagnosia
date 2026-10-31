@@ -5,6 +5,7 @@ research only, so neither is kept in this repository. Both live in the
 git-ignored datasets/ folder.
 """
 import importlib.util
+import sys
 from pathlib import Path
 
 import torch
@@ -17,14 +18,23 @@ ENCODER_WEIGHTS = ROOT_DIR / "backend" / "skin" / "weights" / "panderm_ll_data6_
 FEATURE_SIZE = 1024
 
 # The same preprocessing PanDerm uses for evaluation (models/builder.py).
+CROP = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224)])
 PREPROCESS = transforms.Compose(
     [
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        CROP,
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
     ]
 )
+
+
+def best_device() -> str:
+    """CUDA if there is one, then Apple's GPU, then the CPU. The same rule for training and use."""
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 def _load_panderm_module():
@@ -33,6 +43,7 @@ def _load_panderm_module():
     path = PANDERM_DIR / "models" / "modeling_finetune.py"
     spec = importlib.util.spec_from_file_location("panderm_modeling", path)
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # timm's @register_model looks the module up by name
     spec.loader.exec_module(module)
     return module
 
