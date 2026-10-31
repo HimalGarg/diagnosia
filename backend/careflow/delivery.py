@@ -24,10 +24,9 @@ MAX_BACKOFF_SECONDS = 3600
 JITTER = 0.2  # so several failing deliveries don't all retry at the same moment
 MIRROR_BATCH = 200
 VALIDATION_FAILED = 121  # MongoDB's code for a document the schema refuses
-HANDOFF_PURPOSE = {
-    "lab.report_confirmed": "Confirmed lab results are available to ChronicCare trends",
-    "prescription.sent_to_medguard": "Patient-confirmed medicines are available to MedGuard for review",
-}
+# No tool hands anything to another today, so there is nothing to describe here. A tool that does
+# adds the event's purpose, as fixed text.
+HANDOFF_PURPOSE: dict = {}
 
 
 def handoff_envelope(event: dict) -> dict:

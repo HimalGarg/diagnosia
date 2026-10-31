@@ -348,8 +348,6 @@ def setup_local(args) -> int:
     accounts = {
         "doctor": {"label": "Doctor and clinic administrator", "first_name": "Meera", "last_name": "Iyer", "role": "doctor", "profession": "doctor"},
         "specialist": {"label": "Specialist and centre administrator", "first_name": "Farah", "last_name": "Khan", "role": "doctor", "profession": "doctor"},
-        "pharmacist": {"label": "Pharmacist reviewer", "first_name": "Priya", "last_name": "Nair", "role": "doctor", "profession": "pharmacist"},
-        "pharmacist_two": {"label": "Second pharmacist reviewer", "first_name": "Sam", "last_name": "Roy", "role": "doctor", "profession": "pharmacist"},
         "laboratory": {"label": "Laboratory reviewer", "first_name": "Lata", "last_name": "Menon", "role": "doctor", "profession": "laboratory_professional"},
         "patient": {"label": "Patient", "first_name": "Ravi", "last_name": "Kumar", "role": "patient", "profession": None},
     }
@@ -379,7 +377,7 @@ def setup_local(args) -> int:
             ),
         }
         db.execute("UPDATE organizations SET specialities = 'Cardiology' WHERE id = ?", (organizations["specialist"],))
-        for name in ("pharmacist", "pharmacist_two", "laboratory"):
+        for name in ("laboratory",):
             staff.record_decision(
                 db, accounts[name]["id"], "verified", None, "operator:setup-local", evidence_type="Local demo setup",
                 evidence_reference="SYNTHETIC", verified_profession=accounts[name]["profession"],

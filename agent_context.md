@@ -45,8 +45,7 @@ backend/    One FastAPI app: accounts and one folder per tool.
   prescription/     analyzer.py, shorthand.py, medicines.py, routes.py
   diagnofast/       agent.py, abha.py, recordings.py, routes.py, forms/*.json
   records/          The shared patient record, access gate, audit, encrypted documents
-  clinscribe/ lablens/ medguard/ referralloop/ chroniccare/ dischargecare/
-  maternacare/ amrguard/ reminders/   One folder per tool, each with its schema.sql
+  clinscribe/ lablens/ referralloop/ dischargecare/ reminders/   One folder per tool, each with its schema.sql
   skin/             classifier.py, encoder.py, routes.py, training/, metrics.json
   careflow/         Activity timeline: event contract, outbox, delivery, routes
   integrations/     Optional Meko and YugabyteDB adapters, and AI run records
@@ -56,7 +55,7 @@ pitch/      Pitch material.
 datasets/, backend/skin/weights/, backend/storage/   Not in git (see below).
 ```
 
-Pages: `index.html` (the public site, one catalogue of all 12 tools), `care.html` (the workspace,
+Pages: `index.html` (the public site, one catalogue of all 8 tools), `care.html` (the workspace,
 where every tool runs), `*_hiw.html` info pages, the patient-facing `intake.html` (no account),
 `login.html`, `optikinesis_download.html`. `diagnofast.html`, `skin_cancer.html`,
 `prescription_analyzer.html` and `dashboard.html` only redirect into the workspace.

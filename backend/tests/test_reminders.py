@@ -122,7 +122,7 @@ def test_handing_to_a_provider_is_not_delivery(doctor, patient, provider):
 
 def test_outside_carriers_never_see_clinical_text(doctor, patient, provider):
     configured_for_sms(doctor, patient)
-    schedule(doctor, patient["id"], title="Check your blood sugar and Hb", module="maternacare")
+    schedule(doctor, patient["id"], title="Check your blood sugar and Hb", module="lablens")
     message = provider.sent[0][1].lower()
     assert "blood" not in message
     assert message == adapters.NEUTRAL_MESSAGE.lower()
@@ -210,18 +210,18 @@ def test_pending_staff_cannot_see_the_list(person):
     assert person("doctor", verified=False).get("/api/reminders/call-list").status_code == 403
 
 
-def test_the_list_can_be_filtered_to_maternacare(doctor, patient):
-    schedule(doctor, patient["id"], module="maternacare")
+def test_the_list_can_be_filtered_to_one_module(doctor, patient):
+    schedule(doctor, patient["id"], module="lablens")
     schedule(doctor, patient["id"], module="general")
-    assert len(doctor.get("/api/reminders/follow-up", params={"module": "maternacare"}).json()) == 1
+    assert len(doctor.get("/api/reminders/follow-up", params={"module": "lablens"}).json()) == 1
 
 
 def test_a_printed_list_holds_no_clinical_detail(doctor, patient):
-    schedule(doctor, patient["id"], title="Haemoglobin 7.1 follow-up", module="maternacare")
+    schedule(doctor, patient["id"], title="Haemoglobin 7.1 follow-up", module="lablens")
     body = doctor.get("/api/reminders/call-list").json()
     text = str(body).lower()
     assert "haemoglobin" not in text
-    assert "maternacare" not in text
+    assert "lablens" not in text
     assert body["entries"][0]["name"] == "Ravi K."
     assert body["entries"][0]["reason"] == "Clinic follow-up"
 
@@ -243,26 +243,12 @@ def test_every_step_is_audited(doctor, patient):
     assert {"reminder.staff_followup_required", "reminder.outcome_recorded", "reminder.acknowledged"} <= actions
 
 
-def test_maternacare_reminders_claim_neither_escalation_nor_delivery(doctor, patient):
-    reminder = schedule(doctor, patient["id"], module="maternacare", priority="high").json()
+def test_lablens_reminders_claim_neither_escalation_nor_delivery(doctor, patient):
+    reminder = schedule(doctor, patient["id"], module="lablens", priority="high").json()
     assert "not an emergency" in reminder["notice"]
     assert reminder["state"] != "delivered"
     assert "delivered" not in states(reminder)
     assert reminder["priority"] == "high"
-
-
-def test_a_reminder_doesnt_touch_a_maternal_concern(doctor, person):
-    account, record = linked_patient(doctor, person)
-    grant(doctor, record["id"], "maternal_care")
-    episode = doctor.post(
-        "/api/addons/maternacare/episodes",
-        json={"patient_id": record["id"], "escalation_contact": "Labour room 040-555-0100", "concern_response_hours": 2},
-    ).json()
-    account.post(f"/api/addons/maternacare/episodes/{episode['id']}/concerns", json={"description": "Pain"})
-    reminder = schedule(doctor, record["id"], module="maternacare").json()
-    account.post(f"/api/reminders/{reminder['id']}/acknowledge")
-    current = doctor.get(f"/api/addons/maternacare/patients/{record['id']}/episode").json()
-    assert current["concerns"][0]["acknowledged_at"] is None
 
 
 def test_only_the_care_team_can_schedule(doctor, person):

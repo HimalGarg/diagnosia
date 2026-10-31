@@ -17,13 +17,10 @@ from fastapi.staticfiles import StaticFiles
 from starlette.formparsers import MultiPartParser
 
 from backend import auth, llm, safety, settings_store, speech
-from backend.amrguard import routes as amrguard
 from backend.careflow import delivery as careflow_delivery
 from backend.careflow import events as careflow_events
 from backend.careflow import live as careflow_live
 from backend.careflow import routes as careflow
-from backend.chroniccare import routes as chroniccare
-from backend.chroniccare.routes import MEASURES
 from backend.clinscribe import routes as clinscribe
 from backend.config import WEB_DIR
 from backend.db import connect, init_db
@@ -33,9 +30,6 @@ from backend.integrations import execution
 from backend.lablens import extract as lablens_jobs
 from backend.lablens import mappings as lablens_mappings
 from backend.lablens import routes as lablens
-from backend.maternacare import routes as maternacare
-from backend.medguard import routes as medguard
-from backend.medguard import rules as medguard_rules
 from backend.prescription import routes as prescription
 from backend.prescription.medicines import get_medicine_list
 from backend.records import audit, care, vault
@@ -100,8 +94,7 @@ def _prepare_content() -> None:
     """Loads starter content as unreviewed, then refuses a deployment that asks for too much."""
     connection = connect()
     try:
-        medguard_rules.seed(connection)
-        lablens_mappings.seed(connection, [(item["label"], item["loinc"]) for item in MEASURES.values()])
+        lablens_mappings.seed(connection)
         connection.commit()
         safety.assert_safe_to_start(connection)
     finally:
@@ -130,7 +123,6 @@ app = FastAPI(title="Diagnosia", docs_url=None, redoc_url=None, openapi_url=None
 app.include_router(auth.router)
 app.include_router(records.router)
 app.include_router(staff.router)
-app.include_router(medguard_rules.router)
 app.include_router(lablens_mappings.router)
 app.include_router(settings_store.router)
 app.include_router(careflow.router)
@@ -141,12 +133,8 @@ def _tool(router, name: str) -> None:
 
 
 _tool(clinscribe.router, "clinscribe")
-_tool(medguard.router, "medguard")
 _tool(lablens.router, "lablens")
-_tool(chroniccare.router, "chroniccare")
 _tool(dischargecare.router, "discharge")
-_tool(maternacare.router, "materna")
-_tool(amrguard.router, "amr")
 _tool(referralloop.router, "referrals")
 _tool(diagnofast.router, "diagnofast")
 _tool(prescription.router, "prescription")

@@ -16,7 +16,6 @@ from pydantic import BaseModel
 from backend import llm, settings_store, speech
 from backend.config import settings
 from backend.diagnofast import agent
-from backend.medguard import references
 
 pytestmark = pytest.mark.live
 ENABLED = os.environ.get("DIAGNOSIA_LIVE_TESTS") == "1"
@@ -27,62 +26,9 @@ class Echo(BaseModel):
     word: str
 
 
-class MemoryDb:
-    """Stands in for the cache, so these tests touch no database."""
-
-    def execute(self, *args, **kwargs):
-        return self
-
-    def fetchone(self):
-        return None
-
-
 def needs_live():
     if not ENABLED:
         pytest.skip("Set DIAGNOSIA_LIVE_TESTS=1 to call real services")
-
-
-def test_rxnorm_finds_a_well_known_ingredient():
-    needs_live()
-    result = references.rxnorm_ingredients(MemoryDb(), "tylenol")
-    assert result["available"] is True
-    assert any("cetaminophen" in name for name in result["ingredients"])
-    assert result["retrieved_at"]
-
-
-def test_rxnorm_handles_a_name_that_does_not_exist():
-    needs_live()
-    result = references.rxnorm_ingredients(MemoryDb(), "zzzsyntheticnotadrug")
-    assert result["available"] is True
-    assert result["ingredients"] == []
-
-
-def test_openfda_label_search_replies_in_the_expected_shape():
-    needs_live()
-    result = references.label_mentions(MemoryDb(), "warfarin", "ibuprofen")
-    assert result["available"] is True
-    assert isinstance(result["mentioned"], bool)
-    assert "not a complete" in result["limitation"]
-
-
-def test_openfda_handles_a_name_that_does_not_exist():
-    needs_live()
-    result = references.label_mentions(MemoryDb(), "zzzsyntheticnotadrug", "zzzsyntheticother")
-    assert result["available"] is True
-    assert result["mentioned"] is False
-
-
-def test_rxnav_still_serves_the_routes_we_use():
-    needs_live()
-    response = httpx.get(f"{references.RXNAV_URL}/rxcui.json", params={"name": "metformin", "search": 2}, timeout=10)
-    assert response.status_code == 200
-    assert "idGroup" in response.json()
-
-
-def needs_key():
-    needs_live()
-    if not settings.groq_api_key:
-        pytest.skip("No real Groq key")
 
 
 @pytest.mark.parametrize("model", ["openai/gpt-oss-120b", "openai/gpt-oss-20b"])

@@ -15,7 +15,6 @@ revoked, never deleted.
 | `transcript_retention` | ClinScribe, on signing | Transcript is deleted on signing |
 | `ai_processing` | LabLens, before AI reads a scan | The report waits for manual entry |
 | `referral_sharing` | ReferralLoop, on sending and on every receiver access | Can't send, and the receiver loses access |
-| `maternal_care` | MaternaCare, on starting and on clinical changes | Blocked |
 | `external_messaging` | Reminders, before any SMS or voice use | That channel isn't used |
 
 Prescription photos keep their per-upload consent, and a DiagnoFast patient ticks a consent box before the interview starts, because they have no account or record to hold it. Consent recorded by a clinician is kept
@@ -35,7 +34,6 @@ distinct from consent given in the app.
 | Prescription and skin photos | Not stored | n/a | None |
 | Audit events | Database | No | Not set |
 | CareFlow outbox and reference map | Database | No | Not set |
-| Drug-name lookups | Database, 30-day cache | No | 30 days of use |
 | Pre-migration copies | Next to the database, owner-only | No | Remove after checking |
 | Groq or Gemini API key, if saved in Settings | Database | **Yes**, with the document key ring | Until replaced |
 
@@ -97,7 +95,6 @@ copy is re-proved before deletion. Failures are listed and leave that document u
 | Groq, in the United States | Consultation audio, transcript text, DiagnoFast answers and recordings, prescription photos, images of unreadable lab reports, English text read aloud | With consent, or on request |
 | Google Gemini, in the United States or elsewhere | The same text and images, but never audio, only when Groq fails or Settings say providers take turns, and only if a Gemini key is set | When a Gemini key exists |
 | MongoDB Atlas, YugabyteDB and Meko, only if switched on | Activity events, technical AI timings and handoff notes. No names, results, notes or images | Synthetic data only. CareFlow stops recording if real patient data is allowed |
-| NLM RxNav, openFDA | Drug names only | When a clinician asks |
 
 Whether Groq may receive real patient data is covered in `CLINICAL_GOVERNANCE.md`. Today
 the answer is no.

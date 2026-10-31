@@ -72,7 +72,7 @@ def test_patients_get_no_staff_privileges(person):
     "path, body",
     [
         ("/api/organizations", {"name": "Fake", "type": "clinic"}),
-        ("/api/addons/medguard/check-interactions", {"medicines": ["Warf", "Brufen"]}),
+        ("/api/patients", {"first_name": "A", "last_name": "B"}),
     ],
 )
 def test_pending_staff_can_reach_no_staff_route(person, path, body):
@@ -207,7 +207,7 @@ def test_invitation_codes_are_stored_only_as_hashes(person, clinic):
 
 def test_nobody_can_change_their_own_role(person, clinic):
     admin, organization_id = clinic
-    response = admin.post(f"/api/organizations/{organization_id}/members", json={"email": admin.email, "role": "steward"})
+    response = admin.post(f"/api/organizations/{organization_id}/members", json={"email": admin.email, "role": "coordinator"})
     assert response.status_code == 403
 
 
@@ -221,7 +221,7 @@ def test_role_changes_are_audited(person, clinic):
 def test_unverified_people_cannot_be_given_roles(person, clinic):
     admin, organization_id = clinic
     applicant = person("doctor", verified=False)
-    response = admin.post(f"/api/organizations/{organization_id}/members", json={"email": applicant.email, "role": "steward"})
+    response = admin.post(f"/api/organizations/{organization_id}/members", json={"email": applicant.email, "role": "coordinator"})
     assert response.status_code == 404
 
 

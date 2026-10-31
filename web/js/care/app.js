@@ -4,17 +4,13 @@ import { STAGES, SWITCHED_TOOLS, canUse } from './catalogue.js';
 import { renderAccount, renderHome } from './home.js';
 import { renderInbox, renderOverview, renderTasks } from './overview.js';
 import { leaveRecording, renderClinScribe } from './clinscribe.js';
-import { renderMedGuard } from './medguard.js';
 import { renderLabLens } from './lablens.js';
 import { renderCareFlow } from './careflow.js';
-import { renderChronicCare } from './chroniccare.js';
 import { renderDiagnoFast } from './diagnofast.js';
 import { renderPrescription } from './prescription.js';
 import { renderSkin } from './skin.js';
 import { renderReferrals } from './referrals.js';
 import { renderDischarge } from './discharge.js';
-import { renderMaterna } from './materna.js';
-import { renderAmr } from './amr.js';
 import { renderGovernance } from './governance.js';
 import { renderReminders } from './reminders.js';
 import { renderSettings } from './settings.js';
@@ -32,14 +28,10 @@ const RENDERERS = {
     diagnofast: renderDiagnoFast,
     clinscribe: renderClinScribe,
     lablens: renderLabLens,
-    medguard: renderMedGuard,
     skin: renderSkin,
     prescription: renderPrescription,
     referrals: renderReferrals,
     discharge: renderDischarge,
-    chroniccare: renderChronicCare,
-    materna: renderMaterna,
-    amr: renderAmr,
 };
 const LABELS = { inbox: 'Inbox', account: 'Account' };
 const GROUPS = [
@@ -232,7 +224,7 @@ async function renderOnboarding() {
                 h('p', { class: 'muted' }, 'Your administrator checks this against evidence. Saying it here proves nothing.'),
                 form(
                     [
-                        { name: 'profession', label: 'Profession', type: 'select', value: profile.profession, options: ['doctor', 'nurse', 'midwife', 'pharmacist', 'coordinator', 'community_health_worker', 'microbiologist', 'laboratory_professional'].map((item) => [item, item.replaceAll('_', ' ')]) },
+                        { name: 'profession', label: 'Profession', type: 'select', value: profile.profession, options: ['doctor', 'nurse', 'midwife', 'pharmacist', 'coordinator', 'community_health_worker', 'laboratory_professional'].map((item) => [item, item.replaceAll('_', ' ')]) },
                         { name: 'speciality', label: 'Speciality', value: profile.speciality },
                         { name: 'registration_number', label: 'Registration number', value: profile.registration_number },
                     ],

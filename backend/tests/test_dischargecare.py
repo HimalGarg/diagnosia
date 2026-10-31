@@ -36,17 +36,6 @@ def approve(doctor, episode_id):
     return doctor.post(f"{BASE}/episodes/{episode_id}/approve")
 
 
-def reconciled(doctor, patient_id):
-    doctor.post(f"/api/addons/medguard/patients/{patient_id}/medications", json={"written_name": "Telma"})
-    result = doctor.post("/api/addons/medguard/reconcile", json={"patient_id": patient_id}).json()
-    medicine = doctor.get(f"/api/patients/{patient_id}/medications").json()[0]
-    doctor.post(
-        f"/api/addons/medguard/reconciliations/{result['id']}/finalise",
-        json={"decisions": [{"medication_id": medicine["id"], "decision": "continue"}]},
-    )
-    return result["id"]
-
-
 @pytest.fixture
 def active(doctor, person):
     account, record = linked_patient(doctor, person)
@@ -125,7 +114,7 @@ def test_closing_is_blocked_until_the_work_is_done(doctor, active):
     response = doctor.post(f"{url}/close", json={})
     assert response.status_code == 409
     blockers = response.json()["detail"]["blockers"]
-    assert len(blockers) == 3
+    assert len(blockers) == 2
     assert doctor.get(url).json()["close_blockers"] == blockers
 
 
@@ -144,22 +133,18 @@ def test_it_closes_cleanly_when_everything_is_done(doctor, active):
     account.post(f"/api/tasks/{item['id']}/status", json={"status": "done"})
     pending = doctor.post(f"{url}/pending-results", json={"test_name": "Culture"}).json()["pending_results"][0]
     doctor.post(f"{BASE}/pending-results/{pending['id']}/finalise", json={"result_note": "No growth"})
-    doctor.patch(url, json={"reconciliation_id": reconciled(doctor, record["id"])})
     assert doctor.post(f"{url}/close", json={}).json()["close_exception"] == ""
 
 
-def test_only_a_finalised_reconciliation_can_be_linked(doctor, patient):
+def test_a_checklist_carries_no_medicine_list_of_its_own(doctor, active):
+    account, _, episode = active
+    assert "medicines" not in account.get(f"{BASE}/episodes/{episode['id']}/checklist").json()
+
+
+def test_a_removed_field_is_ignored_rather_than_stored(doctor, patient):
     episode = create(doctor, patient["id"])
-    doctor.post(f"/api/addons/medguard/patients/{patient['id']}/medications", json={"written_name": "Telma"})
-    draft = doctor.post("/api/addons/medguard/reconcile", json={"patient_id": patient["id"]}).json()
-    assert doctor.patch(f"{BASE}/episodes/{episode['id']}", json={"reconciliation_id": draft["id"]}).status_code == 422
-
-
-def test_medicines_on_the_checklist_come_from_the_reconciled_list(doctor, active):
-    account, record, episode = active
-    doctor.patch(f"{BASE}/episodes/{episode['id']}", json={"reconciliation_id": reconciled(doctor, record["id"])})
-    medicines = account.get(f"{BASE}/episodes/{episode['id']}/checklist").json()["medicines"]
-    assert [item["written_name"] for item in medicines] == ["Telma"]
+    assert doctor.patch(f"{BASE}/episodes/{episode['id']}", json={"reconciliation_id": "anything"}).status_code in (200, 422)
+    assert "reconciliation_id" not in doctor.get(f"{BASE}/episodes/{episode['id']}").json()
 
 
 def test_overdue_high_priority_tasks_escalate_to_the_named_clinician(doctor, active):

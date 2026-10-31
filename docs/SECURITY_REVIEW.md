@@ -15,7 +15,7 @@ automatically.
 | Doctor-to-patient | Access needs a care team place and a verified account | Route sweep, staff tests |
 | Writes guarded | Each route's code is read to confirm it calls an access gate. Empty-body requests alone can't prove this, because validation runs first | `test_every_route_touching_a_record_goes_through_a_gate` |
 | Referral scope | A receiver sees the referral and chosen files, not the record | Referral tests |
-| Cross-organization | Roles and staff decisions stop at the organization | Staff, AMR tests |
+| Cross-organization | Roles and staff decisions stop at the organization | Staff tests |
 | Consent revocation | Takes effect on the next request, for referral, document, inbox and new sends | `test_the_consent_revocation_reach` |
 | Sessions | Hashed tokens, server-side logout, expiry, suspended accounts lose sessions, 12-hour staff sessions | Auth, security tests |
 | Cookies | HttpOnly, SameSite=Lax, Secure with `DIAGNOSIA_HTTPS=1` | Security tests |
@@ -38,12 +38,11 @@ automatically.
 | Finding | Severity | Fix |
 |---|---|---|
 | Anyone could become an active doctor | S0 | Account states and verification |
-| Any doctor could self-create an administrator organization | S0 | Unverified organizations can't verify staff or use AMR Guard, or receive referrals |
+| Any doctor could self-create an administrator organization | S0 | Unverified organizations can't verify staff or receive referrals |
 | Exception text in logs could hold patient details | S1 | Type and request ID only |
 | No `no-store`, so data could stay in browser cache | S1 | Cache headers |
 | Uploads over 1 MB spooled to plaintext temp files | S1 | Held in memory, capped |
 | No login throttle, 14-day staff sessions | S1 | Throttle, 12 hours |
-| Revoked `maternal_care` changed nothing | S1 | Enforced on clinical actions |
 | Last audio chunk lost on pause | S1 | Waits for the upload |
 | Stop during the permission step left the microphone on | S1 | Stop now works at any moment |
 | A left session stayed marked recording | S2 | Paused on leaving |

@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS organizations (
 CREATE TABLE IF NOT EXISTS organization_members (
     organization_id TEXT NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'coordinator', 'steward', 'microbiologist')),
+    role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'coordinator')),
     added_by INTEGER NOT NULL,
     created_at TEXT NOT NULL,
     PRIMARY KEY (organization_id, user_id)
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS observations (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
     encounter_id TEXT REFERENCES encounters (id) ON DELETE SET NULL,
-    category TEXT NOT NULL CHECK (category IN ('laboratory', 'vital', 'symptom', 'maternal')),
+    category TEXT NOT NULL CHECK (category IN ('laboratory')),
     code_system TEXT,
     code TEXT,
     label TEXT NOT NULL,
@@ -151,34 +151,6 @@ CREATE TABLE IF NOT EXISTS observations (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS observations_trend ON observations (patient_id, code, unit, effective_at);
-
-CREATE TABLE IF NOT EXISTS medication_records (
-    id TEXT PRIMARY KEY,
-    patient_id TEXT NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
-    encounter_id TEXT REFERENCES encounters (id) ON DELETE SET NULL,
-    written_name TEXT NOT NULL,
-    ingredients TEXT NOT NULL DEFAULT '[]',
-    match_status TEXT NOT NULL DEFAULT 'unmatched' CHECK (match_status IN ('matched', 'unmatched')),
-    strength TEXT NOT NULL DEFAULT '',
-    dose TEXT NOT NULL DEFAULT '',
-    route TEXT NOT NULL DEFAULT '',
-    frequency TEXT NOT NULL DEFAULT '',
-    start_date TEXT,
-    end_date TEXT,
-    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'on_hold', 'stopped', 'completed')),
-    source TEXT NOT NULL CHECK (source IN
-        ('prescription', 'patient_reported', 'discharge_summary', 'imported_record', 'clinician_entered', 'reconciled')),
-    source_type TEXT NOT NULL,
-    source_reference TEXT,
-    review_status TEXT NOT NULL DEFAULT 'pending'
-        CHECK (review_status IN ('pending', 'accepted', 'corrected', 'rejected', 'superseded')),
-    reviewed_by INTEGER,
-    reviewed_at TEXT,
-    original_value TEXT,
-    created_by INTEGER NOT NULL,
-    created_at TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS medication_patient ON medication_records (patient_id, status);
 
 CREATE TABLE IF NOT EXISTS allergies (
     id TEXT PRIMARY KEY,
@@ -291,7 +263,7 @@ CREATE TABLE IF NOT EXISTS organization_invitations (
     code_hash TEXT PRIMARY KEY,
     organization_id TEXT NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     email TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'coordinator', 'steward', 'microbiologist')),
+    role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'coordinator')),
     invited_by INTEGER NOT NULL,
     expires_at TEXT NOT NULL,
     accepted_by INTEGER,

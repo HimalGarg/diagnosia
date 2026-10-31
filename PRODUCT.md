@@ -19,9 +19,8 @@ the same product, not a separate brochure.
 ## Product purpose
 
 One platform for the whole visit: before it (DiagnoFast), during it (ClinScribe, LabLens,
-MedGuard, Skin Cancer Detection), after it (Prescription Analyzer, ReferralLoop, DischargeCare,
-ChronicCare), and in long-term programmes (MaternaCare, AMR Guard), plus OptiKinesis for people
-who can't use their hands. Success means a person never has to think about which product they
+Skin Cancer Detection), after it (Prescription Analyzer, ReferralLoop, DischargeCare), plus
+OptiKinesis for people who can't use their hands. Success means a person never has to think about which product they
 are in.
 
 ## Brand personality

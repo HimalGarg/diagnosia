@@ -420,19 +420,15 @@ The [`archive/`](file:///Users/aditya1981/diagnosia/archive) folder houses previ
 
 ## 11. The tools around the patient record
 
-Eight add-on tools built on one shared patient record. **All are pilots, not validated for patient care:** see [`docs/CLINICAL_GOVERNANCE.md`](docs/CLINICAL_GOVERNANCE.md).
+Four add-on tools built on one shared patient record. **All are pilots, not validated for patient care:** see [`docs/CLINICAL_GOVERNANCE.md`](docs/CLINICAL_GOVERNANCE.md).
 
 | Tool | Package | Routes | Guide |
 |---|---|---|---|
 | Shared record | `backend/records/` | `/api/patients`, `/api/tasks`, `/api/notifications`, `/api/organizations` | This section |
 | ClinScribe | `backend/clinscribe/` | `/api/addons/clinscribe` | [`docs/addons/clinscribe.md`](docs/addons/clinscribe.md) |
-| MedGuard | `backend/medguard/` | `/api/addons/medguard` | [`docs/addons/medguard.md`](docs/addons/medguard.md) |
 | LabLens | `backend/lablens/` | `/api/addons/lablens` | [`docs/addons/lablens.md`](docs/addons/lablens.md) |
-| ChronicCare | `backend/chroniccare/` | `/api/addons/chroniccare` | [`docs/addons/chroniccare.md`](docs/addons/chroniccare.md) |
 | ReferralLoop | `backend/referralloop/` | `/api/addons/referrals` | [`docs/addons/referralloop.md`](docs/addons/referralloop.md) |
 | DischargeCare | `backend/dischargecare/` | `/api/addons/dischargecare` | [`docs/addons/dischargecare.md`](docs/addons/dischargecare.md) |
-| MaternaCare | `backend/maternacare/` | `/api/addons/maternacare` | [`docs/addons/maternacare.md`](docs/addons/maternacare.md) |
-| AMR Guard | `backend/amrguard/` | `/api/addons/amrguard` | [`docs/addons/amrguard.md`](docs/addons/amrguard.md) |
 
 * **Conventions:** each tool owns a `schema.sql`, picked up by `init_db()`. Primary keys are UUIDs. Every route enters a patient through `records.access.open_patient`, which checks the care team and writes the audit log.
 * **Frontend:** `web/care.html` with one ES module per tool in `web/js/care/`. All page content goes through `h()` and `show()`, so data can never become markup. The page has no analytics.

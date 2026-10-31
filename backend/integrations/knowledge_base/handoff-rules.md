@@ -10,15 +10,7 @@ clinical_content: none
 
 # Handoffs between tools
 
-Only two handoffs exist in Diagnosia. An agent must not assume any other.
-
-## LabLens to ChronicCare
-
-A person confirms a lab report in LabLens. Its results become observations in the record, and ChronicCare's trends read those observations. ChronicCare must read the observations from the record. Nothing about their values is carried in the handoff.
-
-## Prescription Analyzer to MedGuard
-
-The patient confirms each medicine, and the confirmed list is imported into MedGuard's medication list. Unconfirmed or unreadable items stay out. MedGuard must read the list from the record.
+No tool produces a handoff in Diagnosia today. The handoff support stays in place for a future tool, so an agent must not assume any handoff exists.
 
 ## Rules for the receiving tool
 

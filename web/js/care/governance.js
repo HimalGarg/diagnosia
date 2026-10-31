@@ -1,10 +1,9 @@
-// Governance: staff verification, the medication rule register, LOINC review and readiness.
+// Governance: staff verification, LOINC review and readiness.
 // Every control here is enforced again on the server. Nothing is decided in the browser.
 import { act, api, ask, badge, form, h, plural, section, show, table, when } from './ui.js';
 
-const RULES = '/api/addons/medguard/rules';
 const MAPPINGS = '/api/addons/lablens/mappings';
-const PROFESSIONS = ['doctor', 'nurse', 'midwife', 'pharmacist', 'coordinator', 'community_health_worker', 'microbiologist', 'laboratory_professional'];
+const PROFESSIONS = ['doctor', 'nurse', 'midwife', 'pharmacist', 'coordinator', 'community_health_worker', 'laboratory_professional'];
 
 function staffPanel(organization, members, context) {
     const url = `/api/organizations/${organization.id}`;
@@ -34,7 +33,7 @@ function staffPanel(organization, members, context) {
     const invite = form(
         [
             { name: 'email', label: 'Staff email', type: 'email', required: true },
-            { name: 'role', label: 'Role here', type: 'select', options: ['staff', 'coordinator', 'steward', 'microbiologist', 'admin'] },
+            { name: 'role', label: 'Role here', type: 'select', options: ['staff', 'coordinator', 'admin'] },
         ],
         'Create invitation',
         async (values, element) => {
@@ -64,43 +63,6 @@ function staffPanel(organization, members, context) {
             ],
             members,
         ));
-}
-
-function ruleRow(rule, canReview, context) {
-    const post = (action, body, message) => async () => {
-        await act(() => api(`${RULES}/${rule.id}/${action}`, { method: 'POST', body }), context, message);
-        context.refresh();
-    };
-    const withNote = (action, label) => h('button', {
-        type: 'button',
-        class: 'quiet',
-        onclick: async () => {
-            const note = await ask(`${label}: your reasoning`);
-            if (note) post(action, { note }, `${label} recorded`)();
-        },
-    }, label);
-    const actions = [];
-    if (canReview && ['draft', 'rejected'].includes(rule.status)) {
-        actions.push(h('button', {
-            type: 'button',
-            class: 'quiet',
-            onclick: async () => {
-                const source = await ask('Evidence source');
-                const version = source && await ask('Evidence version or edition');
-                const date = version && await ask('Publication or review date, like 2026-10-31');
-                if (!date) return;
-                await act(() => api(`${RULES}/${rule.id}/evidence`, {
-                    method: 'PATCH',
-                    body: { evidence_source: source, evidence_version: version, evidence_date: date },
-                }), context, 'Evidence saved');
-                context.refresh();
-            },
-        }, 'Add evidence'));
-        if (rule.evidence_complete) actions.push(h('button', { type: 'button', class: 'quiet', onclick: post('submit', undefined, 'Submitted') }, 'Submit for review'));
-    }
-    if (canReview && rule.status === 'pending_pharmacist_review') actions.push(withNote('approve', 'Approve'), withNote('reject', 'Reject'));
-    if (canReview && rule.status === 'approved') actions.push(withNote('retire', 'Retire'));
-    return { rule, actions };
 }
 
 function mappingActions(mapping, canReview, context) {
@@ -139,20 +101,16 @@ function mappingActions(mapping, canReview, context) {
 }
 
 export async function renderGovernance(container, context) {
-    const [mine, profile, organizations, rules, mappings] = await Promise.all([
+    const [mine, profile, organizations, mappings] = await Promise.all([
         api('/api/staff/me'),
         api('/api/practitioner'),
         api('/api/organizations?mine=true'),
-        api(RULES),
         api(MAPPINGS),
     ]);
     const adminOf = organizations.filter((item) => item.my_role === 'admin' && item.verification_status === 'verified');
     const panels = await Promise.all(adminOf.map(async (item) => staffPanel(item, await api(`/api/organizations/${item.id}/staff`), context)));
-    const isPharmacist = profile.verified_profession === 'pharmacist';
     const isLab = profile.verified_profession === 'laboratory_professional';
-    const ruleRows = rules.map((rule) => ruleRow(rule, isPharmacist, context));
     const readiness = adminOf.length ? await api('/api/system/readiness') : null;
-    const approved = rules.filter((rule) => rule.status === 'approved').length;
     const reviewedMappings = mappings.filter((item) => item.status === 'approved').length;
 
     show(container,
@@ -170,18 +128,6 @@ export async function renderGovernance(container, context) {
                 readiness.checks,
             ))) : null,
         adminOf.length ? section('Staff verification', panels) : null,
-        section('Medication rules',
-            h('div', { class: 'banner' }, `${plural(approved, 'rule')} approved of ${rules.length}. Unapproved rules never raise a clinical alert. ${isPharmacist ? '' : 'Only verified pharmacists can review these.'}`),
-            table(
-                [
-                    { label: 'Rule', cell: (row) => [row.rule.id, h('div', { class: 'muted' }, row.rule.category.replaceAll('_', ' '))] },
-                    { label: 'Status', cell: (row) => (row.rule.status === 'approved' ? badge('approved', 'good') : h('mark', {}, row.rule.status.replaceAll('_', ' '))) },
-                    { label: 'Evidence', cell: (row) => (row.rule.evidence_complete ? `${row.rule.evidence_source}, ${row.rule.evidence_version} (${row.rule.evidence_date})` : 'None recorded') },
-                    { label: 'Reviewer', cell: (row) => (row.rule.reviewer_name ? `${row.rule.reviewer_name}, ${when(row.rule.last_reviewed_at)}` : '') },
-                    { label: '', cell: (row) => h('div', { class: 'row' }, row.actions) },
-                ],
-                ruleRows,
-            )),
         section('LOINC mappings',
             h('div', { class: 'banner' }, `${plural(reviewedMappings, 'mapping')} approved of ${mappings.length}. Unreviewed codes are left out of clinical exports. ${isLab ? '' : 'Only verified laboratory professionals can review these.'}`),
             table(

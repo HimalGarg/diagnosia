@@ -36,7 +36,6 @@ def _allowed(db: sqlite3.Connection, user: sqlite3.Row) -> List[sqlite3.Row]:
            OR flow.patient_id IN (
                 SELECT patient_id FROM care_team WHERE user_id = :user AND revoked_at IS NULL
                   AND (role != 'clinician' OR :status = 'verified'))
-           OR (:status = 'verified' AND flow.organization_id IN (SELECT organization_id FROM organization_members WHERE user_id = :user))
         ORDER BY flow.created_at DESC LIMIT :limit
         """,
         {"user": user["id"], "status": user["account_status"], "limit": MAX_WORKFLOWS},
@@ -74,8 +73,6 @@ def _label(db: sqlite3.Connection, workflow: sqlite3.Row) -> str:
         row = db.execute("SELECT first_name, last_name FROM patients WHERE id = ?", (workflow["patient_id"],)).fetchone()
         if row:
             return f"{row['first_name']} {row['last_name']}"
-    if workflow["organization_id"]:
-        return "Organization activity"
     return workflow["owner_module"] or "DiagnoFast interview"
 
 

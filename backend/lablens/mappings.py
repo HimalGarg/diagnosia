@@ -5,7 +5,7 @@ They help group a patient's own results, and they never appear as a coded value 
 a clinical export until approved. A missing code stays missing: nothing guesses one.
 """
 import sqlite3
-from typing import List, Optional, Set
+from typing import List, Set
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -55,10 +55,10 @@ def check_digit_valid(code: str) -> bool:
     return (10 - total % 10) % 10 == int(check)
 
 
-def seed(db: sqlite3.Connection, extra: Optional[List[tuple]] = None) -> None:
+def seed(db: sqlite3.Connection) -> None:
     """Adds starter proposals. Rows already here are never changed."""
-    pairs = [(analyte["name"], analyte["loinc"]) for analyte in parser.catalog()["analytes"]] + (extra or [])
-    for label, code in pairs:
+    for analyte in parser.catalog()["analytes"]:
+        label, code = analyte["name"], analyte["loinc"]
         db.execute(
             """
             INSERT OR IGNORE INTO loinc_mappings (id, local_label, proposed_code, source, status, created_at)

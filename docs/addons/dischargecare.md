@@ -12,8 +12,8 @@ Code: `backend/dischargecare/`, `web/js/care/discharge.js`. Tests: `test_dischar
    and tasks. Tasks are held until approval.
 3. The responsible clinician approves. Tasks open and the patient is told.
 4. The patient or caregiver sees the checklist. The team works from the board.
-5. Closing requires required tasks done, pending results final, and a finalised
-   MedGuard reconciliation linked, or a written exception.
+5. Closing requires required tasks done, and pending results final, or a written
+   exception.
 
 States: `draft`, `active`, `closed`.
 

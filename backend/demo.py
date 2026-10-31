@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 
 DEMO_ORGANIZATION = "Demo City Clinic"
 SPECIALIST_ORGANIZATION = "Demo Heart Centre"
-CONSENTS = ("ai_processing", "ai_scribe", "referral_sharing", "maternal_care")
+CONSENTS = ("ai_processing", "ai_scribe", "referral_sharing")
 
 
 def _days(number: int) -> str:
@@ -41,30 +41,6 @@ def _check(response, expected=(200, 201, 202, 204)):
     return response.json() if response.content else None
 
 
-def _chronic(doctor, patient_id: str) -> None:
-    base = "/api/addons/chroniccare"
-    condition = _check(doctor.post(f"{base}/patients/{patient_id}/conditions", json={"condition_name": "Type 2 diabetes", "onset_date": "2021-04-01"}))
-    plan = _check(
-        doctor.post(
-            f"{base}/patients/{patient_id}/plans",
-            json={
-                "title": "Diabetes and blood pressure follow-up",
-                "condition_id": condition["id"],
-                "goals": ["Measure blood pressure each week", "Bring readings to the next visit"],
-                "measures": [
-                    {"measure": "bp_systolic", "target_text": "As agreed with your doctor", "cadence_days": 7, "alert_high": 170, "escalation_text": "Rest for 15 minutes, measure again, and call the clinic today if it is still high."},
-                    {"measure": "glucose_fasting", "target_text": "As agreed with your doctor", "cadence_days": 3},
-                ],
-            },
-        )
-    )
-    _check(doctor.post(f"{base}/plans/{plan['id']}/approve"))
-    for days_ago, systolic, glucose in ((21, 148, 131), (14, 142, 126), (7, 138, 122), (1, 134, 118)):
-        when = (datetime.now(timezone.utc) - timedelta(days=days_ago)).isoformat()
-        _check(doctor.post(f"{base}/patients/{patient_id}/readings", json={"measure": "bp_systolic", "value": systolic, "effective_at": when}))
-        _check(doctor.post(f"{base}/patients/{patient_id}/readings", json={"measure": "glucose_fasting", "value": glucose, "effective_at": when}))
-
-
 def _labs(doctor, patient_id: str, name: str = "Mr. Ravi Kumar") -> None:
     for collected, haemoglobin, hba1c in (("12/03/2026", "11.2 L", "7.4"), ("20/08/2026", "12.6 L", "6.8")):
         report = _check(
@@ -75,14 +51,6 @@ def _labs(doctor, patient_id: str, name: str = "Mr. Ravi Kumar") -> None:
             )
         )
         _check(doctor.post(f"/api/addons/lablens/reports/{report['id']}/confirm", json={}))
-
-
-def _medicines(doctor, patient_id: str) -> None:
-    base = "/api/addons/medguard"
-    _check(doctor.post(f"/api/patients/{patient_id}/allergies", json={"substance": "Penicillin", "reaction": "Rash", "severity": "moderate"}))
-    for name, source, frequency in (("Glycomet 500", "prescription", "1-0-1"), ("Telma 40", "prescription", "OD"), ("Combiflam", "patient_reported", "SOS"), ("Dolo 650", "patient_reported", "BD")):
-        _check(doctor.post(f"{base}/patients/{patient_id}/medications", json={"written_name": name, "source": source, "frequency": frequency}))
-    _check(doctor.post(f"{base}/reconcile", json={"patient_id": patient_id}))
 
 
 def _scribe(doctor, patient_id: str, encounter_id: str) -> str:
@@ -135,65 +103,33 @@ def _discharge(doctor, patient_id: str) -> None:
     _check(doctor.post(f"{url}/approve"))
 
 
-def _maternal(doctor, patient_id: str) -> None:
-    base = "/api/addons/maternacare"
-    episode = _check(
-        doctor.post(
-            f"{base}/episodes",
-            json={"patient_id": patient_id, "facility": DEMO_ORGANIZATION, "gravida": 2, "para": 1, "escalation_contact": "Demo City Clinic: 040-555-0100", "concern_response_hours": 4},
-        )
-    )
-    url = f"{base}/episodes/{episode['id']}"
-    _check(doctor.post(f"{url}/due-date", json={"estimated_due_date": _days(70), "basis": "Synthetic demo value"}))
-    _check(doctor.post(f"{url}/visits", json={"planned_date": _days(14), "purpose": "Demo clinic visit"}))
-    _check(doctor.post(f"{url}/observations", json={"label": "Weight", "value_number": 62, "unit": "kg"}))
-
-
 def _diagnofast(doctor, patient_id: str, name: str) -> None:
     """A link waiting in the queue. Finishing the interview needs AI, so that part is left to try."""
     _check(doctor.post("/api/diagnofast/intakes", json={"form_id": "general_physician", "patient_name": name, "patient_id": patient_id}))
 
 
-def _amr(admin, organization_id: str) -> None:
-    base = f"/api/addons/amrguard/organizations/{organization_id}"
-    header = "patient_ref,isolate_ref,specimen,organism,antibiotic,mic,zone_mm,interpretation,standard,standard_version,collected_on,laboratory"
-    rows = [
-        f"DEMO{n},DI{n},Urine,E. coli,CIP,0.25,,{'R' if n < 9 else 'S'},CLSI,DEMO-EDITION,{date.today().year}-01-15,Demo Lab"
-        for n in range(34)
-    ]
-    data = "\n".join([header, *rows]).encode()
-    _check(admin.post(f"{base}/imports", files={"file": ("demo.csv", data, "text/csv")}))
-    _check(admin.post(f"{base}/antibiograms", json={"period_start": f"{date.today().year}-01-01", "period_end": date.today().isoformat()}))
-
-
 def seed(people: Dict[str, object], organizations: Dict[str, str]) -> Dict[str, str]:
-    """Runs the journey. `people` are signed-in clients. Returns the patient records it made."""
+    """Runs the journey. `people` are signed-in clients. Returns the patient record it made."""
     doctor, patient_client = people["doctor"], people["patient"]
     ravi = _check(doctor.post("/api/patients", json={"first_name": "Ravi", "last_name": "Kumar", "date_of_birth": "1970-05-01", "sex": "male", "phone": "+91 90000 00001"}))
-    sita = _check(doctor.post("/api/patients", json={"first_name": "Sita", "last_name": "Devi", "date_of_birth": "1995-02-11", "sex": "female", "phone": "+91 90000 00002"}))
     code = _check(doctor.post(f"/api/patients/{ravi['id']}/share-codes", json={"purpose": "claim"}))["code"]
     _check(patient_client.post("/api/patients/join", json={"code": code}))
-    for patient in (ravi, sita):
-        for purpose in CONSENTS:
-            _check(doctor.post(f"/api/patients/{patient['id']}/consents", json={"purpose": purpose}))
+    for purpose in CONSENTS:
+        _check(doctor.post(f"/api/patients/{ravi['id']}/consents", json={"purpose": purpose}))
 
     encounter = _check(doctor.post(f"/api/patients/{ravi['id']}/encounters", json={"reason": "Diabetes follow-up"}))
     _diagnofast(doctor, ravi["id"], "Ravi Kumar")
     _labs(doctor, ravi["id"])
-    _medicines(doctor, ravi["id"])
-    _chronic(doctor, ravi["id"])
     session_id = _scribe(doctor, ravi["id"], encounter["id"])
     _referral(doctor, people["specialist"], ravi["id"], organizations["specialist"])
     _discharge(doctor, ravi["id"])
-    _maternal(doctor, sita["id"])
-    _amr(doctor, organizations["clinic"])
     _check(
         doctor.post(
-            f"/api/patients/{sita['id']}/reminders",
-            json={"title": "Clinic visit next week", "module": "maternacare", "scheduled_for": datetime.now(timezone.utc).isoformat()},
+            f"/api/patients/{ravi['id']}/reminders",
+            json={"title": "Clinic visit next week", "module": "general", "scheduled_for": datetime.now(timezone.utc).isoformat()},
         )
     )
-    return {"ravi": ravi["id"], "sita": sita["id"], "session": session_id, "encounter": encounter["id"]}
+    return {"ravi": ravi["id"], "session": session_id, "encounter": encounter["id"]}
 
 
 def describe_accounts(accounts: Dict[str, dict]) -> str:

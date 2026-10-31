@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS careflow_workflows (
     correlation_id TEXT NOT NULL,
     tenant_ref TEXT NOT NULL,
     patient_id TEXT UNIQUE REFERENCES patients (id) ON DELETE SET NULL,
-    organization_id TEXT UNIQUE,
     intake_id INTEGER UNIQUE,
     owner_user_id INTEGER REFERENCES users (id) ON DELETE SET NULL,
     owner_module TEXT,

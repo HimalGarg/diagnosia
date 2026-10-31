@@ -9,7 +9,7 @@ The contract is `backend/careflow/contract.py`, and the code is the authority. T
 | `event_id` | Generated, and stable. It's also the MongoDB `_id`, which is what prevents duplicates |
 | `schema_version` | The contract version |
 | `event_type`, `module` | From the lists below. A module can only record its own |
-| `workflow_stage` | `before_visit`, `during_visit`, `after_visit` or `programme` |
+| `workflow_stage` | `before_visit`, `during_visit` or `after_visit`. Old events from removed tools may say `programme` |
 | `source_system`, `source_operation` | Always `diagnosia`, and the audit action or operation that produced this event |
 | `source_ref` | The request ID, for tracing back to the audit log |
 | `workflow_ref` | A generated `case_...` reference. The map to a patient stays in SQLite |
@@ -51,11 +51,11 @@ The same for every tool. The event stays in the SQLite outbox, which committed w
 
 ### Prescription Analyzer
 
-- **Operations:** Read photos, explain, send confirmed medicines to MedGuard.
+- **Operations:** Read photos and explain.
 - **Stage:** `after_visit`
 - **Trigger:** `backend/prescription/routes.py`
 - **Human review:** Yes: the patient confirms each medicine.
-- **Events:** `prescription.confirmation_required`, `prescription.explained`, `prescription.extraction.completed`, `prescription.processing.failed`, `prescription.processing.started`, `prescription.sent_to_medguard`
+- **Events:** `prescription.confirmation_required`, `prescription.explained`, `prescription.extraction.completed`, `prescription.processing.failed`, `prescription.processing.started`
 
 ### ClinScribe
 
@@ -65,21 +65,7 @@ The same for every tool. The event stays in the SQLite outbox, which committed w
 - **Human review:** Yes: a clinician signs.
 - **Events:** `note_draft.approved`, `note_draft.created`, `note_draft.discarded`, `note_draft.failed`, `note_draft.updated`, `note_session.paused`, `note_session.recording`, `note_session.started`, `note_session.stopped`, `note_session.transcript_corrected`, `note_session.transcript_deleted`, `note_session.transcription_failed`
 
-### MedGuard
 
-- **Operations:** Medication lists, safety check, alert review, finalisation.
-- **Stage:** `during_visit`
-- **Trigger:** Audit hook, and `backend/medguard/routes.py`
-- **Human review:** Yes: alerts are reviewed, and the check finalised.
-- **Events:** `medication_list.updated`, `safety_check.alert_reviewed`, `safety_check.completed`, `safety_check.failed`, `safety_check.finalised`, `safety_check.review_required`, `safety_check.started`
-
-### ChronicCare
-
-- **Operations:** Conditions, care plans, readings, symptoms, adherence. It has no follow-up task system.
-- **Stage:** `after_visit`
-- **Trigger:** Audit hook
-- **Human review:** Yes: a clinician approves a plan.
-- **Events:** `adherence.recorded`, `care_plan.approved`, `care_plan.created`, `condition.recorded`, `reading.recorded`, `symptom.recorded`
 
 ### LabLens
 
@@ -97,21 +83,7 @@ The same for every tool. The event stays in the SQLite outbox, which committed w
 - **Human review:** Yes: a clinician approves the plan.
 - **Events:** `discharge.approved`, `discharge.checklist.updated`, `discharge.completed`, `discharge.episode_created`, `discharge.episode_updated`
 
-### MaternaCare
 
-- **Operations:** Episodes, due date, visits, observations, risks, education, birth plan, delivery, concerns, closure.
-- **Stage:** `programme`
-- **Trigger:** Audit hook
-- **Human review:** Yes: concerns go to a named person.
-- **Events:** `maternal.birth_plan_saved`, `maternal.concern_raised`, `maternal.concern_responded`, `maternal.delivery_recorded`, `maternal.due_date_confirmed`, `maternal.education_recorded`, `maternal.episode_closed`, `maternal.episode_started`, `maternal.observation_recorded`, `maternal.risk_recorded`, `maternal.visit_planned`, `maternal.visit_updated`
-
-### AMR Guard
-
-- **Operations:** Imports, antibiograms, culture reviews, stewardship reviews, guidelines.
-- **Stage:** `programme`
-- **Trigger:** Audit hook, against the organization
-- **Human review:** Yes: antibiograms are approved.
-- **Events:** `amr_analysis.approved`, `amr_analysis.completed`, `amr_analysis.culture_review_advanced`, `amr_analysis.import_completed`, `amr_analysis.review_required`, `amr_guideline.added`, `amr_stewardship.review_added`, `amr_stewardship.review_updated`
 
 ### ReferralLoop
 
@@ -121,26 +93,11 @@ The same for every tool. The event stays in the SQLite outbox, which committed w
 - **Human review:** Yes: the referrer reviews the outcome.
 - **Events:** `referral.accepted`, `referral.acknowledged`, `referral.appointment_offered`, `referral.attended`, `referral.completed`, `referral.contact_attempted`, `referral.created`, `referral.declined`, `referral.needs_information`, `referral.no_show`, `referral.outcome_returned`, `referral.priority_changed`, `referral.redirected`, `referral.rescheduled`, `referral.reviewed`, `referral.scheduled`, `referral.sent`
 
-## Real handoffs
+## Handoffs
 
-Only two exist in the code, so only two are recorded. A receiving tool always re-reads the source record.
+No tool produces a handoff today. The earlier ones were LabLens to ChronicCare and Prescription Analyzer to MedGuard, and both tools have been removed. The support stays in the code for a future tool: an event may carry a `target_module`, which sends it on to YugabyteDB and Meko as well as MongoDB. Tests exercise it with synthetic events. A receiving tool always re-reads the source record.
 
-| From | To | Why it's real |
-|---|---|---|
-| LabLens | ChronicCare | Confirmed results become observations, and ChronicCare's trends read them through `build_trends` |
-| Prescription Analyzer | MedGuard | Patient-confirmed medicines are imported into MedGuard's list |
-
-**LabLens to ClinScribe isn't one.** `backend/clinscribe/drafting.py` builds a note from the consultation transcript alone, and doesn't read lab results. Making it read them would change what an AI puts in a clinical note, which is a change to clinical logic that needs its own clinical review. So it wasn't built, and the documents no longer describe it.
-
-DischargeCare reads the medication list for display, but nothing is handed over, so that isn't recorded as a handoff.
-
-## MedGuard's lifecycle
-
-`safety_check.started` is recorded when the check begins, inside the check's own transaction, with `completed` at the end. A check that fails rolls both back, so `started` can't be left claiming work that vanished. The check has no outside call, so it either finishes within the request or leaves nothing.
-
-## ChronicCare
-
-It records conditions, plans, approvals, readings, symptoms and adherence. It has no follow-up tasks, so there are no follow-up task events.
+**LabLens to ClinScribe isn't one.** `backend/clinscribe/drafting.py` builds a note from the consultation transcript alone, and doesn't read lab results. Making it read them would change what an AI puts in a clinical note, which is a change to clinical logic that needs clinical review first.
 
 ## Write routes that record no event
 
@@ -150,16 +107,9 @@ A test fails if a write route is neither mapped nor listed here.
 |---|---|
 | `add_typed_segment` | A line of transcript. Too small a step to show, and its content can't be recorded |
 | `approve` | LOINC mapping governance, kept in the audit log |
-| `approve_rule` | Rule governance, kept in the audit log |
-| `check_interactions` | A drug-name lookup with no patient or workflow |
 | `correct` | LOINC mapping governance, kept in the audit log |
-| `create_rule` | Rule governance, kept in the audit log. It isn't part of a care workflow |
 | `read_aloud` | Reads text aloud and stores nothing |
 | `reject` | LOINC mapping governance, kept in the audit log |
-| `reject_rule` | Rule governance, kept in the audit log |
-| `retire_rule` | Rule governance, kept in the audit log |
-| `set_evidence` | Rule governance, kept in the audit log |
-| `submit_for_review` | Rule governance, kept in the audit log |
 | `transcribe_chunk` | Runs every 25 seconds while recording. Only a failure is recorded |
 
 ## Adding an event

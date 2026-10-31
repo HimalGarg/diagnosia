@@ -20,7 +20,7 @@ def db(client):
 
 
 def fake_environment(monkeypatch, **values):
-    for name in ("CLINICAL_PILOT_MODE", "ALLOW_REAL_PATIENT_DATA", "ENABLE_UNVALIDATED_CLINICAL_RULES", "ENABLE_EXTERNAL_MESSAGING"):
+    for name in ("CLINICAL_PILOT_MODE", "ALLOW_REAL_PATIENT_DATA", "ENABLE_EXTERNAL_MESSAGING"):
         monkeypatch.delenv(name, raising=False)
     for name, value in values.items():
         monkeypatch.setenv(name, value)
@@ -31,7 +31,6 @@ def test_the_defaults_are_the_safe_ones(monkeypatch):
     configured = fake_environment(monkeypatch)
     assert configured.clinical_pilot_mode is True
     assert configured.allow_real_patient_data is False
-    assert configured.enable_unvalidated_clinical_rules is False
     assert configured.enable_external_messaging is False
 
 
@@ -97,15 +96,6 @@ def test_an_unknown_environment_counts_as_production(monkeypatch):
     assert safety.is_production()
 
 
-def test_unvalidated_rules_stop_a_production_start(client, monkeypatch):
-    monkeypatch.setattr(settings, "environment", "production")
-    monkeypatch.setattr(settings, "cookie_secure", True)
-    monkeypatch.setattr(settings, "enable_unvalidated_clinical_rules", True)
-    with pytest.raises(RuntimeError, match="unvalidated_rules_off"):
-        with TestClient(app):
-            pass
-
-
 def test_messaging_without_a_provider_fails_the_check(db, monkeypatch):
     monkeypatch.setattr(settings, "enable_external_messaging", True)
     check = next(item for item in safety.readiness(db) if item.name == "external_messaging_reviewed")
@@ -141,8 +131,8 @@ def test_every_required_signoff_starts_missing(db):
 
 
 def test_a_signoff_records_a_decision_and_can_be_revoked(db):
-    item = "pharmacist_rule_set"
-    assert operator(["signoff", "--item", item, "--signed-by", "Synthetic", "--role", "Pharmacist",
+    item = "laboratory_mapping_review"
+    assert operator(["signoff", "--item", item, "--signed-by", "Synthetic", "--role", "Laboratory professional",
                      "--document-reference", "DOC-1", "--operator", "tester"]) == 0
     assert next(check for check in safety.readiness(db) if check.name == f"signoff:{item}").passed
     assert operator(["revoke-signoff", "--item", item, "--operator", "tester"]) == 0
@@ -154,7 +144,7 @@ def test_an_unknown_signoff_is_refused(db):
                      "--document-reference", "z", "--operator", "t"]) == 1
 
 
-def test_readiness_never_passes_with_unreviewed_rules_even_with_all_signoffs(db):
+def test_readiness_never_passes_on_signoffs_alone(db):
     for item in safety.REQUIRED_SIGNOFFS:
         operator(["signoff", "--item", item, "--signed-by", "x", "--role", "y", "--document-reference", "z", "--operator", "t"])
     assert safety.ready_for_real_patients(db) is False

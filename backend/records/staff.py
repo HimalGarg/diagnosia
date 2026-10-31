@@ -24,10 +24,9 @@ router = APIRouter(prefix="/api")
 
 INVITATION_LIFETIME = timedelta(days=7)
 Profession = Literal[
-    "doctor", "nurse", "midwife", "pharmacist", "coordinator", "community_health_worker",
-    "microbiologist", "laboratory_professional",
+    "doctor", "nurse", "midwife", "pharmacist", "coordinator", "community_health_worker", "laboratory_professional",
 ]
-MemberRole = Literal["admin", "staff", "coordinator", "steward", "microbiologist"]
+MemberRole = Literal["admin", "staff", "coordinator"]
 
 
 class InvitationRequest(BaseModel):

@@ -126,9 +126,24 @@ def event_types():
     return [row["event_type"] for row in outbox()]
 
 
-def reconcile(client, patient):
-    client.post(f"/api/addons/medguard/patients/{patient['id']}/medications", json={"written_name": "Dolo 650", "source": "prescription", "frequency": "SOS"})
-    return client.post("/api/addons/medguard/reconcile", json={"patient_id": patient["id"]})
+def record_event(client, patient):
+    """A real route that writes one event: starting a discharge episode."""
+    return client.post(
+        "/api/addons/dischargecare/episodes",
+        json={"patient_id": patient["id"], "discharge_date": "2026-11-01", "destination": "Home", "problems": "Synthetic", "emergency_contact": "Ward 4: 040-555-0100"},
+    )
+
+
+def add_handoff(workflow_ref=None):
+    """No tool produces a handoff today, so this writes one synthetic event to exercise the machinery."""
+    db = connect()
+    workflow = db.execute(
+        "SELECT * FROM careflow_workflows WHERE workflow_ref = ?" if workflow_ref else "SELECT * FROM careflow_workflows ORDER BY created_at LIMIT 1",
+        (workflow_ref,) if workflow_ref else (),
+    ).fetchone()
+    events.emit(db, "DischargeCare", "discharge.approved", workflow, target_module="ReferralLoop", operation="synthetic.handoff")
+    db.commit()
+    db.close()
 
 
 def run_delivery():
@@ -228,8 +243,8 @@ def test_no_clinical_decision_event_exists():
 
 
 def test_an_event_commits_with_the_change_it_describes(doctor, patient):
-    assert reconcile(doctor, patient).status_code == 201
-    assert "safety_check.completed" in event_types()
+    assert record_event(doctor, patient).status_code == 201
+    assert "discharge.episode_created" in event_types()
 
 
 def test_a_failed_request_leaves_no_success_event(doctor, patient, monkeypatch):
@@ -253,8 +268,8 @@ def test_a_failed_request_leaves_no_success_event(doctor, patient, monkeypatch):
 
 def test_a_refused_route_records_nothing(person, doctor, patient):
     stranger = person("doctor")
-    assert stranger.post("/api/addons/medguard/reconcile", json={"patient_id": patient["id"]}).status_code == 404
-    assert "safety_check.completed" not in event_types()
+    assert stranger.post("/api/addons/dischargecare/episodes", json={"patient_id": patient["id"], "discharge_date": "2026-11-01", "destination": "Home", "problems": "x"}).status_code == 404
+    assert "discharge.episode_created" not in event_types()
 
 
 def test_a_refused_event_never_stops_the_tool(doctor, patient, monkeypatch):
@@ -262,20 +277,20 @@ def test_a_refused_event_never_stops_the_tool(doctor, patient, monkeypatch):
         raise ContractError("synthetic")
 
     monkeypatch.setattr(events, "CareEvent", broken)
-    assert reconcile(doctor, patient).status_code == 201
+    assert record_event(doctor, patient).status_code == 201
     assert event_types() == []
 
 
 def test_with_real_patient_data_allowed_nothing_is_recorded_or_sent(doctor, patient, monkeypatch):
     monkeypatch.setattr(settings, "allow_real_patient_data", True)
     assert events.active() is False
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     assert event_types() == []
     assert delivery.deliver_once() == {}
 
 
 def test_a_workflow_reference_says_nothing_about_the_patient(doctor, patient):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     event = json.loads(outbox()[0]["event"])
     assert patient["id"] not in json.dumps(event)
     assert patient["last_name"].lower() not in event["workflow_ref"]
@@ -290,6 +305,11 @@ def journey(client):
     return careflow_demo.run()
 
 
+@pytest.fixture
+def handed_off(journey):
+    add_handoff(careflow_demo.CASE)
+
+
 def stored_text():
     db = connect()
     text = "\n".join(row["event"] for row in db.execute("SELECT event FROM careflow_outbox"))
@@ -299,7 +319,7 @@ def stored_text():
 
 def test_the_journey_passes_through_the_tools_in_order(journey):
     found = event_types()
-    order = ["intake.link_created", "intake.started", "intake.completed", "lab.report_received", "lab.extraction.completed", "lab.report_confirmed", "safety_check.completed", "note_draft.created", "referral.created", "referral.acknowledged"]
+    order = ["intake.link_created", "intake.started", "intake.completed", "lab.report_received", "lab.extraction.completed", "lab.report_confirmed", "discharge.episode_created", "note_draft.created", "referral.created", "referral.acknowledged"]
     positions = [found.index(name) for name in order]
     assert positions == sorted(positions)
 
@@ -320,9 +340,9 @@ def test_stored_events_hold_no_clinical_content(journey):
         assert forbidden not in text
 
 
-def test_real_handoffs_are_marked_and_point_to_their_cause(journey):
+def test_handoffs_are_marked_and_point_to_their_cause(handed_off):
     handoffs = [json.loads(row["event"]) for row in outbox() if json.loads(row["event"]).get("target_module")]
-    assert {(event["module"], event["target_module"]) for event in handoffs} == {("LabLens", "ChronicCare")}
+    assert {(event["module"], event["target_module"]) for event in handoffs} == {("DischargeCare", "ReferralLoop")}
     assert all(event["causation_id"] for event in handoffs)
 
 
@@ -334,9 +354,7 @@ def test_the_ai_stub_is_named_so_the_demo_can_never_pass_as_real(journey):
 @pytest.mark.parametrize(
     "helper, wanted",
     [
-        ("_chronic", {"care_plan.created", "care_plan.approved", "reading.recorded"}),
         ("_discharge", {"discharge.episode_created", "discharge.checklist.updated", "discharge.approved"}),
-        ("_maternal", {"maternal.episode_started", "maternal.due_date_confirmed", "maternal.visit_planned"}),
     ],
 )
 def test_the_other_record_tools_report_their_real_steps(doctor, patient, helper, wanted):
@@ -346,18 +364,6 @@ def test_the_other_record_tools_report_their_real_steps(doctor, patient, helper,
         grant(doctor, patient["id"], purpose)
     getattr(demo, helper)(doctor, patient["id"])
     assert wanted <= set(event_types())
-
-
-def test_amr_guard_reports_against_its_organization(person):
-    from backend import demo
-    from backend.tests.conftest import verified_organization
-
-    admin = person("doctor")
-    organization = verified_organization(admin)
-    demo._amr(admin, organization)
-    assert "amr_analysis.import_completed" in event_types()
-    timeline = admin.get("/api/careflow/events").json()
-    assert any(event["module"] == "AMR Guard" for event in timeline["events"])
 
 
 def test_the_prescription_analyzer_reports_without_any_content(doctor, monkeypatch):
@@ -463,7 +469,7 @@ def test_retries_are_spread_out_by_jitter():
 
 
 def test_an_event_that_keeps_failing_is_marked_dead_and_can_be_replayed(doctor, patient, mongo, monkeypatch):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     monkeypatch.setattr(settings, "event_max_attempts", 2)
     db = connect()
 
@@ -482,7 +488,7 @@ def test_an_event_that_keeps_failing_is_marked_dead_and_can_be_replayed(doctor, 
 
 
 def test_a_failed_delivery_never_keeps_the_error_text(doctor, patient, mongo):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     db = connect()
 
     def down(_event):
@@ -494,7 +500,7 @@ def test_a_failed_delivery_never_keeps_the_error_text(doctor, patient, mongo):
     assert stored["last_error"] == "ConnectionError"
 
 
-def test_one_destination_failing_does_not_hold_up_another(journey, monkeypatch):
+def test_one_destination_failing_does_not_hold_up_another(handed_off, monkeypatch):
     db = connect()
     sent = []
 
@@ -562,7 +568,7 @@ def test_one_organizations_events_never_reach_another_even_in_atlas(journey, per
 
 
 def test_a_patient_sees_their_own_timeline_and_no_one_elses(person, doctor, patient):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     code = doctor.post(f"/api/patients/{patient['id']}/share-codes", json={"purpose": "claim"}).json()["code"]
     owner, stranger = person("patient"), person("patient")
     owner.post("/api/patients/join", json={"code": code})
@@ -571,7 +577,7 @@ def test_a_patient_sees_their_own_timeline_and_no_one_elses(person, doctor, pati
 
 
 def test_unverified_staff_see_nothing(journey, person, doctor, patient):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     code = doctor.post(f"/api/patients/{patient['id']}/share-codes", json={"purpose": "clinician"}).json()["code"]
     pending = person("doctor", verified=False)
     pending.post("/api/patients/join", json={"code": code})
@@ -580,7 +586,7 @@ def test_unverified_staff_see_nothing(journey, person, doctor, patient):
 
 
 def test_revoking_access_stops_the_timeline_at_once(person, doctor, patient):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
     code = doctor.post(f"/api/patients/{patient['id']}/share-codes", json={"purpose": "clinician"}).json()["code"]
     colleague = person("doctor")
     colleague.post("/api/patients/join", json={"code": code})
@@ -787,10 +793,10 @@ def test_ysql_creates_no_clinical_or_identity_tables():
         assert word not in script.replace("-- no clinical records, identities, consent or event history belong here.", "")
 
 
-def test_a_handoff_carries_only_fixed_text_and_references(journey):
+def test_a_handoff_carries_only_fixed_text_and_references(handed_off):
     handoff = next(delivery.handoff_envelope(json.loads(row["event"])) for row in outbox() if json.loads(row["event"]).get("target_module"))
     assert handoff["human_review_required"] is True
-    assert handoff["source_module"] == "LabLens" and handoff["target_module"] == "ChronicCare"
+    assert handoff["source_module"] == "DischargeCare" and handoff["target_module"] == "ReferralLoop"
     assert handoff["source_event_ids"][0].startswith("evt_")
     assert set(handoff) == {"schema_version", "handoff_id", "correlation_id", "source_module", "target_module", "workflow_ref", "created_at", "purpose", "summary", "artifact_refs", "source_event_ids", "human_review_required"}
 
@@ -881,18 +887,18 @@ def test_a_bad_meko_key_is_not_retried():
     assert len(server.calls) == 1
 
 
-def test_a_handoff_saved_to_meko_holds_no_clinical_content(journey):
+def test_a_handoff_saved_to_meko_holds_no_clinical_content(handed_off):
     server = FakeMcp()
     row = next(row for row in outbox() if json.loads(row["event"]).get("target_module"))
     client_for(server).save_handoff(delivery.handoff_envelope(json.loads(row["event"])))
     arguments = server.calls[-1]["body"]["params"]["arguments"]
     assert server.calls[-1]["body"]["params"]["name"] == "memory_add"
-    assert "LabLens to ChronicCare" in arguments["text"]
+    assert "DischargeCare to ReferralLoop" in arguments["text"]
     for forbidden in ("Demo Person", "Haemoglobin", "HbA1c"):
         assert forbidden not in json.dumps(arguments)
 
 
-def test_a_meko_outage_leaves_the_handoff_queued(journey, monkeypatch):
+def test_a_meko_outage_leaves_the_handoff_queued(handed_off, monkeypatch):
     class Down:
         def save_handoff(self, _handoff):
             raise meko.MekoUnavailable("synthetic")

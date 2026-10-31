@@ -22,23 +22,7 @@ function board(rows, open) {
     );
 }
 
-function medicinesLink(episode, reconciliations, context, reload) {
-    const done = reconciliations.filter((item) => item.status === 'finalised');
-    const linked = done.find((item) => item.id === episode.reconciliation_id);
-    if (linked) return h('p', {}, `Linked: reconciliation finalised ${when(linked.finalised_at)}, ${linked.summary?.confirmed.length ?? 0} medicines confirmed.`);
-    if (!done.length) return h('p', { class: 'muted' }, 'No finalised reconciliation yet. Finish one in MedGuard, then link it here.');
-    return form(
-        [{ name: 'reconciliation_id', label: 'Finalised reconciliation', type: 'select', options: done.map((item) => [item.id, when(item.finalised_at)]) }],
-        'Link medicines',
-        async (values) => {
-            await act(() => api(`${BASE}/episodes/${episode.id}`, { method: 'PATCH', body: values }), context, 'Linked');
-            reload();
-        },
-        { inline: true },
-    );
-}
-
-function episodeEditor(area, episode, reconciliations, context, open) {
+function episodeEditor(area, episode, context, open) {
     const url = `${BASE}/episodes/${episode.id}`;
     const reload = () => open(episode.id);
     const post = (path, body, message) => act(() => api(`${url}/${path}`, { method: 'POST', body }), context, message);
@@ -117,7 +101,6 @@ function episodeEditor(area, episode, reconciliations, context, open) {
                 },
             }, episode.flagged ? 'Remove flag' : 'Flag for attention')),
         ...section('Summary', summary),
-        ...section('Medicines going home', medicinesLink(episode, reconciliations, context, reload)),
         ...section('Instructions', instruction, table(
             [{ label: 'Topic', cell: (row) => row.topic }, { label: 'Text', cell: (row) => row.text }],
             episode.instructions,
@@ -191,15 +174,6 @@ function checklist(data, context, onChange) {
     return h('div', {},
         h('div', { class: 'banner danger' }, `If you are worried, contact ${data.emergency_contact}. In an emergency call 112.`),
         ...section('What to do', taskList(data.tasks, context, onChange)),
-        ...section('Your medicines', table(
-            [
-                { label: 'Medicine', cell: (row) => row.written_name },
-                { label: 'How to take', cell: (row) => `${row.dose} ${row.frequency}` },
-                { label: 'Status', cell: (row) => badge(row.status) },
-            ],
-            data.medicines,
-            'Your medicine list will appear here once it is confirmed.',
-        )),
         ...section('Your instructions', data.instructions.map((item) => h('div', {}, h('h3', {}, item.topic), h('p', {}, item.text)))),
         data.pending_results.length ? h('div', {}, ...section('Test results still to come', table(
             [
@@ -216,8 +190,7 @@ export async function renderDischarge(container, context) {
     const area = h('div', {});
     const open = async (id) => {
         const episode = await api(`${BASE}/episodes/${id}`);
-        const reconciliations = await api(`/api/addons/medguard/patients/${episode.patient_id}/reconciliations`).catch(() => []);
-        episodeEditor(area, episode, reconciliations, context, open);
+        episodeEditor(area, episode, context, open);
         area.scrollIntoView({ block: 'start' });
     };
 

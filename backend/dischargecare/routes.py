@@ -30,14 +30,12 @@ class EpisodeRequest(BaseModel):
     problems: str = Field(default="", max_length=3000)
     procedures: str = Field(default="", max_length=3000)
     emergency_contact: str = Field(default="", max_length=200)
-    reconciliation_id: Optional[str] = None
 
 
 class EpisodeUpdate(BaseModel):
     problems: Optional[str] = Field(default=None, max_length=3000)
     procedures: Optional[str] = Field(default=None, max_length=3000)
     emergency_contact: Optional[str] = Field(default=None, max_length=200)
-    reconciliation_id: Optional[str] = None
     flagged: Optional[bool] = None
 
 
@@ -134,8 +132,6 @@ def close_blockers(db: sqlite3.Connection, episode: sqlite3.Row) -> List[str]:
     ).fetchone()[0]
     if pending:
         blockers.append(f"Test results still pending: {pending}")
-    if not episode["reconciliation_id"]:
-        blockers.append("No medication reconciliation is linked")
     return blockers
 
 
@@ -145,7 +141,6 @@ def create_episode(
 ) -> dict:
     gate.open_patient(db, user, request.patient_id, "dischargecare.episode.create", CLINICAL)
     care.require_belongs(db, "encounters", request.encounter_id, request.patient_id)
-    care.require_belongs(db, "medication_reconciliations", request.reconciliation_id, request.patient_id)
     episode_id = insert(
         db,
         "discharge_episodes",
@@ -158,7 +153,6 @@ def create_episode(
         problems=request.problems,
         procedures=request.procedures,
         emergency_contact=request.emergency_contact,
-        reconciliation_id=request.reconciliation_id,
         created_by=user["id"],
         created_at=now_iso(),
     )
@@ -228,13 +222,6 @@ def update_episode(
     summary_fields = {"problems", "procedures", "emergency_contact"}
     if episode["status"] == "active" and summary_fields & set(values):
         raise HTTPException(status.HTTP_409_CONFLICT, "The approved summary can't be changed.")
-    if request.reconciliation_id:
-        found = db.execute(
-            "SELECT status FROM medication_reconciliations WHERE id = ? AND patient_id = ?",
-            (request.reconciliation_id, episode["patient_id"]),
-        ).fetchone()
-        if found is None or found["status"] != "finalised":
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Link a finalised reconciliation for this patient.")
     if "flagged" in values:
         values["flagged"] = int(values["flagged"])
     if values:
@@ -377,12 +364,6 @@ def checklist(episode_id: str, user=Depends(require_user), db: sqlite3.Connectio
     if episode["status"] == "draft":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "This checklist isn't ready yet.")
     tasks = [task for task in _tasks(db, episode_id) if task["audience"] == "patient"]
-    medicines = rows(
-        db.execute(
-            "SELECT written_name, dose, frequency, status FROM medication_records WHERE source_reference = ? AND source = 'reconciled'",
-            (episode["reconciliation_id"],),
-        )
-    )
     return {
         "discharge_date": episode["discharge_date"],
         "destination": episode["destination"],
@@ -391,7 +372,6 @@ def checklist(episode_id: str, user=Depends(require_user), db: sqlite3.Connectio
         "instructions": rows(
             db.execute("SELECT topic, text, language FROM discharge_instructions WHERE episode_id = ?", (episode_id,))
         ),
-        "medicines": medicines,
         "tasks": tasks,
         "pending_results": rows(
             db.execute(

@@ -72,7 +72,7 @@ def outage_of_mongodb(client: TestClient, patient_id: str, container: Optional[s
         real_put = stores.MongoEventStore.put
         stores.MongoEventStore.put = lambda _self, _event: (_ for _ in ()).throw(ConnectionError("simulated outage"))
     show("tool during MongoDB outage (HTTP status)", client.post(f"/api/patients/{patient_id}/encounters", json={"reason": "Outage check"}).status_code)
-    show("tool event during MongoDB outage", client.post("/api/addons/medguard/reconcile", json={"patient_id": patient_id}).status_code)
+    show("tool event during MongoDB outage", client.post("/api/addons/dischargecare/episodes", json={"patient_id": patient_id, "discharge_date": "2026-11-01", "destination": "Home", "problems": "Outage check", "emergency_contact": "Ward 4: 040-555-0100"}).status_code)
     show("delivery during outage", delivery.deliver_once().get("mongodb"))
     db = connect()
     show("outbox kept events during outage", delivery.backlog(db)["mongodb"])

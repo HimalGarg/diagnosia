@@ -1,5 +1,7 @@
 # External integration validation
 
+> **Update, 1 November 2026:** MedGuard, ChronicCare, MaternaCare and AMR Guard were removed from Diagnosia after this was written. It is a record of 31 October 2026 and still describes them. The current tools are in the README.
+
 Results from 31 October 2026. All data was synthetic.
 
 ## Services

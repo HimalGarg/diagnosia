@@ -35,8 +35,7 @@ Existing staff accounts become `pending_verification` on upgrade.
 - Identity, against a government document.
 - Registration, on the relevant council's own register, not a copy supplied by the applicant.
 - Employment or engagement with the organization.
-- For reviewers, that the qualification matches: pharmacist for medication rules, laboratory
-  professional for LOINC mappings.
+- For reviewers, that the qualification matches: laboratory professional for LOINC mappings.
 
 Which registers apply, and how often to re-check, must be set by the organization. The
 software stores no document, only the reference.
@@ -49,7 +48,7 @@ software stores no document, only the reference.
 - Nobody can verify, suspend or change the role of their own account.
 - Only an administrator of a verified organization can verify, and only its own members.
 - Pending, rejected or suspended administrators can do nothing.
-- Self-created organizations stay unverified: they can't verify staff, use AMR Guard or
+- Self-created organizations stay unverified: they can't verify staff or
   receive referrals.
 - Once verified, profession and registration number are locked.
 - Clinician share codes need a verified account, and a care team place stops working if

@@ -124,7 +124,7 @@ def test_yugabytedb_migrations_repeat_safely(ysql):
 
 def test_yugabytedb_keeps_a_handoff_once_however_often_it_is_retried(ysql):
     reference = f"case_live_{uuid.uuid4().hex[:12]}"
-    handoff = delivery.handoff_envelope(event(reference, target_module="ChronicCare"))
+    handoff = delivery.handoff_envelope(event(reference, target_module="ReferralLoop"))
     ysql.save_handoff(handoff)
     ysql.save_handoff(handoff, "context_shared", "meko:synthetic")
     found = ysql.handoffs(reference)

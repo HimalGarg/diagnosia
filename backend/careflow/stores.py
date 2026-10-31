@@ -27,8 +27,8 @@ EVENT_VALIDATOR = {
         "required": ["schema_version", "event_type", "module", "workflow_stage", "source_operation", "workflow_ref", "tenant_ref", "occurred_at", "status", "data_classification"],
         "properties": {
             "schema_version": {"enum": list(contract.ACCEPTED_VERSIONS)},
-            "module": {"enum": sorted(contract.MODULES)},
-            "workflow_stage": {"enum": sorted(set(contract.WORKFLOW_STAGES.values()))},
+            "module": {"enum": sorted(contract.MODULES | contract.RETIRED_MODULES)},
+            "workflow_stage": {"enum": sorted(set(contract.WORKFLOW_STAGES.values()) | {"programme"})},
             "source_operation": {"bsonType": "string", "maxLength": 80},
             "workflow_ref": {"bsonType": "string", "pattern": "^case_[a-z0-9_]{3,40}$"},
             "tenant_ref": {"bsonType": "string", "pattern": "^tenant_[a-z0-9_]{3,40}$"},
@@ -43,12 +43,8 @@ EVENT_VALIDATOR = {
 SETTLED_BY = {
     "note_draft.created": {"note_draft.approved", "note_draft.discarded"},
     "lab.review_required": {"lab.report_confirmed"},
-    "safety_check.review_required": {"safety_check.finalised"},
-    "care_plan.created": {"care_plan.approved"},
-    "maternal.concern_raised": {"maternal.concern_responded"},
     "referral.outcome_returned": {"referral.reviewed"},
     "referral.needs_information": {"referral.accepted", "referral.declined", "referral.redirected"},
-    "amr_analysis.review_required": {"amr_analysis.approved"},
     "prescription.confirmation_required": {"prescription.explained"},
 }
 

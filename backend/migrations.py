@@ -70,8 +70,13 @@ def _document_encryption(db: sqlite3.Connection) -> None:
 
 
 def _medication_rule_authority(db: sqlite3.Connection) -> None:
-    db.execute("ALTER TABLE medication_alerts ADD COLUMN authority TEXT NOT NULL DEFAULT 'list_comparison'")
-    db.execute("ALTER TABLE medication_reconciliations ADD COLUMN rule_coverage TEXT")
+    """Kept so a database that has these tables stays on the same numbers. The medication tools
+    were removed, so a new database never has the tables, and there is nothing to change."""
+    found = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    if "medication_alerts" in found:
+        db.execute("ALTER TABLE medication_alerts ADD COLUMN authority TEXT NOT NULL DEFAULT 'list_comparison'")
+    if "medication_reconciliations" in found:
+        db.execute("ALTER TABLE medication_reconciliations ADD COLUMN rule_coverage TEXT")
 
 
 def _intake_patient_link(db: sqlite3.Connection) -> None:

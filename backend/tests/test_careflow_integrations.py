@@ -13,7 +13,6 @@ import httpx
 import pytest
 from fastapi.routing import APIRoute
 
-from backend import demo as journey
 from backend import settings_store
 from backend.app import app
 from backend.careflow import contract, delivery, demo as careflow_demo, live, stores
@@ -21,10 +20,10 @@ from backend.config import Settings, settings
 from backend.db import connect
 from backend.integrations import execution, knowledge, meko, status, yugabyte
 from backend.tests.conftest import grant, verified_organization
-from backend.tests.test_careflow import FakeMcp, client_for, event_types, mongo, outbox, reconcile  # noqa: F401
+from backend.tests.test_careflow import FakeMcp, add_handoff, client_for, event_types, mongo, outbox, record_event  # noqa: F401
 
-TOOL_PACKAGES = ("diagnofast", "skin", "prescription", "clinscribe", "medguard", "chroniccare", "lablens", "dischargecare", "maternacare", "amrguard", "referralloop")
-EXPLICIT = {"start_interview", "answer", "read", "explain", "analyze", "create_intake", "draft_note", "approve_note", "confirm_report", "reconcile"}
+TOOL_PACKAGES = ("diagnofast", "skin", "prescription", "clinscribe", "lablens", "dischargecare", "referralloop")
+EXPLICIT = {"start_interview", "answer", "read", "explain", "analyze", "create_intake", "draft_note", "approve_note", "confirm_report"}
 
 
 def write_routes():
@@ -34,7 +33,7 @@ def write_routes():
 
 
 def actions_in(source):
-    names = re.findall(r'"((?:clinscribe|lablens|medguard|chroniccare|dischargecare|maternacare|amrguard|referralloop|diagnofast)\.[a-z_.]+)"', source)
+    names = re.findall(r'"((?:clinscribe|lablens|dischargecare|referralloop|diagnofast)\.[a-z_.]+)"', source)
     return [name for name in names if name in contract.AUDIT_EVENTS]
 
 
@@ -64,8 +63,8 @@ def test_every_status_a_referral_or_session_can_take_is_mapped():
         assert f"clinscribe.session.{value}" in contract.AUDIT_EVENTS
 
 
-def test_all_eleven_tools_are_in_the_contract():
-    assert len(contract.MODULES) == 11
+def test_all_seven_tools_are_in_the_contract():
+    assert len(contract.MODULES) == 7
     assert set(contract.WORKFLOW_STAGES) == contract.MODULES
 
 
@@ -92,35 +91,7 @@ def test_each_event_has_every_required_field(wide_journey):
 def test_events_from_audit_name_the_real_operation(wide_journey):
     found = {json.loads(row["event"])["event_type"]: json.loads(row["event"])["source_operation"] for row in outbox()}
     assert found["lab.report_confirmed"] == "lablens.report.confirmed"
-    assert found["safety_check.started"] == "medguard.reconcile"
-
-
-def test_a_safety_check_has_a_lifecycle_in_order(doctor, patient):
-    reconcile(doctor, patient)
-    found = event_types()
-    assert found.index("safety_check.started") < found.index("safety_check.completed")
-
-
-def test_a_failed_safety_check_leaves_no_started_event(person, patient, doctor, monkeypatch):
-    from backend.medguard import routes as medguard
-
-    doctor.post(f"/api/addons/medguard/patients/{patient['id']}/medications", json={"written_name": "Dolo 650", "source": "prescription", "frequency": "SOS"})
-
-    def broken(*_args, **_options):
-        raise RuntimeError("synthetic")
-
-    monkeypatch.setattr(medguard.engine, "review", broken)
-    with pytest.raises(RuntimeError):
-        doctor.post("/api/addons/medguard/reconcile", json={"patient_id": patient["id"]})
-    found = set(event_types())
-    assert "safety_check.started" not in found and "safety_check.completed" not in found
-
-
-def test_a_chronic_care_journey_reports_conditions_plans_and_readings(doctor, patient):
-    journey._chronic(doctor, patient["id"])
-    found = set(event_types())
-    assert {"condition.recorded", "care_plan.created", "care_plan.approved", "reading.recorded"} <= found
-    assert not any(name.startswith("followup_task") for name in found)
+    assert found["discharge.episode_created"] == "dischargecare.episode.create"
 
 
 def test_a_transcription_failure_is_recorded_but_a_good_chunk_is_not(doctor, patient, monkeypatch):
@@ -340,7 +311,8 @@ class Validation(Exception):
 
 
 def waiting_events(doctor, patient):
-    reconcile(doctor, patient)
+    record_event(doctor, patient)
+    record_event(doctor, patient)
 
 
 def test_a_document_the_schema_refuses_is_set_aside_without_blocking_the_rest(doctor, patient):
@@ -631,8 +603,8 @@ def test_an_expired_session_starts_again():
 def test_a_saved_handoff_returns_a_safe_reference():
     server = Server({"memory_add": {"id": "memory-123"}})
     reference = client_for(server).save_handoff(delivery.handoff_envelope({
-        "event_id": "evt_abcdef", "correlation_id": "corr_abcdef", "module": "LabLens", "target_module": "ChronicCare",
-        "workflow_ref": "case_abc123", "occurred_at": "2026-10-31T10:00:00+00:00", "event_type": "lab.report_confirmed",
+        "event_id": "evt_abcdef", "correlation_id": "corr_abcdef", "module": "DischargeCare", "target_module": "ReferralLoop",
+        "workflow_ref": "case_abc123", "occurred_at": "2026-10-31T10:00:00+00:00", "event_type": "discharge.approved",
     }))
     assert reference == "meko:memory-123"
 
@@ -640,8 +612,8 @@ def test_a_saved_handoff_returns_a_safe_reference():
 def test_text_from_a_reply_never_becomes_a_reference():
     server = Server({"memory_add": {"id": "<script>not an identifier</script>"}})
     reference = client_for(server).save_handoff(delivery.handoff_envelope({
-        "event_id": "evt_abcdef", "correlation_id": "corr_abcdef", "module": "LabLens", "target_module": "ChronicCare",
-        "workflow_ref": "case_abc123", "occurred_at": "2026-10-31T10:00:00+00:00", "event_type": "lab.report_confirmed",
+        "event_id": "evt_abcdef", "correlation_id": "corr_abcdef", "module": "DischargeCare", "target_module": "ReferralLoop",
+        "workflow_ref": "case_abc123", "occurred_at": "2026-10-31T10:00:00+00:00", "event_type": "discharge.approved",
     }))
     assert reference == "meko:handoff_abcdef"
 
@@ -652,16 +624,20 @@ def confirmed_lab(client):
 
 def test_a_handoff_looks_up_real_context_before_it_is_noted(client, monkeypatch):
     careflow_demo.run()
+    add_handoff(careflow_demo.CASE)
+    add_handoff(careflow_demo.CASE)
     server = Server({"memory_add": {"id": "memory-123"}})
     monkeypatch.setattr(meko, "client", lambda: client_for(server))
     assert delivery.deliver_once()["meko"]["delivered"] == 2
     names = [call["body"]["params"]["name"] for call in server.calls if call["body"]["method"] == "tools/call"]
     assert names[:2] == ["knowledgebase_search", "memory_add"]
-    assert "LabLens to ChronicCare" in json.dumps(server.calls[-1]["body"])
+    assert "DischargeCare to ReferralLoop" in json.dumps(server.calls[-1]["body"])
 
 
 def test_no_context_is_invented_when_meko_is_down(client, monkeypatch):
     careflow_demo.run()
+    add_handoff(careflow_demo.CASE)
+    add_handoff(careflow_demo.CASE)
     monkeypatch.setattr(meko, "client", lambda: client_for(Server(failure=500)))
     assert delivery.deliver_once()["meko"]["retrying"] == 1
     db = connect()
@@ -672,6 +648,8 @@ def test_no_context_is_invented_when_meko_is_down(client, monkeypatch):
 
 def test_a_context_reference_goes_on_to_the_handoff_record(client, monkeypatch):
     careflow_demo.run()
+    add_handoff(careflow_demo.CASE)
+    add_handoff(careflow_demo.CASE)
     saved = []
 
     class Store:
@@ -814,14 +792,18 @@ def test_a_rejected_file_says_what_meko_said(client, tmp_path):
 
 def test_handoff_history_shows_where_each_record_has_got_to(client):
     careflow_demo.run()
+    add_handoff(careflow_demo.CASE)
+    add_handoff(careflow_demo.CASE)
     client.post("/api/auth/login", json={"email": careflow_demo.DOCTOR, "password": careflow_demo.PASSWORD})
     found = client.get(f"/api/careflow/workflows/{careflow_demo.CASE}/handoffs").json()["handoffs"]
-    assert [(item["source_module"], item["target_module"]) for item in found] == [("LabLens", "ChronicCare")] * 2
+    assert [(item["source_module"], item["target_module"]) for item in found] == [("DischargeCare", "ReferralLoop")] * 2
     assert found[0]["records"]["mongodb"]["state"] == "pending"
 
 
 def test_someone_else_cannot_read_handoffs(client, person):
     careflow_demo.run()
+    add_handoff(careflow_demo.CASE)
+    add_handoff(careflow_demo.CASE)
     assert person("doctor").get(f"/api/careflow/workflows/{careflow_demo.CASE}/handoffs").status_code == 404
 
 

@@ -41,8 +41,8 @@ BODIES_FOR_POST = {"json": {}}
 
 
 def test_the_sweep_sees_the_whole_api():
-    assert len(ALL_ROUTES) > 150
-    assert len(PATIENT_ROUTES) > 40
+    assert len(ALL_ROUTES) > 120
+    assert len(PATIENT_ROUTES) > 30
 
 
 # An empty body fails validation before a route's own access check, so the sweeps above
@@ -56,10 +56,9 @@ NEEDS_NO_RECORD = {
     "register", "login", "logout", "me", "my_status", "accept_invitation", "system_status", "system_readiness",
     "consent_purposes", "list_patients", "create_patient", "create_my_record", "join_with_code", "list_notifications",
     "mark_notification_read", "get_practitioner", "save_practitioner", "create_organization", "list_organizations",
-    "list_measures", "knowledge", "check_interactions", "lookup", "label_evidence", "get_catalog", "list_rules",
     "list_mappings", "inbox", "sent", "exception_queue", "board", "follow_up", "call_list", "read", "explain",
-    "read_aloud", "analyze", "upload_report", "create_referral", "reconcile", "create_episode", "start_episode",
-    "create_rule", "public_config", "list_settings", "forms", "queue",
+    "read_aloud", "analyze", "upload_report", "create_referral", "create_episode",
+    "public_config", "list_settings", "forms", "queue",
 }
 
 
@@ -74,7 +73,7 @@ def test_every_route_touching_a_record_goes_through_a_gate():
     assert unguarded == []
 
 
-@pytest.mark.parametrize("name", ["upload_report", "create_referral", "reconcile", "create_episode", "start_episode", "create_intake", "queue"])
+@pytest.mark.parametrize("name", ["upload_report", "create_referral", "create_episode", "create_intake", "queue"])
 def test_routes_taking_a_patient_in_the_body_still_use_the_gate(name):
     endpoints = {route.endpoint.__name__: route.endpoint for route in app.routes if isinstance(route, APIRoute)}
     assert "open_patient(" in inspect.getsource(endpoints[name])
@@ -258,17 +257,6 @@ def test_the_consent_revocation_reach(doctor, person):
               "priority": "routine", "respond_by": "2099-01-01"},
     )
     assert denied.status_code == 409
-
-
-def test_revoked_maternal_consent_stops_clinical_changes(doctor, patient):
-    consent = grant(doctor, patient["id"], "maternal_care")
-    episode = doctor.post(
-        "/api/addons/maternacare/episodes",
-        json={"patient_id": patient["id"], "escalation_contact": "040-555-0100", "concern_response_hours": 2},
-    ).json()
-    doctor.post(f"/api/patients/{patient['id']}/consents/{consent['id']}/revoke")
-    response = doctor.post(f"/api/addons/maternacare/episodes/{episode['id']}/visits", json={"planned_date": "2099-01-01", "purpose": "Check"})
-    assert response.status_code == 409
 
 
 def test_a_second_consent_restores_sharing_only_when_given(doctor, person):

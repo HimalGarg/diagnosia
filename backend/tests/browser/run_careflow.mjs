@@ -47,7 +47,7 @@ check('filters by status', review > 0 && review < all, `${review} of ${all}`);
 await selects[2].select('');
 await wait(700);
 const shown = await text();
-check('shows handoffs', shown.includes('Handoffs between tools') && shown.includes('LabLens to ChronicCare'));
+check('shows handoffs', shown.includes('Handoffs between tools') && shown.includes('No handoffs between tools'));
 check('shows a review indicator', shown.includes('Needs review'));
 check('counts what is still waiting', /\d+ still waiting for a person/.test(shown));
 check('shows integration status', shown.includes('Integration status') && shown.includes('YugabyteDB'), (shown.match(/MongoDB Atlas\s+\w+/) ?? [''])[0]);
@@ -59,7 +59,7 @@ const started = Date.now();
 await page.evaluate(async () => {
     const list = await (await fetch('/api/patients')).json();
     const id = list.find((item) => item.first_name === 'Demo').id;
-    await fetch('/api/addons/medguard/reconcile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patient_id: id }) });
+    await fetch('/api/addons/dischargecare/episodes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patient_id: id, discharge_date: '2026-11-01', destination: 'Home', problems: 'Synthetic', emergency_contact: 'Ward 4: 040-555-0100' }) });
 });
 let after = before;
 while (after === before && Date.now() - started < 25000) { await wait(200); after = await rows(); }

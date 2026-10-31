@@ -82,7 +82,10 @@ def test_a_fresh_database_is_created_with_every_migration(tmp_path, monkeypatch)
     database.init_db()
     connection = open_database(path)
     assert connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == len(migrations.MIGRATIONS)
-    assert {"patients", "reminders", "medication_rules", "loinc_mappings", "staff_verifications"} <= table_names(connection)
+    found = table_names(connection)
+    assert {"patients", "reminders", "loinc_mappings", "staff_verifications", "discharge_episodes"} <= found
+    # The medication, pregnancy, chronic care and antibiogram tools were removed, and take no tables with them.
+    assert not {"medication_rules", "medication_records", "maternal_episodes", "care_plans", "antibiogram_runs"} & found
     assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
     assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     connection.close()

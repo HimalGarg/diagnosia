@@ -12,7 +12,6 @@ export const STAGES = [
         tools: [
             { id: 'clinscribe', label: 'ClinScribe', audience: 'clinician', blurb: 'Turns a consultation into a draft note to check and sign.' },
             { id: 'lablens', label: 'LabLens', blurb: 'Reads lab reports into results a person confirms.' },
-            { id: 'medguard', label: 'MedGuard', blurb: 'Compares medicine lists and raises questions to review.' },
             { id: 'skin', label: 'Skin Cancer Detection', audience: 'staff', blurb: 'A research screening aid with a heatmap, for a second opinion.' },
         ],
     },
@@ -22,14 +21,6 @@ export const STAGES = [
             { id: 'prescription', label: 'Prescription Analyzer', blurb: 'Reads a prescription photo and explains it in plain words.' },
             { id: 'referrals', label: 'ReferralLoop', blurb: 'Follows a referral from request to returned outcome.' },
             { id: 'discharge', label: 'DischargeCare', blurb: 'Turns a discharge plan into a checklist for the family.' },
-            { id: 'chroniccare', label: 'ChronicCare', blurb: 'Tracks readings and medicines around an approved plan.' },
-        ],
-    },
-    {
-        title: 'Long-term programmes',
-        tools: [
-            { id: 'materna', label: 'MaternaCare', blurb: 'Keeps pregnancy and postnatal care in one place.' },
-            { id: 'amr', label: 'AMR Guard', audience: 'staff', blurb: 'Local antibiograms, culture follow-up and review records.' },
         ],
     },
 ];

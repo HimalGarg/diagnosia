@@ -129,7 +129,7 @@ def run(real_ai: bool = False) -> Dict[str, object]:
 
         demo._labs(doctor, patient_id, "Mr. Demo Person")
         _scanned_report(doctor, patient_id)
-        demo._medicines(doctor, patient_id)
+        demo._discharge(doctor, patient_id)
         encounter = demo._check(doctor.post(f"/api/patients/{patient_id}/encounters", json={"reason": "Synthetic review"}))
         session = demo._scribe(doctor, patient_id, encounter["id"])
         demo._check(doctor.post(f"/api/addons/clinscribe/sessions/{session}/draft-note", json={}))

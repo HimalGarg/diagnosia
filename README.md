@@ -11,14 +11,14 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Project-Scope%20Locked-6554C0?style=for-the-badge" alt="Project scope locked" />
-  <img src="https://img.shields.io/badge/Clinical%20Modules-8%20Add--ons-2563EB?style=for-the-badge" alt="Eight add-ons" />
+  <img src="https://img.shields.io/badge/Clinical%20Modules-4%20Add--ons-2563EB?style=for-the-badge" alt="Four add-ons" />
   <img src="https://img.shields.io/badge/MLH%20Tracks-3-0F766E?style=for-the-badge" alt="Three sponsor tracks" />
   <img src="https://img.shields.io/badge/Operating%20Mode-Synthetic%20Pilot%20Only-D97706?style=for-the-badge" alt="Synthetic pilot only" />
 </p>
 
 <p align="center">
   <a href="#overview">Overview</a> ·
-  <a href="#the-eight-add-ons">Eight Add-ons</a> ·
+  <a href="#the-four-add-ons">Four Add-ons</a> ·
   <a href="#the-three-sponsor-integrations">Sponsor Integrations</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#getting-started">Getting Started</a> ·
@@ -36,7 +36,7 @@
 - [The problem](#the-problem)
 - [Product scope](#product-scope)
 - [Core Diagnosia tools](#core-diagnosia-tools)
-- [The eight add-ons](#the-eight-add-ons)
+- [The four add-ons](#the-four-add-ons)
 - [The three sponsor integrations](#the-three-sponsor-integrations)
 - [How the technologies work together](#how-the-technologies-work-together)
 - [Architecture](#architecture)
@@ -56,9 +56,9 @@
 
 ## Overview
 
-**Diagnosia is a connected healthcare workflow platform designed to help clinicians, specialists, patients and care teams manage information across the patient journey.** It brings patient intake, medical-document understanding, clinical documentation, medication review workflows, laboratory reports, chronic-care follow-ups, discharge coordination, maternal-care coordination and specialist referrals into one shared patient-record experience.
+**Diagnosia is a connected healthcare workflow platform designed to help clinicians, specialists, patients and care teams manage information across the patient journey.** It brings patient intake, medical-document understanding, clinical documentation, laboratory reports, discharge coordination and specialist referrals into one shared patient-record experience.
 
-The project combines three core clinical tools with eight integrated add-on modules. For the MLH hackathon scope, three sponsor technologies extend the platform in clearly separated roles:
+The project combines three core clinical tools with four integrated add-on modules. For the MLH hackathon scope, three sponsor technologies extend the platform in clearly separated roles:
 
 | Sponsor technology | Responsibility in Diagnosia |
 |---|---|
@@ -102,14 +102,14 @@ Diagnosia is intended to assist and coordinate these workflows. It does not repl
 The project scope is now **feature-frozen**. The final product consists of:
 
 - The existing core Diagnosia tools.
-- The eight selected add-on modules described below.
+- The four selected add-on modules described below.
 - The three selected sponsor integrations.
 - Shared platform capabilities required to connect, secure, observe and demonstrate those modules.
 - One shared operational analytics view: the **Care Continuity Observatory**.
 
-The Care Continuity Observatory is a platform-level analytics surface, **not a ninth clinical add-on**. No additional standalone healthcare tools are planned. Remaining development should focus on implementing the finalized integrations, closing technical gaps, validating existing workflows, improving reliability, documentation and review evidence—not expanding the product scope.
+The Care Continuity Observatory is a platform-level analytics surface, **not a fifth clinical add-on**. No additional standalone healthcare tools are planned. Remaining development should focus on implementing the finalized integrations, closing technical gaps, validating existing workflows, improving reliability, documentation and review evidence—not expanding the product scope.
 
-> **Implementation-status note:** the eight add-ons have been built into Diagnosia and exercised end to end as pilots. Gemini, YugabyteDB, Meko and MongoDB integrations are built. See [the validation record](docs/integrations/EXTERNAL_INTEGRATION_VALIDATION.md) for exactly what has been proved against each real service.
+> **Implementation-status note:** the four add-ons have been built into Diagnosia and exercised end to end as pilots. Gemini, YugabyteDB, Meko and MongoDB integrations are built. See [the validation record](docs/integrations/EXTERNAL_INTEGRATION_VALIDATION.md) for exactly what has been proved against each real service.
 
 ## Core Diagnosia tools
 
@@ -177,21 +177,17 @@ The Prescription Analyzer helps interpret prescription images and explain readab
 
 OptiKinesis is a related but separately distributed assistive-computing application. It uses webcam-based head tracking and blink interaction to help people with motor impairments control a computer. The documented technology includes MediaPipe facial landmarks, head-pose mapping, calibration, blink-to-click interaction and accessibility controls.
 
-OptiKinesis is **not counted among the eight Diagnosia clinical add-ons** and is not a diagnostic module. Its role in the broader project ecosystem is digital accessibility and hands-free computer interaction.
+OptiKinesis is **not counted among the four Diagnosia clinical add-ons** and is not a diagnostic module. Its role in the broader project ecosystem is digital accessibility and hands-free computer interaction.
 
-## The eight add-ons
+## The four add-ons
 
-The eight add-ons share the Diagnosia patient-record and workflow foundation. They are designed to exchange relevant, permission-controlled context rather than act as eight unrelated applications.
+The four add-ons share the Diagnosia patient-record and workflow foundation. They are designed to exchange relevant, permission-controlled context rather than act as four unrelated applications.
 
 | Add-on | Purpose | Main users | Primary output |
 |---|---|---|---|
 | **ClinScribe** | Clinical documentation and encounter summarization | Doctor, clinician | Structured note draft with source references and review state |
-| **MedGuard** | Medication reconciliation and safety-review workflow | Doctor, pharmacist | Reconciliation result and review workflow; approved interaction decision support is currently unavailable |
-| **ChronicCare** | Longitudinal care plans and follow-up tracking | Patient, care team | Care tasks, reminders and follow-up status |
 | **LabLens** | Laboratory report extraction and review | Patient, doctor, lab reviewer | Structured report draft with source and uncertainty metadata |
 | **DischargeCare** | Discharge transition and post-discharge coordination | Hospital team, patient, care team | Discharge summary and candidate follow-up tasks |
-| **MaternaCare** | Maternal and postnatal care coordination | Patient, maternal-health team | Care timeline, reviewed information and follow-up tasks |
-| **AMR Guard** | Antimicrobial stewardship workflow coordination | Stewardship team, clinician | Administrative review status; clinical recommendation capability is unavailable |
 | **ReferralLoop** | Specialist referrals and back-referral tracking | Referring doctor, specialist, care team | Referral status, appointment/consultation milestones and returned-note tracking |
 
 <details>
@@ -205,33 +201,11 @@ ClinScribe turns clinician-entered information (text or voice transcript) into a
 </details>
 
 <details>
-<summary><strong>MedGuard — medication reconciliation and safety workflow</strong></summary>
-
-MedGuard organizes medication information from available sources, highlights discrepancies for review and provides a workflow for pharmacist/clinician assessment.
-
-**Current pilot limitation:** all 21 starter medication rules are unapproved. MedGuard therefore performs **no authoritative drug-interaction checks**. A missing alert must never be interpreted as evidence that a medication is safe. RxNorm and openFDA lookups are informational suggestions, not a complete or validated safety engine.
-
-**CareFlow:** records list changes, the start and end of each check, alerts waiting for review, and finalisation. Medicines confirmed in the Prescription Analyzer reach MedGuard through a real handoff.
-
-**Guardrail:** do not create, activate or imply approval of medication rules without qualified pharmacist review.
-</details>
-
-<details>
-<summary><strong>ChronicCare — longitudinal care coordination</strong></summary>
-
-ChronicCare supports continuity through care plans, follow-up tasks, reminders and patient/care-team progress tracking.
-
-**CareFlow:** records conditions, care plans, approvals, readings, symptoms and adherence. ChronicCare has no follow-up task system. Confirmed LabLens results reach its trends through a real handoff.
-
-**Guardrail:** it is not a new disease-risk predictor or autonomous treatment planner.
-</details>
-
-<details>
 <summary><strong>LabLens — laboratory report digitisation and review</strong></summary>
 
 LabLens extracts laboratory report content into structured, reviewable fields. The workflow is designed to retain the original source, preserve test names and values, and expose uncertainty for human correction.
 
-**CareFlow:** records each report from receipt to confirmation. Text PDFs are read locally, and scanned reports by Gemini first, then Groq. Confirmed results hand off to ChronicCare.
+**CareFlow:** records each report from receipt to confirmation. Text PDFs are read locally, and scanned reports by Gemini first, then Groq. Confirmed results become observations in the patient record.
 
 **Current pilot limitations:** the parser has been exercised against synthetic layouts, not a representative real-world Indian laboratory dataset. The reported synthetic test set found 37/37 expected tests, but that is not a real-world accuracy claim. None of the 58 proposed LOINC mappings is approved; exports retain the laboratory's own test name rather than presenting an unreviewed mapping as verified.
 
@@ -246,28 +220,6 @@ DischargeCare organizes discharge information and candidate post-discharge tasks
 **CareFlow:** records the episode, checklist changes, approval and closure.
 
 **Guardrail:** extracted tasks require human verification before becoming active care tasks. Summarization is not a substitute for discharge instructions or clinical review.
-</details>
-
-<details>
-<summary><strong>MaternaCare — maternal and postnatal coordination</strong></summary>
-
-MaternaCare provides a workflow for maternal-care timelines, appointments, reminders and follow-up coordination.
-
-**CareFlow:** records the episode, due date, visits, observations, risks, education, birth plan, delivery, and concerns with their responses.
-
-**Current pilot limitation:** maternal clinical content is intentionally empty pending qualified maternal-health partners. Reminders are currently in-app/staff-follow-up workflows; SMS and automated voice delivery are not connected.
-
-**Guardrail:** no unreviewed maternal risk scoring, diagnosis, treatment advice or autonomous escalation.
-</details>
-
-<details>
-<summary><strong>AMR Guard — antimicrobial stewardship workflow</strong></summary>
-
-AMR Guard represents the administrative and review coordination side of antimicrobial stewardship, such as recording that a review is required or tracking its completion.
-
-**Current pilot limitation:** clinical decision support is unavailable. The recommendation route has been removed/disabled, and the module must not recommend antibiotics, doses, substitutions or treatment choices.
-
-**CareFlow:** records imports, antibiogram runs and approvals, culture reviews, stewardship reviews and guidelines, against the organization. Gemini generates no antibiotic recommendations.
 </details>
 
 <details>
@@ -304,14 +256,10 @@ Atlas stores one safe event for each workflow step and a prepared summary for ea
 |---|---|---|---|
 | DiagnoFast | Groq, then Gemini | Yes | None |
 | Skin Cancer Detection | Local model | Yes, with no finding recorded | None |
-| Prescription Analyzer | Gemini, then Groq | Yes | To MedGuard |
+| Prescription Analyzer | Gemini, then Groq | Yes | None |
 | ClinScribe | Groq, then Gemini | Yes | None |
-| MedGuard | None | Yes | From Prescription Analyzer |
-| ChronicCare | None | Yes | From LabLens |
-| LabLens | Gemini, then Groq, for scans | Yes | To ChronicCare |
+| LabLens | Gemini, then Groq, for scans | Yes | None |
 | DischargeCare | None | Yes | None |
-| MaternaCare | None | Yes | None |
-| AMR Guard | None | Yes | None |
 | ReferralLoop | None | Yes | None |
 
 ## How the technologies work together
@@ -333,7 +281,7 @@ flowchart TD
     WEB --> API[FastAPI Application and Authorization]
 
     API --> CORE[Existing Core Tools<br/>DiagnoFast · Skin Detection · Prescription Analyzer]
-    API --> ADDONS[Eight Add-ons<br/>ClinScribe · MedGuard · ChronicCare · LabLens<br/>DischargeCare · MaternaCare · AMR Guard · ReferralLoop]
+    API --> ADDONS[Four Add-ons<br/>ClinScribe · LabLens<br/>DischargeCare · ReferralLoop]
 
     API --> DB[(Existing Diagnosia Database<br/>Identity · Consent · Permissions<br/>Approved Records · Audit)]
     API --> DOCS[(Encrypted Document Storage)]
@@ -383,10 +331,9 @@ Sign in as `careflow.demo.doctor@example.com` with `Synthetic-demo-only-1`, and 
 
 1. **DiagnoFast** runs an interview, and its report waits for a doctor.
 2. **LabLens** reads two text reports locally and a scanned one with Gemini. The AI run goes to YugabyteDB.
-3. **A real handoff** takes confirmed lab results from LabLens to ChronicCare. Meko is searched for relevant knowledge, and the handoff is recorded in YugabyteDB and MongoDB.
-4. **MedGuard** runs its check, and **ClinScribe** drafts a note that waits for a clinician.
-5. **ReferralLoop** follows a referral to a booked appointment.
-6. **Failure and recovery:** run `python -m backend.tests.local_stack.end_to_end`, which interrupts a destination and shows recovery with no duplicates.
+3. **DischargeCare** opens a discharge episode, and **ClinScribe** drafts a note that waits for a clinician.
+4. **ReferralLoop** follows a referral to a booked appointment.
+5. **Failure and recovery:** run `python -m backend.tests.local_stack.end_to_end`, which interrupts a destination and shows recovery with no duplicates.
 
 CareFlow shows all of this in order, says which store it came from, and updates without a reload.
 
@@ -534,8 +481,8 @@ with none of them, from a local outbox. For a repeatable synthetic journey, run
 `.venv/bin/python -m backend.operator_cli careflow-demo`, then sign in as
 `careflow.demo.doctor@example.com` with `Synthetic-demo-only-1` and open CareFlow.
 
-The handoffs that really exist in the code are LabLens to ChronicCare, and Prescription Analyzer to
-MedGuard. ClinScribe drafts from the consultation transcript alone, so it takes no part in a handoff.
+No tool produces a handoff today. The support for handoffs between tools (events with a target module, the YugabyteDB
+handoff records and the Meko notes) stays in the code, and is tested with synthetic events, for a future tool to use.
 
 Gemini configuration must use the exact variable names and connection settings implemented in the relevant integration adapters and `.env.example`. This README intentionally does not invent names or credentials. Keep service-specific secrets in environment variables or an approved secret manager.
 
@@ -555,14 +502,13 @@ The following results were reported at the time this README was prepared. Re-run
 
 | Test area | Last reported result | Important qualification |
 |---|---:|---|
-| Main automated suite | **1,389 passed** | Synthetic/unit/integration coverage; not clinical validation |
+| Main automated suite | **1,121 passed** | Run on 1 November 2026, after removing four tools, without the skin suite. Synthetic/unit/integration coverage; not clinical validation |
 | Skin model suite | **21 passed** | Run in a separate environment with Torch. The trained model itself isn't on this machine yet |
 | Chrome microphone workflow | **30/30 passed** | Used a fake audio device, not a real microphone |
 | Full Chrome workflow | No page/server errors reported | Synthetic test data; phone-width layout also checked |
-| CareFlow in Chrome | **19/19 passed** | Local MongoDB, not Atlas |
+| CareFlow in Chrome | **19/19 passed** | Local MongoDB, not Atlas. Reported before the four tools were removed, and not re-run since |
 | YugabyteDB live | **7 passed** | A real server in Docker, not a cloud cluster |
 | MongoDB Atlas and Meko live | **Not run** | `BLOCKED_MISSING_CREDENTIALS` |
-| Live RxNorm/openFDA | **5 passed** | Informational lookups only; not a full medication safety validation |
 
 Not yet demonstrated in the reported test run:
 
@@ -586,22 +532,17 @@ Diagnosia incorporates safeguards in its pilot implementation, including:
 - Unreviewed AI output visibly marked and excluded from approved clinical records and FHIR exports.
 - Cross-organization/cross-site access restrictions.
 - Pilot-mode controls that prevent real-patient operation until readiness requirements are satisfied.
-- AMR decision support unavailable and no antibiotic recommendation route.
-- MedGuard starter rules disabled for authoritative interaction checks until pharmacist approval.
 
 These controls reduce risk but do not establish regulatory compliance or production security. Configuration, deployment, independent testing and professional review remain necessary.
 
 ## Current readiness and known limitations
 
-**Latest reported assessment: NO-GO for real patients.** The readiness report recorded 16 of 21 checks failing and all 13 required human sign-offs outstanding. Use `docs/DIAGNOSIA_READINESS_REPORT.md` as the detailed source of truth and update it as evidence changes.
+**Latest reported assessment: NO-GO for real patients.** All 10 required human sign-offs are outstanding, and the readiness checks fail until they are recorded. Run `python -m backend.operator_cli readiness` for the current count. Use `docs/DIAGNOSIA_READINESS_REPORT.md` as the detailed source of truth and update it as evidence changes.
 
 | Area | Current known state |
 |---|---|
 | Overall deployment | Pilot only; synthetic data only |
-| MedGuard | 21 starter rules exist but none are approved; authoritative interaction checking is disabled |
 | LOINC | 58 proposed mappings remain unapproved; local laboratory test names are retained in exports |
-| AMR Guard | Clinical decision support unavailable; no antibiotic recommendations |
-| MaternaCare | Clinical content awaits qualified maternal-health partners |
 | Reminders | In-app/staff follow-up workflow; SMS and voice channels are not connected |
 | Skin model | One calibration test remains failed and requires model-owner investigation |
 | Staff security | MFA and password-reset work remain open in the latest reported review |
@@ -613,7 +554,7 @@ These controls reduce risk but do not establish regulatory compliance or product
 
 ### Human approvals are not software features
 
-Clinical validation, pharmacist approval, laboratory terminology review, maternal-health review, antimicrobial stewardship review, CDSCO/regulatory advice, privacy/legal approval, AI vendor agreements and independent security assessment require qualified external people or organizations. Passing tests or generating a sign-off form does not satisfy those requirements.
+Clinical validation, laboratory terminology review, CDSCO/regulatory advice, privacy/legal approval, AI vendor agreements and independent security assessment require qualified external people or organizations. Passing tests or generating a sign-off form does not satisfy those requirements.
 
 ## Project documentation
 
@@ -627,14 +568,14 @@ The repository's `docs/` directory contains the detailed implementation and gove
 | [`docs/PRODUCTION_READINESS_AUDIT.md`](docs/PRODUCTION_READINESS_AUDIT.md) | Hardening-sprint audit and technical findings |
 | [`docs/DATA_PROTECTION_AND_RETENTION.md`](docs/DATA_PROTECTION_AND_RETENTION.md) | Document protection, privacy and retention considerations |
 | [`docs/PRODUCTION_DEPLOYMENT_CHECKLIST.md`](docs/PRODUCTION_DEPLOYMENT_CHECKLIST.md) | Deployment prerequisites and readiness controls |
-| [`docs/addons/`](docs/addons/) | One detailed document for each of the eight add-ons |
+| [`docs/addons/`](docs/addons/) | One detailed document for each of the four add-ons |
 | [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) | Third-party acknowledgements, reused material and license notices |
 
 If a linked document is absent in a particular branch or release, treat the link as a documentation task rather than assuming the requirement has been met.
 
 ## Final scope and contribution boundaries
 
-The product scope is frozen at the three core clinical tools, eight add-ons, OptiKinesis companion and three selected sponsor integrations. Please do not add another standalone module, chatbot, diagnostic engine or parallel patient database.
+The product scope is frozen at the three core clinical tools, four add-ons, OptiKinesis companion and three selected sponsor integrations. Please do not add another standalone module, chatbot, diagnostic engine or parallel patient database.
 
 Useful contributions within the approved scope include:
 
@@ -674,8 +615,6 @@ Before making changes, inspect `git status` and preserve existing uncommitted wo
 - [Pydantic](https://docs.pydantic.dev/)
 - [MediaPipe](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker)
 - [Groq](https://console.groq.com/docs)
-- [RxNorm / RxNav APIs](https://www.nlm.nih.gov/research/umls/rxnorm/)
-- [openFDA Drug Label API](https://open.fda.gov/apis/drug/label/)
 - [ABDM FHIR Implementation Guide](https://www.nrces.in/ndhm/fhir/r4/)
 
 ---

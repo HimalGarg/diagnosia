@@ -56,7 +56,7 @@ class JoinRequest(BaseModel):
 
 class ConsentRequest(BaseModel):
     purpose: Literal[
-        "ai_processing", "ai_scribe", "transcript_retention", "referral_sharing", "maternal_care", "external_messaging"
+        "ai_processing", "ai_scribe", "transcript_retention", "referral_sharing", "external_messaging"
     ]
     scope: str = Field(default="", max_length=200)
 
@@ -102,12 +102,12 @@ class OrganizationRequest(BaseModel):
 
 class MemberRequest(BaseModel):
     email: str = Field(max_length=254)
-    role: Literal["admin", "staff", "coordinator", "steward", "microbiologist"]
+    role: Literal["admin", "staff", "coordinator"]
 
 
 class PractitionerProfile(BaseModel):
     profession: Literal[
-        "doctor", "nurse", "midwife", "pharmacist", "coordinator", "community_health_worker", "microbiologist"
+        "doctor", "nurse", "midwife", "pharmacist", "coordinator", "community_health_worker"
     ] = "doctor"
     speciality: Optional[str] = Field(default=None, max_length=120)
     registration_number: Optional[str] = Field(default=None, max_length=60)
@@ -439,7 +439,7 @@ def create_encounter(
 ) -> dict:
     gate.open_patient(db, user, patient_id, "encounter.create", CLINICAL)
     if request.organization_id:
-        gate.require_membership(db, user, request.organization_id, ("admin", "staff", "coordinator", "steward", "microbiologist"), "encounter.organization")
+        gate.require_membership(db, user, request.organization_id, ("admin", "staff", "coordinator"), "encounter.organization")
     encounter_id = insert(
         db,
         "encounters",
@@ -487,7 +487,7 @@ def timeline(patient_id: str, user=Depends(require_user), db: sqlite3.Connection
 @router.get("/patients/{patient_id}/observations")
 def list_observations(
     patient_id: str,
-    category: Optional[Literal["laboratory", "vital", "symptom", "maternal"]] = None,
+    category: Optional[Literal["laboratory"]] = None,
     user=Depends(require_user),
     db: sqlite3.Connection = Depends(get_db),
 ) -> List[dict]:
@@ -501,19 +501,6 @@ def list_observations(
             ORDER BY effective_at DESC LIMIT ?
             """,
             (patient_id, category, category, MAX_LIST),
-        )
-    )
-
-
-@router.get("/patients/{patient_id}/medications")
-def list_medications(
-    patient_id: str, user=Depends(require_user), db: sqlite3.Connection = Depends(get_db)
-) -> List[dict]:
-    gate.open_patient(db, user, patient_id, "medication.list")
-    return rows(
-        db.execute(
-            "SELECT * FROM medication_records WHERE patient_id = ? ORDER BY created_at DESC LIMIT ?",
-            (patient_id, MAX_LIST),
         )
     )
 

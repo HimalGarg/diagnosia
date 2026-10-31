@@ -20,9 +20,8 @@ uv pip install -r backend/requirements.txt
 
 **Back up the key file.** Losing it makes stored documents unreadable.
 
-It approves no clinical content and records no governance signoff. MedGuard rules and LOINC
-mappings stay unreviewed, so you can try the review workflow with the demo pharmacist and
-laboratory accounts.
+It approves no clinical content and records no governance signoff. LOINC mappings
+stay unreviewed, so you can try the review workflow with the demo laboratory account.
 
 ## Turning on AI
 
@@ -61,7 +60,6 @@ says what is missing.
 |---|---|
 | Doctor and clinic administrator | Every tool, Settings, staff verification |
 | Specialist | Received referrals: accept, book, return an outcome |
-| Pharmacist, second pharmacist | Add evidence to a rule, submit, approve as the other person |
 | Laboratory reviewer | Approve or correct LOINC mappings |
 | Patient | Their own record, readings, checklist, on a phone-sized screen too |
 
@@ -76,7 +74,6 @@ says what is missing.
 | LabLens | Whether AI reads reports we can't read locally |
 | ReferralLoop | Suggested reply times |
 | Reminders | Hours a patient has to confirm |
-| Safety wording | The emergency instruction patients see |
 
 Only an administrator of a verified organization can change these, and each change is audited.
 Safety switches, such as allowing real patient data, are deliberately not settings.

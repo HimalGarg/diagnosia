@@ -12,19 +12,12 @@ blueprint where the two disagree. It is an engineering audit, not legal advice.
 | LabLens | Lab2FHIR | `34c9b4b` | MIT file | **No code used.** See below |
 | LabLens | FHIR-XTract | `8e3d434` | MIT file (blueprint: not verified) | **Patterns adapted** for report headers. YAML-driven extractor and 1,891-line FHIR mapper not used |
 | ReferralLoop | Healthtech Referral Toolkit | `e5fc18a` | CC BY 4.0 | **Used** for stages and test scenarios TS-01 to TS-08, with attribution |
-| MedGuard | RxNav / RxNorm | public API | NLM terms | **Used** for on-request lookups, as suggestions only |
-| MedGuard | openFDA labels | public API | Open, attribution | **Used** for on-request label search, as supporting text only |
 | DischargeCare | Microsoft Patient Discharge Planning | `142c4da` | MIT file | **Ideas only.** It is a Power Platform solution with no reusable Python or JS. Barriers, flags and the huddle board were rebuilt |
 
 ## What was not used, and why
 
 | Candidate | Finding | Decision |
 |---|---|---|
-| MedRecon (`c9fd62f`) | README says MIT, but there is no `LICENSE` file. Its interaction data is the part we would want | Nothing copied. Not reopened until the maintainer adds a licence. Starter rules were written separately |
-| Chronicly | The clone returned "repository not found" | Dropped. ChronicCare is native |
-| AHRQ eCare Plan | Reference material | Shared-plan and patient-entered-data ideas only. No code |
-| Foundation AMR Guard (`d0faa82`) | AGPL-3.0 TypeScript prototype whose purpose is antibiotic recommendation | Nothing copied, for licence reasons and because the blueprint forbids this behaviour |
-| AMR R package | GPL-2.0, in R | Not embedded. Worth considering as a separate check on our figures |
 | OpenMRS, Agni | Whole platforms | Not deployed. A second patient database is the wrong trade |
 
 ## Findings that differ from the blueprint

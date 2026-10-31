@@ -1,5 +1,7 @@
 # Diagnosia readiness report
 
+> **Update, 1 November 2026:** MedGuard, ChronicCare, MaternaCare and AMR Guard were removed from Diagnosia after this was written. It is a record of 31 October 2026 and still describes them. The current tools are in the README.
+
 Dated 31 October 2026, updated the same day after moving to Groq, building local setup, and merging the DiagnoFast, Prescription and Skin work into one product. Technical implementation, clinical validation and legal approval are
 reported separately, because passing tests says nothing about the other two.
 

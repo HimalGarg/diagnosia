@@ -26,12 +26,8 @@ TOOLS = {
     "skin": "Skin Cancer Detection",
     "clinscribe": "ClinScribe",
     "lablens": "LabLens",
-    "medguard": "MedGuard",
     "referrals": "ReferralLoop",
-    "chroniccare": "ChronicCare",
     "discharge": "DischargeCare",
-    "materna": "MaternaCare",
-    "amr": "AMR Guard",
 }
 PROVIDERS = {"groq": "Groq", "gemini": "Google Gemini"}
 # Reading handwriting and scanned reports is where Gemini does best, so these three prefer it.
@@ -48,7 +44,6 @@ GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash"
 TEXT_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
 VISION_MODELS = ["qwen/qwen3.8-27b", "meta-models/muse-spark-open"]
 SPEECH_MODELS = ["whisper-large-v3", "whisper-large-v3-turbo"]
-DEFAULT_EMERGENCY = "If this is an emergency, call 112 or 108 now, or go to the nearest hospital."
 
 SETTINGS: Dict[str, dict] = {
     "ai.model.clinscribe_note": {"section": "AI models", "label": "ClinScribe: drafting notes", "type": "model", "choices": TEXT_MODELS, "default": "openai/gpt-oss-120b"},
@@ -75,7 +70,6 @@ SETTINGS: Dict[str, dict] = {
     "referrals.routine_days": {"section": "ReferralLoop", "label": "Suggested reply time, routine (days)", "type": "int", "min": 1, "max": 90, "default": 10},
     "referrals.urgent_days": {"section": "ReferralLoop", "label": "Suggested reply time, urgent (days)", "type": "int", "min": 1, "max": 30, "default": 3},
     "reminders.respond_within_hours": {"section": "Reminders", "label": "Hours a patient has to confirm", "type": "int", "min": 1, "max": 168, "default": 24},
-    "contact.emergency_message": {"section": "Safety wording", "label": "Emergency instruction shown to patients", "type": "text", "max_length": 200, "default": DEFAULT_EMERGENCY},
     **{f"tools.{name}": {"section": "Tools", "label": label, "type": "bool", "default": True} for name, label in TOOLS.items()},
 }
 

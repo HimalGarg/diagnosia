@@ -36,9 +36,6 @@ class Settings:
     # Turning one on does nothing by itself: see safety.py for what each one also requires.
     clinical_pilot_mode: bool = field(default_factory=lambda: os.environ.get("CLINICAL_PILOT_MODE") != "0")
     allow_real_patient_data: bool = field(default_factory=lambda: os.environ.get("ALLOW_REAL_PATIENT_DATA") == "1")
-    enable_unvalidated_clinical_rules: bool = field(
-        default_factory=lambda: os.environ.get("ENABLE_UNVALIDATED_CLINICAL_RULES") == "1"
-    )
     enable_external_messaging: bool = field(default_factory=lambda: os.environ.get("ENABLE_EXTERNAL_MESSAGING") == "1")
     # Set DIAGNOSIA_HTTPS=1 in production so session cookies are HTTPS-only.
     cookie_secure: bool = field(default_factory=lambda: os.environ.get("DIAGNOSIA_HTTPS") == "1")

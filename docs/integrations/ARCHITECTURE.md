@@ -5,7 +5,7 @@ CareFlow reads from its local outbox and says so on screen.
 
 ```mermaid
 flowchart TD
-    tools["The 11 tools"] -->|same transaction| sqlite[("SQLite<br/>records, consent, audit, outbox")]
+    tools["The 7 tools"] -->|same transaction| sqlite[("SQLite<br/>records, consent, audit, outbox")]
     sqlite --> worker["Delivery worker<br/>every 5 seconds"]
     worker -->|care events| atlas[("MongoDB Atlas<br/>care_events, timeline_projections")]
     worker -->|handoffs| ysql[("Your YugabyteDB<br/>runs, attempts, handoffs")]

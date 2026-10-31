@@ -28,15 +28,12 @@ No code from any GPL, AGPL, MPL or unlicensed source is in this repository.
 
 | Item | Terms to respect |
 |---|---|
-| LOINC codes in `backend/lablens/analytes.json` and `chroniccare/routes.py` | The licence requires its notice. **Not yet added.** See `CLINICAL_GOVERNANCE.md` |
-| RxNorm through RxNav | NLM attribution, shown in MedGuard. 20 requests per second limit, and only clinician lookups call it. Results are cached |
-| openFDA | Rate-limited without a key. Called only on request |
+| LOINC codes in `backend/lablens/analytes.json` | The licence requires its notice. **Not yet added.** See `CLINICAL_GOVERNANCE.md` |
 | Groq | Patient data leaves our servers and India. Check its terms and sign an agreement before real use |
 
 ## Our own content, not third-party
 
-`backend/medguard/knowledge/*.json`, `backend/lablens/analytes.json` and
-`backend/amrguard/catalog.json` were written for this project as unreviewed starter
+`backend/lablens/analytes.json` was written for this project as unreviewed starter
 data. Their accuracy needs professional review, covered in `CLINICAL_GOVERNANCE.md`.
 
 ## Data and models from the original tools

@@ -51,8 +51,8 @@ def test_the_chosen_model_is_what_gets_called(admin, monkeypatch):
     "key, value",
     [
         ("referrals.routine_days", 0), ("referrals.routine_days", "ten"), ("referrals.routine_days", True),
-        ("tools.medguard", "yes"), ("clinscribe.default_language", "fr-FR"), ("ai.model.clinscribe_note", "bad model; DROP"),
-        ("clinscribe.custom_headings", ["x"] * 13), ("clinscribe.custom_headings", "Subjective"), ("contact.emergency_message", " "),
+        ("tools.lablens", "yes"), ("clinscribe.default_language", "fr-FR"), ("ai.model.clinscribe_note", "bad model; DROP"),
+        ("clinscribe.custom_headings", ["x"] * 13), ("clinscribe.custom_headings", "Subjective"),
     ],
 )
 def test_bad_values_are_refused(admin, key, value):
@@ -63,17 +63,17 @@ def test_unknown_settings_cannot_be_stored(admin):
     assert put(admin, "allow_real_patient_data", True).status_code == 404
 
 
-@pytest.mark.parametrize("name", ["ALLOW_REAL_PATIENT_DATA", "CLINICAL_PILOT_MODE", "ENABLE_UNVALIDATED_CLINICAL_RULES", "ENABLE_EXTERNAL_MESSAGING"])
+@pytest.mark.parametrize("name", ["ALLOW_REAL_PATIENT_DATA", "CLINICAL_PILOT_MODE", "ENABLE_EXTERNAL_MESSAGING"])
 def test_safety_switches_are_not_settings(name):
     assert not any(name.lower() in key.lower() for key in settings_store.SETTINGS)
 
 
 def test_only_admins_of_verified_organizations_can_change_settings(doctor, person):
-    assert put(doctor, "tools.medguard", False).status_code == 403
+    assert put(doctor, "tools.lablens", False).status_code == 403
     founder = person("doctor")
     founder.post("/api/organizations", json={"name": "Self-made", "type": "clinic"})
-    assert put(founder, "tools.medguard", False).status_code == 403
-    assert put(person("patient"), "tools.medguard", False).status_code == 403
+    assert put(founder, "tools.lablens", False).status_code == 403
+    assert put(person("patient"), "tools.lablens", False).status_code == 403
 
 
 def test_changes_are_audited(admin):
@@ -84,29 +84,17 @@ def test_changes_are_audited(admin):
 
 
 def test_a_tool_switched_off_is_off_for_the_api(admin, doctor, patient):
-    put(admin, "tools.medguard", False)
-    response = doctor.post("/api/addons/medguard/reconcile", json={"patient_id": patient["id"]})
+    put(admin, "tools.lablens", False)
+    response = doctor.get(f"/api/addons/lablens/patients/{patient['id']}/reports")
     assert response.status_code == 403
     assert response.json()["detail"]["code"] == "tool_disabled"
-    assert "medguard" not in doctor.get("/api/platform/config").json()["tools"]
+    assert "lablens" not in doctor.get("/api/platform/config").json()["tools"]
 
 
 def test_switching_a_tool_back_on_restores_it(admin, doctor):
     put(admin, "tools.lablens", False)
     put(admin, "tools.lablens", True)
     assert "lablens" in doctor.get("/api/platform/config").json()["tools"]
-
-
-def test_the_emergency_wording_is_configurable(admin, doctor, patient):
-    from backend.tests.conftest import grant
-
-    put(admin, "contact.emergency_message", "Call the clinic line on 100 or go to the district hospital.")
-    grant(doctor, patient["id"], "maternal_care")
-    episode = doctor.post(
-        "/api/addons/maternacare/episodes",
-        json={"patient_id": patient["id"], "escalation_contact": "040-555-0100", "concern_response_hours": 2},
-    ).json()
-    assert "district hospital" in episode["emergency_help"]
 
 
 def test_reminder_timing_uses_the_setting(admin, doctor, patient):
@@ -207,19 +195,13 @@ def journey(client):
 
 
 def test_the_journey_reaches_every_tool(journey):
-    people, ids, organizations = journey
+    people, ids, _ = journey
     doctor, ravi = people["doctor"], ids["ravi"]
     assert len(doctor.get(f"/api/addons/lablens/patients/{ravi}/trends").json()["series"]) >= 3
-    reconciliation = doctor.get(f"/api/addons/medguard/patients/{ravi}/reconciliations").json()[0]
-    assert {"duplicate_ingredient", "unverified_rule_match"} <= {alert["alert_type"] for alert in reconciliation["alerts"]}
-    chronic = doctor.get(f"/api/addons/chroniccare/patients/{ravi}/dashboard").json()
-    assert len(chronic["measures"]) == 2
     assert doctor.get(f"/api/addons/clinscribe/sessions/{ids['session']}").json()["state"] == "stopped"
     assert doctor.get(f"/api/addons/referrals/patients/{ravi}").json()[0]["status"] == "booked"
     assert doctor.get("/api/addons/dischargecare/board").json()[0]["status"] == "active"
-    assert doctor.get(f"/api/addons/maternacare/patients/{ids['sita']}/episode").json()["gestation"]["weeks"] == 30
-    assert doctor.get(f"/api/addons/amrguard/organizations/{organizations['clinic']}/antibiograms").json()[0]["output"]
-    assert doctor.get("/api/reminders/follow-up").json()
+    assert doctor.get(f"/api/patients/{ravi}/reminders").json()
 
 
 def test_the_journey_is_visible_to_the_patient(journey):
@@ -268,7 +250,6 @@ def test_setup_local_builds_a_working_platform_once(client, tmp_path_factory, ca
     assert "already exists" in capsys.readouterr().out
     db = connect()
     assert db.execute("SELECT COUNT(*) FROM organizations WHERE verification_status = 'verified'").fetchone()[0] == 2
-    assert db.execute("SELECT COUNT(*) FROM medication_rules WHERE status = 'approved'").fetchone()[0] == 0
     db.close()
     first = text.splitlines()[2]
     email, password = first.split(": ")[1].split("  ")[0], first.rsplit("password: ", 1)[1]

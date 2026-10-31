@@ -14,7 +14,6 @@ CONSENT_PURPOSES = {
     "ai_scribe": "Recording and transcribing a consultation to draft a clinical note",
     "transcript_retention": "Keeping a consultation transcript after the note is signed",
     "referral_sharing": "Sharing referral details with the receiving specialist or service",
-    "maternal_care": "Coordinating pregnancy and postnatal care in Diagnosia",
     "external_messaging": "Sending reminders by SMS or voice call through an outside provider",
 }
 

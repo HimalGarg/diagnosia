@@ -29,7 +29,7 @@ REACHED = ("reached", "patient_declined")
 class ReminderRequest(BaseModel):
     title: str = Field(min_length=1, max_length=160)
     purpose: Literal["appointment", "medicine_review", "test", "follow_up", "other"] = "follow_up"
-    module: Literal["general", "chroniccare", "dischargecare", "maternacare", "referralloop", "medguard", "lablens"] = "general"
+    module: Literal["general", "dischargecare", "referralloop", "lablens"] = "general"
     priority: Literal["routine", "high"] = "routine"
     scheduled_for: datetime
     respond_within_hours: Optional[int] = Field(default=None, ge=1, le=168)

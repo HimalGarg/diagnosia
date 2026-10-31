@@ -61,25 +61,20 @@ def tenant_for(db: sqlite3.Connection, user: Optional[sqlite3.Row]) -> str:
     return f"tenant_{hashlib.sha256(row['organization_id'].encode()).hexdigest()[:24]}"
 
 
-def _new_workflow(db: sqlite3.Connection, user: Optional[sqlite3.Row], patient_id=None, organization_id=None, intake_id=None, owner_user_id=None, owner_module=None) -> None:
+def _new_workflow(db: sqlite3.Connection, user: Optional[sqlite3.Row], patient_id=None, intake_id=None, owner_user_id=None, owner_module=None) -> None:
     db.execute(
         """
         INSERT OR IGNORE INTO careflow_workflows
-            (workflow_ref, correlation_id, tenant_ref, patient_id, organization_id, intake_id, owner_user_id, owner_module, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (workflow_ref, correlation_id, tenant_ref, patient_id, intake_id, owner_user_id, owner_module, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (_reference("case"), _reference("corr"), tenant_for(db, user), patient_id, organization_id, intake_id, owner_user_id, owner_module, _now().isoformat()),
+        (_reference("case"), _reference("corr"), tenant_for(db, user), patient_id, intake_id, owner_user_id, owner_module, _now().isoformat()),
     )
 
 
 def for_patient(db: sqlite3.Connection, patient_id: str, user: Optional[sqlite3.Row] = None) -> sqlite3.Row:
     _new_workflow(db, user, patient_id=patient_id)
     return db.execute("SELECT * FROM careflow_workflows WHERE patient_id = ?", (patient_id,)).fetchone()
-
-
-def for_organization(db: sqlite3.Connection, organization_id: str, user: Optional[sqlite3.Row] = None) -> sqlite3.Row:
-    _new_workflow(db, user, organization_id=organization_id)
-    return db.execute("SELECT * FROM careflow_workflows WHERE organization_id = ?", (organization_id,)).fetchone()
 
 
 def for_intake(db: sqlite3.Connection, intake_id: int, owner_user_id: int) -> sqlite3.Row:
@@ -214,12 +209,9 @@ def from_audit(
     mapping = contract.AUDIT_EVENTS.get(action)
     if mapping is None or outcome != "success" or not active():
         return
-    organization_id = resource_id if resource_type == "organization" else None
-    if not patient_id and not organization_id:
+    if not patient_id:
         return
-    workflow = for_patient(db, patient_id, user) if patient_id else for_organization(db, organization_id, user)
-    if workflow is None:
-        return
+    workflow = for_patient(db, patient_id, user)
     if mapping.failed and request_id and patient_id:
         _attempted[request_id] = (mapping, patient_id)
     bind(workflow)

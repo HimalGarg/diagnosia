@@ -80,19 +80,6 @@ def verified_organization(admin, name="Synthetic Hospital", kind="hospital"):
     return organization_id
 
 
-def approve_all_rules():
-    """Sets rules as approved, to test what the engine does with approval. Not a clinical review."""
-    db = connect()
-    db.execute(
-        """
-        UPDATE medication_rules SET status = 'approved', reviewer_name = 'Synthetic Reviewer',
-            last_reviewed_at = '2026-10-31', evidence_source = 'Synthetic source', evidence_version = '1'
-        """
-    )
-    db.commit()
-    db.close()
-
-
 @pytest.fixture
 def details():
     return {

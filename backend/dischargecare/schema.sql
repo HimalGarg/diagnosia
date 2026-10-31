@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS discharge_episodes (
     problems TEXT NOT NULL DEFAULT '',
     procedures TEXT NOT NULL DEFAULT '',
     emergency_contact TEXT NOT NULL DEFAULT '',
-    reconciliation_id TEXT REFERENCES medication_reconciliations (id) ON DELETE SET NULL,
     flagged INTEGER NOT NULL DEFAULT 0,
     approved_by INTEGER,
     approved_at TEXT,

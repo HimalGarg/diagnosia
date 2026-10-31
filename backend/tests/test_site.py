@@ -57,12 +57,12 @@ def test_api_docs_are_off(client):
 
 
 TOOL_NAMES = [
-    "DiagnoFast", "ClinScribe", "LabLens", "MedGuard", "Skin Cancer Detection", "Prescription Analyzer",
-    "ReferralLoop", "DischargeCare", "ChronicCare", "MaternaCare", "AMR Guard", "OptiKinesis",
+    "DiagnoFast", "ClinScribe", "LabLens", "Skin Cancer Detection", "Prescription Analyzer",
+    "ReferralLoop", "DischargeCare", "OptiKinesis",
 ]
 
 
-def test_the_homepage_has_one_catalogue_of_all_twelve_tools_in_visit_order(client):
+def test_the_homepage_has_one_catalogue_of_all_eight_tools_in_visit_order(client):
     page = client.get("/index.html").text
     catalogue = page[page.index('class="catalogue"'):page.index('id="FAQ"')]
     assert re.findall(r'<h4><a href="[^"]+">([^<]+)</a></h4>', catalogue) == TOOL_NAMES

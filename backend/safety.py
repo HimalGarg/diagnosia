@@ -17,10 +17,7 @@ KNOWN_ENVIRONMENTS = ("development", "staging", "production")
 # Human approvals needed before real patients. Each names who has to give it.
 REQUIRED_SIGNOFFS = {
     "clinical_safety_lead": "Clinician accountable for the pilot's clinical safety",
-    "pharmacist_rule_set": "Pharmacist approval of the MedGuard rule set in use",
     "laboratory_mapping_review": "Laboratory professional's approval of LOINC mappings in use",
-    "maternal_protocol": "Obstetric team approval of MaternaCare escalation and reminders",
-    "microbiology_method": "Microbiology and stewardship approval of the antibiogram method",
     "cdsco_classification": "Regulatory determination of medical device status",
     "dpdp_assessment": "Legal review of DPDP notices, rights handling and retention",
     "groq_agreement": "Signed data agreement with Groq covering patient data, with zero retention on",
@@ -53,12 +50,6 @@ def _configuration_checks() -> List[Check]:
         Check("https_cookies", settings.cookie_secure, "DIAGNOSIA_HTTPS must be 1", "Operations"),
         Check("document_encryption", key_ok, key_detail, "Security"),
         Check(
-            "unvalidated_rules_off",
-            not settings.enable_unvalidated_clinical_rules,
-            "ENABLE_UNVALIDATED_CLINICAL_RULES must be off",
-            "Clinical safety",
-        ),
-        Check(
             "external_messaging_reviewed",
             not settings.enable_external_messaging or _messaging_ready(),
             "External messaging needs a configured provider with a signed agreement",
@@ -74,12 +65,9 @@ def _messaging_ready() -> bool:
 
 
 def _data_checks(db: sqlite3.Connection) -> List[Check]:
-    pending = db.execute("SELECT COUNT(*) FROM medication_rules WHERE status IN ('draft', 'pending_pharmacist_review')").fetchone()[0]
-    approved = db.execute("SELECT COUNT(*) FROM medication_rules WHERE status = 'approved'").fetchone()[0]
     unreviewed = db.execute("SELECT COUNT(*) FROM loinc_mappings WHERE status = 'proposed'").fetchone()[0]
     legacy = db.execute("SELECT COUNT(*) FROM clinical_documents WHERE encryption_state = 'plaintext_legacy'").fetchone()[0]
     return [
-        Check("approved_medication_rules", approved > 0 and pending == 0, f"{approved} approved, {pending} unreviewed", "Pharmacist"),
         Check("reviewed_loinc_mappings", unreviewed == 0, f"{unreviewed} mappings unreviewed", "Laboratory professional"),
         Check("no_plaintext_documents", legacy == 0, f"{legacy} documents not yet encrypted", "Security"),
     ]
@@ -110,11 +98,6 @@ def pilot_mode(db: sqlite3.Connection) -> bool:
     return settings.clinical_pilot_mode or not ready_for_real_patients(db)
 
 
-def unvalidated_rules_visible() -> bool:
-    """A test aid for synthetic pilots. Never available in production or with real data."""
-    return settings.enable_unvalidated_clinical_rules and not is_production() and not settings.allow_real_patient_data
-
-
 def assert_safe_to_start(db: sqlite3.Connection) -> None:
     """Refuses to start a deployment that asks for more than it has earned."""
     problems: List[str] = []
@@ -134,7 +117,6 @@ def public_status(db: sqlite3.Connection) -> dict:
     return {
         "pilot_mode": pilot,
         "real_patient_data_allowed": real_patient_data_allowed(db),
-        "unvalidated_rules_visible": unvalidated_rules_visible(),
         "external_messaging_enabled": settings.enable_external_messaging,
         "message": "Pilot software. Use synthetic data only. Not for patient care." if pilot else "",
     }

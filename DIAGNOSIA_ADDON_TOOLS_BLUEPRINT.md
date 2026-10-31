@@ -1,5 +1,7 @@
 # Diagnosia — Add-on Tools Blueprint
 
+> **Update, 1 November 2026:** MedGuard, ChronicCare, MaternaCare and AMR Guard were removed from Diagnosia after this was written. It is a record of 31 October 2026 and still describes them. The current tools are in the README.
+
 **Document type:** Product, technical architecture, and open-source evaluation brief  
 **Version:** 1.0  
 **Prepared:** 31 October 2026  

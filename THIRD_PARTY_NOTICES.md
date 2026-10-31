@@ -82,19 +82,6 @@ memory. A person must copy the current notice from https://loinc.org/kb/license 
 the terms of use, then record the `loinc_notice` signoff. Until then, LOINC-coded content
 should not be distributed.
 
-## RxNorm
-
-MedGuard can look up drug names in RxNorm through the RxNav APIs. This product
-uses publicly available data from the U.S. National Library of Medicine (NLM),
-National Institutes of Health, Department of Health and Human Services. NLM is not
-responsible for the product and does not endorse or recommend this or any other
-product.
-
-## openFDA
-
-MedGuard can search US drug-label text through openFDA. Data is provided as is by
-the U.S. Food and Drug Administration, which does not endorse this product.
-
 ## Runtime libraries
 
 | Library | Used by | Licence |

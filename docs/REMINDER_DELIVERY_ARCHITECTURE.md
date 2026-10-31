@@ -3,7 +3,7 @@
 Code: `backend/reminders/`. Tests: `test_reminders.py`. Screen: Reminders.
 
 A reminder records what actually happened. If it can't be confirmed, a person follows up.
-**A reminder is not a clinical escalation,** and MaternaCare concerns keep their own pathway.
+**A reminder is not a clinical escalation,**.
 
 ## Flow
 
@@ -45,7 +45,7 @@ message from your care team."
 ## Clinic follow-up
 
 The follow-up list shows the clinician's own patients, highest priority first, with reasons,
-due times, and attempts. It can be filtered to MaternaCare.
+due times, and attempts. It can be filtered to one tool.
 
 The printable list holds first name, surname initial, phone number, the words "Clinic
 follow-up", and attempts. It holds no clinical text and doesn't reveal which programme. Each
@@ -69,5 +69,4 @@ scheduled the reminder, so absence cover needs a procedure.
 | Task | Person |
 |---|---|
 | Choose a provider, sign an agreement, review security | Vendor, legal, security |
-| Approve any maternal escalation rule | Maternal-health professionals |
 | Decide who covers follow-up lists | Clinic lead |

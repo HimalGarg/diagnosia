@@ -14,7 +14,6 @@ from backend.clinscribe import drafting
 from backend.clinscribe.drafting import NoteDraft
 from backend.config import settings
 from backend.lablens import extract
-from backend.medguard import references
 from backend.tests.conftest import FakeAI, grant
 from backend.tests.test_lablens import blank_pdf, extraction
 
@@ -271,60 +270,6 @@ def test_a_missing_key_never_calls_speech(client, monkeypatch):
     with pytest.raises(speech.SpeechUnavailable):
         speech.transcribe(b"audio", "audio/webm", "en-IN")
     assert fake.calls == 0
-
-
-class Ref:
-    def __init__(self, status_code, body):
-        self.status_code = status_code
-        self.body = body
-
-    def json(self):
-        if isinstance(self.body, Exception):
-            raise self.body
-        return self.body
-
-
-@pytest.mark.parametrize(
-    "reply",
-    [Ref(401, {}), Ref(429, {}), Ref(500, {}), Ref(503, {}), Ref(200, ValueError("bad")), Ref(200, ["x"]), Ref(200, {"results": "oops"}), Ref(200, {"results": [{"drug_interactions": "not a list"}]})],
-    ids=["auth", "rate-limit", "server-error", "unavailable", "not-json", "wrong-shape", "bad-results", "partial"],
-)
-def test_openfda_failures_report_unavailable(doctor, monkeypatch, reply):
-    monkeypatch.setattr(references.httpx, "get", lambda *a, **k: reply)
-    monkeypatch.setattr(references, "RETRY_PAUSE_SECONDS", 0)
-    body = doctor.get("/api/addons/medguard/label-evidence", params={"drug": "warfarin", "other": "ibuprofen"}).json()
-    assert body["available"] is False
-    assert body["mentioned"] is False
-
-
-@pytest.mark.parametrize("error", [httpx.TimeoutException("slow"), httpx.ConnectError("no route")], ids=["timeout", "network"])
-def test_reference_network_failures_are_safe(doctor, monkeypatch, error):
-    def fail(*args, **kwargs):
-        raise error
-
-    monkeypatch.setattr(references.httpx, "get", fail)
-    monkeypatch.setattr(references, "RETRY_PAUSE_SECONDS", 0)
-    assert doctor.get("/api/addons/medguard/lookup", params={"name": "Tylenol"}).json()["rxnorm"]["available"] is False
-
-
-def test_references_retry_a_bounded_number_of_times(doctor, monkeypatch):
-    calls = []
-
-    def fake(*args, **kwargs):
-        calls.append(1)
-        return Ref(503, {})
-
-    monkeypatch.setattr(references.httpx, "get", fake)
-    monkeypatch.setattr(references, "RETRY_PAUSE_SECONDS", 0)
-    doctor.get("/api/addons/medguard/lookup", params={"name": "Tylenol"})
-    assert len(calls) == references.MAX_ATTEMPTS
-
-
-def test_an_rxnorm_miss_is_not_a_failure(doctor, monkeypatch):
-    monkeypatch.setattr(references.httpx, "get", lambda *a, **k: Ref(200, {"idGroup": {}}))
-    rxnorm = doctor.get("/api/addons/medguard/lookup", params={"name": "Xyzzy"}).json()["rxnorm"]
-    assert rxnorm["available"] is True
-    assert rxnorm["ingredients"] == []
 
 
 def test_failure_logs_hold_no_patient_text(doctor, patient, monkeypatch, caplog):

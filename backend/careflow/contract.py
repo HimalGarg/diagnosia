@@ -27,32 +27,18 @@ EVENT_TYPES: Dict[str, set] = {
     "Skin Cancer Detection": {"skin_analysis.started", "skin_analysis.completed", "skin_analysis.review_required", "skin_analysis.failed"},
     "Prescription Analyzer": {
         "prescription.processing.started", "prescription.extraction.completed", "prescription.confirmation_required",
-        "prescription.explained", "prescription.processing.failed", "prescription.sent_to_medguard",
+        "prescription.explained", "prescription.processing.failed",
     },
     "ClinScribe": {
         "note_session.started", "note_session.recording", "note_session.paused", "note_session.stopped",
         "note_session.transcript_corrected", "note_session.transcript_deleted", "note_session.transcription_failed",
         "note_draft.created", "note_draft.updated", "note_draft.approved", "note_draft.discarded", "note_draft.failed",
     },
-    "MedGuard": {
-        "medication_list.updated", "safety_check.started", "safety_check.completed", "safety_check.review_required",
-        "safety_check.alert_reviewed", "safety_check.finalised", "safety_check.failed",
-    },
-    "ChronicCare": {"condition.recorded", "care_plan.created", "care_plan.approved", "reading.recorded", "symptom.recorded", "adherence.recorded"},
     "LabLens": {
         "lab.report_received", "lab.extraction.started", "lab.extraction.completed", "lab.review_required",
         "lab.extraction.failed", "lab.extraction.retried", "lab.result_reviewed", "lab.result_added", "lab.report_confirmed",
     },
     "DischargeCare": {"discharge.episode_created", "discharge.episode_updated", "discharge.checklist.updated", "discharge.approved", "discharge.completed"},
-    "MaternaCare": {
-        "maternal.episode_started", "maternal.due_date_confirmed", "maternal.visit_planned", "maternal.visit_updated",
-        "maternal.observation_recorded", "maternal.risk_recorded", "maternal.education_recorded", "maternal.birth_plan_saved",
-        "maternal.delivery_recorded", "maternal.concern_raised", "maternal.concern_responded", "maternal.episode_closed",
-    },
-    "AMR Guard": {
-        "amr_analysis.import_completed", "amr_analysis.completed", "amr_analysis.review_required", "amr_analysis.approved",
-        "amr_analysis.culture_review_advanced", "amr_stewardship.review_added", "amr_stewardship.review_updated", "amr_guideline.added",
-    },
     "ReferralLoop": {
         "referral.created", "referral.sent", "referral.acknowledged", "referral.needs_information", "referral.accepted",
         "referral.declined", "referral.redirected", "referral.appointment_offered", "referral.scheduled", "referral.rescheduled",
@@ -61,20 +47,19 @@ EVENT_TYPES: Dict[str, set] = {
     },
 }
 MODULES = set(EVENT_TYPES)
+# Tools that were removed. Their old events can still sit in an outbox or in MongoDB, so a database
+# validator keeps accepting them. New events from these modules are refused.
+RETIRED_MODULES = {"MedGuard", "ChronicCare", "MaternaCare", "AMR Guard"}
 
 # The same order of a visit that the workspace uses.
 WORKFLOW_STAGES = {
     "DiagnoFast": "before_visit",
     "ClinScribe": "during_visit",
     "LabLens": "during_visit",
-    "MedGuard": "during_visit",
     "Skin Cancer Detection": "during_visit",
     "Prescription Analyzer": "after_visit",
     "ReferralLoop": "after_visit",
     "DischargeCare": "after_visit",
-    "ChronicCare": "after_visit",
-    "MaternaCare": "programme",
-    "AMR Guard": "programme",
 }
 
 # Each allowed metadata key and how its value is checked. Unknown keys are refused, not dropped,
@@ -246,23 +231,7 @@ AUDIT_EVENTS: Dict[str, Mapping] = {
     "lablens.report.retry": Mapping("LabLens", "lab.extraction.retried", "started"),
     "lablens.result.review": Mapping("LabLens", "lab.result_reviewed"),
     "lablens.result.add": Mapping("LabLens", "lab.result_added"),
-    # Confirmed results become observations, and ChronicCare's trends read those.
-    "lablens.report.confirmed": Mapping("LabLens", "lab.report_confirmed", target_module="ChronicCare"),
-    # A prescription the patient confirmed enters MedGuard's medication list.
-    "medguard.prescription.import": Mapping("Prescription Analyzer", "prescription.sent_to_medguard", target_module="MedGuard"),
-    "medguard.medication.add": Mapping("MedGuard", "medication_list.updated"),
-    "medguard.medication.identify": Mapping("MedGuard", "medication_list.updated"),
-    # Recorded at the start, in the check's own transaction. The route records completion, and a
-    # check that fails rolls both back, so `started` is never left behind claiming work that vanished.
-    "medguard.reconcile": Mapping("MedGuard", "safety_check.started", "started", failed="safety_check.failed"),
-    "medguard.alert.review": Mapping("MedGuard", "safety_check.alert_reviewed"),
-    "medguard.reconciliation.finalised": Mapping("MedGuard", "safety_check.finalised"),
-    "chroniccare.condition.add": Mapping("ChronicCare", "condition.recorded"),
-    "chroniccare.plan.create": Mapping("ChronicCare", "care_plan.created", "review_required", True),
-    "chroniccare.plan.approve": Mapping("ChronicCare", "care_plan.approved"),
-    "chroniccare.reading.add": Mapping("ChronicCare", "reading.recorded"),
-    "chroniccare.symptom.add": Mapping("ChronicCare", "symptom.recorded"),
-    "chroniccare.adherence.add": Mapping("ChronicCare", "adherence.recorded"),
+    "lablens.report.confirmed": Mapping("LabLens", "lab.report_confirmed"),
     "dischargecare.episode.create": Mapping("DischargeCare", "discharge.episode_created"),
     "dischargecare.episode.update": Mapping("DischargeCare", "discharge.episode_updated"),
     "dischargecare.episode.approved": Mapping("DischargeCare", "discharge.approved"),
@@ -272,25 +241,6 @@ AUDIT_EVENTS: Dict[str, Mapping] = {
         "dischargecare.instruction.add dischargecare.barrier.add dischargecare.barrier.resolve "
         "dischargecare.pending.add dischargecare.pending.finalise dischargecare.task.add",
     ),
-    "maternacare.episode.start": Mapping("MaternaCare", "maternal.episode_started"),
-    "maternacare.due_date.confirm": Mapping("MaternaCare", "maternal.due_date_confirmed"),
-    "maternacare.visit.add": Mapping("MaternaCare", "maternal.visit_planned"),
-    "maternacare.visit.update": Mapping("MaternaCare", "maternal.visit_updated"),
-    "maternacare.observation.add": Mapping("MaternaCare", "maternal.observation_recorded"),
-    "maternacare.risk.add": Mapping("MaternaCare", "maternal.risk_recorded"),
-    "maternacare.education.add": Mapping("MaternaCare", "maternal.education_recorded"),
-    "maternacare.birth_plan.save": Mapping("MaternaCare", "maternal.birth_plan_saved"),
-    "maternacare.episode.close": Mapping("MaternaCare", "maternal.episode_closed"),
-    "maternacare.delivery.record": Mapping("MaternaCare", "maternal.delivery_recorded"),
-    "maternacare.concern.raise": Mapping("MaternaCare", "maternal.concern_raised", "review_required", True),
-    "maternacare.concern.responded": Mapping("MaternaCare", "maternal.concern_responded"),
-    "amrguard.import": Mapping("AMR Guard", "amr_analysis.import_completed"),
-    "amrguard.antibiogram.run": Mapping("AMR Guard", "amr_analysis.review_required", "review_required", True),
-    "amrguard.antibiogram.approve": Mapping("AMR Guard", "amr_analysis.approved"),
-    "amrguard.culture.advance": Mapping("AMR Guard", "amr_analysis.culture_review_advanced"),
-    "amrguard.stewardship.add": Mapping("AMR Guard", "amr_stewardship.review_added"),
-    "amrguard.stewardship.update": Mapping("AMR Guard", "amr_stewardship.review_updated"),
-    "amrguard.guideline.add": Mapping("AMR Guard", "amr_guideline.added"),
     "referralloop.create": Mapping("ReferralLoop", "referral.created"),
     "referralloop.status.sent": Mapping("ReferralLoop", "referral.sent"),
     "referralloop.status.needs_information": Mapping("ReferralLoop", "referral.needs_information", "review_required", True),
@@ -316,14 +266,7 @@ AUDIT_EVENTS: Dict[str, Mapping] = {
 UNTRACKED_ROUTES: Dict[str, str] = {
     "add_typed_segment": "A line of transcript. Too small a step to show, and its content can't be recorded",
     "transcribe_chunk": "Runs every 25 seconds while recording. Only a failure is recorded",
-    "check_interactions": "A drug-name lookup with no patient or workflow",
     "read_aloud": "Reads text aloud and stores nothing",
-    "create_rule": "Rule governance, kept in the audit log. It isn't part of a care workflow",
-    "set_evidence": "Rule governance, kept in the audit log",
-    "submit_for_review": "Rule governance, kept in the audit log",
-    "approve_rule": "Rule governance, kept in the audit log",
-    "reject_rule": "Rule governance, kept in the audit log",
-    "retire_rule": "Rule governance, kept in the audit log",
     "approve": "LOINC mapping governance, kept in the audit log",
     "reject": "LOINC mapping governance, kept in the audit log",
     "correct": "LOINC mapping governance, kept in the audit log",

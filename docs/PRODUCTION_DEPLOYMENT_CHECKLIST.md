@@ -8,8 +8,7 @@ readiness report says otherwise. Run `python -m backend.operator_cli readiness` 
 - [ ] Create a key ring outside the repository, and set `DIAGNOSIA_DOCUMENT_KEY_FILE`
 - [ ] Store two offline copies of the key ring, held by named people
 - [ ] Set `DIAGNOSIA_ENV` and `DIAGNOSIA_HTTPS=1`
-- [ ] Confirm `ALLOW_REAL_PATIENT_DATA`, `ENABLE_UNVALIDATED_CLINICAL_RULES` and
-      `ENABLE_EXTERNAL_MESSAGING` are unset
+- [ ] Confirm `ALLOW_REAL_PATIENT_DATA`, and `ENABLE_EXTERNAL_MESSAGING` are unset
 - [ ] Bootstrap the first organization with `bootstrap-organization`
 - [ ] Confirm the pilot banner shows
 
@@ -42,14 +41,13 @@ readiness report says otherwise. Run `python -m backend.operator_cli readiness` 
 
 ## Clinical, legal and vendor
 
-All 13 signoffs in `CLINICAL_GOVERNANCE.md`, each backed by a real document. Record one with:
+All 10 signoffs in `CLINICAL_GOVERNANCE.md`, each backed by a real document. Record one with:
 
 ```bash
 python -m backend.operator_cli signoff --item <item> --signed-by "<name>" --role "<role>" \
     --document-reference "<reference>" --operator "<your name>"
 ```
 
-- [ ] Every medication rule reviewed
 - [ ] Every LOINC mapping reviewed against a named release
 - [ ] LOINC notice copied into notices and terms
 - [ ] Privacy notice and terms reviewed by counsel

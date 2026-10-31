@@ -92,7 +92,7 @@ export async function renderReminders(container, context) {
         [
             { name: 'title', label: 'Reminder', required: true },
             { name: 'purpose', label: 'About', type: 'select', options: [['follow_up', 'Follow-up'], ['appointment', 'Appointment'], ['test', 'Test'], ['medicine_review', 'Medicine review'], ['other', 'Other']] },
-            { name: 'module', label: 'Linked to', type: 'select', options: [['general', 'General'], ['chroniccare', 'ChronicCare'], ['dischargecare', 'DischargeCare'], ['maternacare', 'MaternaCare'], ['referralloop', 'ReferralLoop']] },
+            { name: 'module', label: 'Linked to', type: 'select', options: [['general', 'General'], ['dischargecare', 'DischargeCare'], ['referralloop', 'ReferralLoop']] },
             { name: 'priority', label: 'Priority', type: 'select', options: ['routine', 'high'] },
             { name: 'scheduled_for', label: 'When', type: 'datetime-local', required: true },
             { name: 'respond_within_hours', label: 'Hours to confirm', type: 'number', min: 1, max: 168, value: context.config.defaults.reminders_respond_hours },

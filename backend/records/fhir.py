@@ -24,7 +24,6 @@ ENCOUNTER_STATUS = {
     "finished": "finished",
     "cancelled": "cancelled",
 }
-MEDICATION_STATUS = {"active": "active", "on_hold": "on-hold", "stopped": "stopped", "completed": "completed"}
 TASK_STATUS = {
     "held": "on-hold",
     "open": "requested",
@@ -83,9 +82,7 @@ def observation_resource(observation: dict, approved_codes: Set[str]) -> dict:
     code = {"text": observation["label"]}
     if observation["code"] in approved_codes:
         code["coding"] = [{"system": LOINC, "code": observation["code"], "display": observation["label"]}]
-    category = "vital-signs" if observation["category"] == "vital" else "laboratory"
-    if observation["category"] in ("symptom", "maternal"):
-        category = "survey"
+    category = "laboratory"
     resource = {
         "resourceType": "Observation",
         "id": observation["id"],
@@ -101,20 +98,6 @@ def observation_resource(observation: dict, approved_codes: Set[str]) -> dict:
         resource["valueString"] = observation["value_text"]
     if observation["reference_text"]:
         resource["referenceRange"] = [{"text": observation["reference_text"]}]
-    return resource
-
-
-def medication_resource(medication: dict) -> dict:
-    resource = {
-        "resourceType": "MedicationStatement",
-        "id": medication["id"],
-        "status": MEDICATION_STATUS[medication["status"]],
-        "medicationCodeableConcept": {"text": medication["written_name"]},
-        "subject": subject(medication["patient_id"]),
-        "dosage": [{"text": " ".join(filter(None, (medication["dose"], medication["frequency"])))}],
-    }
-    if medication["start_date"]:
-        resource["effectivePeriod"] = {"start": medication["start_date"]}
     return resource
 
 
@@ -237,12 +220,6 @@ def patient_bundle(db: sqlite3.Connection, patient: dict) -> dict:
             SELECT * FROM observations WHERE patient_id = ?
               AND review_status IN ('accepted', 'corrected') ORDER BY effective_at
             """
-        )
-    ]
-    resources += [
-        medication_resource(row)
-        for row in query(
-            "SELECT * FROM medication_records WHERE patient_id = ? AND source = 'reconciled' AND review_status = 'accepted'"
         )
     ]
     resources += [allergy_resource(row) for row in query("SELECT * FROM allergies WHERE patient_id = ?")]
