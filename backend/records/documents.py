@@ -8,6 +8,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 
 from backend.config import settings
+from backend.private_files import create_private_dir, make_private
 from backend.records import vault
 from backend.records.store import insert, new_id, now_iso, one
 
@@ -37,11 +38,12 @@ def context_for(patient_id: str, document_id: str) -> str:
 
 def write_private(path: Path, data: bytes) -> None:
     """Owner-only, and never visible half written."""
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    create_private_dir(path.parent)
     temporary = path.with_name(f".{path.name}.{new_id()}.tmp")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     try:
         with os.fdopen(descriptor, "wb") as handle:
+            make_private(temporary)  # before any data, because Windows ignores the mode above
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())

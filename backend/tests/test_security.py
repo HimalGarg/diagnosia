@@ -202,7 +202,7 @@ def test_no_sql_is_built_from_request_values():
     for path in backend.rglob("*.py"):
         if "tests" in path.parts:
             continue
-        assert not suspicious.search(path.read_text()), path
+        assert not suspicious.search(path.read_text(encoding="utf-8")), path
 
 
 def test_uploaded_files_keep_their_declared_safe_type(doctor, patient):
@@ -337,6 +337,6 @@ def test_the_browser_keeps_no_session_token():
 
     folder = Path(__file__).parents[2] / "web" / "js" / "care"
     for script in folder.glob("*.js"):
-        text = script.read_text()
+        text = script.read_text(encoding="utf-8")
         assert "localStorage" not in text, script.name
         assert "document.cookie" not in text, script.name

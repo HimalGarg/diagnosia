@@ -13,7 +13,6 @@ Key ring format: {"active": "k1", "keys": {"k1": "<base64 of 32 bytes>"}}
 import base64
 import json
 import os
-import stat
 import struct
 from pathlib import Path
 from typing import Dict, Tuple
@@ -22,6 +21,7 @@ from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from backend.config import settings
+from backend.private_files import is_private
 from backend.safety import key_file_is_safe
 
 MAGIC = b"DGV1"
@@ -48,12 +48,15 @@ def _load_ring() -> Tuple[str, Dict[str, bytes]]:
     if not key_file_is_safe(path):
         raise VaultUnavailable("The key file must be outside the repository and away from stored documents")
     try:
-        mode = path.stat().st_mode
+        private = is_private(path)
         ring = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         raise VaultUnavailable(f"The key file can't be read: {type(error).__name__}") from None
-    if stat.S_IMODE(mode) & 0o077:
-        raise VaultUnavailable("The key file must be readable by its owner only (chmod 600)")
+    if not private:
+        raise VaultUnavailable(
+            "The key file must be readable by its owner only "
+            "(chmod 600, or on Windows remove other users in its Security settings)"
+        )
     try:
         keys = {key_id: base64.b64decode(value, validate=True) for key_id, value in ring["keys"].items()}
         active = ring["active"]

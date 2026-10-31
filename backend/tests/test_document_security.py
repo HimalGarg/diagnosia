@@ -10,6 +10,7 @@ import pytest
 from backend.config import settings
 from backend.db import connect
 from backend.operator_cli import main as operator
+from backend.private_files import is_private, make_private
 from backend.records import documents, vault
 from backend.tests.conftest import grant, linked_patient
 
@@ -69,8 +70,8 @@ def test_filenames_on_disk_hold_no_personal_details(doctor, patient):
 def test_files_and_folders_are_owner_only(doctor, patient):
     upload(doctor, patient["id"])
     file = stored_files()[0]
-    assert oct(file.stat().st_mode & 0o777) == "0o600"
-    assert oct(file.parent.stat().st_mode & 0o777) == "0o700"
+    assert is_private(file)
+    assert is_private(file.parent)
 
 
 def test_no_temporary_files_remain(doctor, patient):
@@ -80,7 +81,7 @@ def test_no_temporary_files_remain(doctor, patient):
 
 def test_keys_are_never_stored_with_the_data(doctor, patient, key_file):
     upload(doctor, patient["id"])
-    key = json.loads(key_file.read_text())["keys"]["test1"].encode()
+    key = json.loads(key_file.read_text(encoding="utf-8"))["keys"]["test1"].encode()
     db = connect()
     db.execute("PRAGMA wal_checkpoint(FULL)")
     db.close()
@@ -195,17 +196,17 @@ def test_a_key_inside_the_repository_is_refused(monkeypatch):
 
 def test_a_key_next_to_the_documents_is_refused(client, monkeypatch, key_file):
     beside = settings.db_path.parent / "keys.json"
-    beside.write_text(key_file.read_text())
-    beside.chmod(0o600)
+    beside.write_text(key_file.read_text(encoding="utf-8"))
+    make_private(beside)
     monkeypatch.setattr(settings, "document_key_file", str(beside))
     with pytest.raises(vault.VaultUnavailable, match="outside"):
         vault.encrypt(b"x", "c")
 
 
-def test_a_key_file_others_can_read_is_refused(tmp_path_factory, monkeypatch):
+def test_a_key_file_others_can_read_is_refused(tmp_path_factory, monkeypatch, expose):
     path = tmp_path_factory.mktemp("loose") / "keys.json"
     path.write_text(json.dumps({"active": "a", "keys": {"a": vault.new_key()}}))
-    path.chmod(0o644)
+    expose(path)
     monkeypatch.setattr(settings, "document_key_file", str(path))
     with pytest.raises(vault.VaultUnavailable, match="600"):
         vault.encrypt(b"x", "c")
@@ -215,7 +216,7 @@ def test_a_key_file_others_can_read_is_refused(tmp_path_factory, monkeypatch):
 def test_a_broken_key_file_fails_closed(tmp_path_factory, monkeypatch, content):
     path = tmp_path_factory.mktemp("bad") / "keys.json"
     path.write_text(content)
-    path.chmod(0o600)
+    make_private(path)
     monkeypatch.setattr(settings, "document_key_file", str(path))
     with pytest.raises(vault.VaultUnavailable):
         vault.encrypt(b"x", "c")
@@ -223,7 +224,7 @@ def test_a_broken_key_file_fails_closed(tmp_path_factory, monkeypatch, content):
 
 def test_the_repository_holds_no_key_material():
     root = Path(__file__).parents[2]
-    ignored = (root / ".gitignore").read_text()
+    ignored = (root / ".gitignore").read_text(encoding="utf-8")
     assert ".env" in ignored
     assert "backend/storage/" in ignored
 
@@ -329,8 +330,8 @@ def test_an_original_stays_if_its_copy_fails_the_check(doctor, patient):
 
 def test_key_rotation_keeps_documents_readable(doctor, patient, tmp_path_factory, monkeypatch, key_file):
     copy = tmp_path_factory.mktemp("rotate") / "keys.json"
-    copy.write_text(key_file.read_text())
-    copy.chmod(0o600)
+    copy.write_text(key_file.read_text(encoding="utf-8"))
+    make_private(copy)
     monkeypatch.setattr(settings, "document_key_file", str(copy))
     document = upload(doctor, patient["id"]).json()
     assert operator(["add-key", "--key-id", "next"]) == 0
@@ -389,7 +390,7 @@ def test_generate_key_refuses_unsafe_places(client, tmp_path_factory):
     assert operator(["generate-key", "--path", str(Path(__file__).parent / "x.json")]) == 1
     good = tmp_path_factory.mktemp("newkey") / "ring.json"
     assert operator(["generate-key", "--path", str(good)]) == 0
-    assert oct(good.stat().st_mode & 0o777) == "0o600"
+    assert is_private(good)
     assert operator(["generate-key", "--path", str(good)]) == 1
 
 

@@ -782,13 +782,13 @@ def test_sent_runs_are_not_sent_again_until_they_change(monkeypatch):
 
 
 def test_the_migration_is_split_into_statements_without_comments():
-    statements = yugabyte._statements(next(yugabyte.MIGRATIONS.glob("*.sql")).read_text())
+    statements = yugabyte._statements(next(yugabyte.MIGRATIONS.glob("*.sql")).read_text(encoding="utf-8"))
     assert len(statements) == 6
     assert all("--" not in statement for statement in statements)
 
 
 def test_ysql_creates_no_clinical_or_identity_tables():
-    script = next(yugabyte.MIGRATIONS.glob("*.sql")).read_text().lower()
+    script = next(yugabyte.MIGRATIONS.glob("*.sql")).read_text(encoding="utf-8").lower()
     for word in ("patient", "consent", "users", "first_name", "email", "dob"):
         assert word not in script.replace("-- no clinical records, identities, consent or event history belong here.", "")
 

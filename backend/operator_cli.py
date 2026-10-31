@@ -21,6 +21,7 @@ from backend import safety
 from backend.config import settings
 from backend.db import connect, init_db
 from backend.diagnofast import recordings
+from backend.private_files import create_private_dir, make_private
 from backend.records import documents, staff, vault
 from backend.records.store import insert, now_iso, rows
 
@@ -197,6 +198,7 @@ def backup(args) -> int:
     """Copies the database and documents, encrypted. The key ring is never included."""
     target = Path(args.to).expanduser()
     target.mkdir(parents=True, exist_ok=False, mode=0o700)
+    make_private(target)
     snapshot = target / "database.plain"
     db = connect()
     copy = sqlite3.connect(snapshot)
@@ -216,7 +218,7 @@ def backup(args) -> int:
             if path.is_file():
                 relative = path.relative_to(settings.documents_dir)
                 destination = target / "documents" / relative
-                destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                create_private_dir(destination.parent)
                 shutil.copy2(path, destination)
                 manifest["documents"].append({"path": str(relative), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
     documents.write_private(target / "manifest.json", json.dumps(manifest, indent=1).encode())
@@ -246,7 +248,7 @@ def restore(args) -> int:
     documents.write_private(database_target, data)
     for item in manifest["documents"]:
         destination = documents_target / item["path"]
-        destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        create_private_dir(destination.parent)
         shutil.copy2(source / "documents" / item["path"], destination)
     print(f"Restored to {database_target} and {documents_target}. Point the application there after checking it.")
     return 0
@@ -320,7 +322,7 @@ def setup_local(args) -> int:
         print("setup-local only runs in development, without real patient data.", file=sys.stderr)
         return 1
     home = Path(args.home).expanduser()
-    home.mkdir(parents=True, exist_ok=True, mode=0o700)
+    create_private_dir(home)
     key_path = home / "document-keys.json"
     if not settings.document_key_file:
         if not key_path.exists():

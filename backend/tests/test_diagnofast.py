@@ -12,6 +12,7 @@ from backend.db import connect
 from backend.diagnofast import agent, recordings
 from backend.diagnofast.abha import SimulatedAbha
 from backend.diagnofast.agent import FieldUpdate, Report, Turn, apply_turn, load_form
+from backend.private_files import is_private
 from backend.records import vault
 from backend.tests.conftest import verify_email
 
@@ -369,7 +370,7 @@ def test_recordings_are_encrypted_on_disk(client, details, services, monkeypatch
     stored = list((settings.documents_dir / recordings.FOLDER / str(intake_id)).iterdir())
     assert [path.name for path in stored] == ["0.webm.enc"]
     assert b"SYNTHETIC-OPUS-BYTES" not in stored[0].read_bytes()
-    assert stored[0].stat().st_mode & 0o077 == 0
+    assert is_private(stored[0])
     assert client.get(f"/api/diagnofast/intakes/{intake_id}/audio/0").content == b"SYNTHETIC-OPUS-BYTES"
 
 
@@ -464,7 +465,7 @@ def test_operator_commands_cover_recordings(client, details, services, monkeypat
     intake_id = finished_voice_intake(client, monkeypatch)
     path = settings.documents_dir / recordings.FOLDER / str(intake_id) / "0.webm.enc"
     ring_path = Path(settings.document_key_file)
-    original_ring = ring_path.read_text()
+    original_ring = ring_path.read_text(encoding="utf-8")
     old_key = vault.key_id_of(path.read_bytes())
     try:
         operator_cli.add_key(SimpleNamespace(key_id="newer"))

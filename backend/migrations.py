@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
+from backend.private_files import make_private
+
 
 def _account_states(db: sqlite3.Connection) -> None:
     db.execute(
@@ -123,7 +125,7 @@ def backup_before_migrating(db: sqlite3.Connection, path: Path) -> Optional[Path
         db.backup(copy)
     finally:
         copy.close()
-    target.chmod(0o600)
+    make_private(target)
     return target
 
 

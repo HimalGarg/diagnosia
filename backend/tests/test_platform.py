@@ -1,7 +1,6 @@
 """Settings, tool switches, the AI key, local setup and the whole journey end to end."""
 import json
 import os
-import stat
 from pathlib import Path
 
 import httpx
@@ -14,6 +13,7 @@ from backend.clinscribe.drafting import NoteDraft
 from backend.config import settings
 from backend.db import connect
 from backend.operator_cli import main as operator
+from backend.private_files import is_private
 from backend.tests.conftest import FakeAI, verified_organization
 
 
@@ -243,8 +243,8 @@ def test_setup_local_builds_a_working_platform_once(client, tmp_path_factory, ca
     home = tmp_path_factory.mktemp("home")
     assert operator(["setup-local", "--home", str(home), "--env-file", ""]) == 0
     logins = home / "local-accounts.txt"
-    assert stat.S_IMODE(logins.stat().st_mode) == 0o600
-    text = logins.read_text()
+    assert is_private(logins)
+    text = logins.read_text(encoding="utf-8")
     assert "Synthetic data only" in text
     assert operator(["setup-local", "--home", str(home), "--env-file", ""]) == 0
     assert "already exists" in capsys.readouterr().out
@@ -264,7 +264,7 @@ def test_setup_local_writes_env_lines_without_changing_others(client, tmp_path_f
     env.write_text("KEEP_ME=1\n")
     monkeypatch.setattr(settings, "document_key_file", "")
     assert operator(["setup-local", "--home", str(home), "--env-file", str(env)]) == 0
-    lines = env.read_text().splitlines()
+    lines = env.read_text(encoding="utf-8").splitlines()
     assert lines[0] == "KEEP_ME=1"
     assert any(line.startswith("DIAGNOSIA_DOCUMENT_KEY_FILE=") for line in lines)
     assert "GROQ_API_KEY=your-groq-key" in lines
@@ -283,13 +283,13 @@ def test_nothing_mentions_the_old_providers_in_code():
     for path in root.rglob("*.py"):
         if "tests" in path.parts or "training" in path.parts:
             continue
-        text = path.read_text().lower()
+        text = path.read_text(encoding="utf-8").lower()
         assert "anthropic" not in text, path
         assert "sarvam" not in text, path
 
 
 def test_requirements_hold_no_anthropic_client():
-    assert "anthropic" not in (Path(__file__).parents[1] / "requirements.txt").read_text()
+    assert "anthropic" not in (Path(__file__).parents[1] / "requirements.txt").read_text(encoding="utf-8")
     assert os.path.exists(Path(__file__).parents[1] / "demo.py")
     assert json.dumps({})
 

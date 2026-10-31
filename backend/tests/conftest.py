@@ -1,5 +1,6 @@
 import itertools
 import json
+import subprocess
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,6 +10,7 @@ from backend.app import app
 from backend.config import settings
 from backend.db import connect
 from backend.prescription import analyzer
+from backend.private_files import WINDOWS, make_private
 from backend.records import staff, vault
 
 
@@ -31,8 +33,22 @@ def key_file(tmp_path_factory):
     """A test key ring, kept in its own folder like a real one."""
     path = tmp_path_factory.mktemp("keys") / "document-keys.json"
     path.write_text(json.dumps({"active": "test1", "keys": {"test1": vault.new_key()}}))
-    path.chmod(0o600)
+    make_private(path)
     return path
+
+
+@pytest.fixture
+def expose():
+    """Opens a file or folder to every user, using each system's real permissions."""
+
+    def open_up(path):
+        if not WINDOWS:
+            path.chmod(0o777 if path.is_dir() else 0o644)
+            return
+        rights = "(OI)(CI)R" if path.is_dir() else "R"
+        subprocess.run(["icacls", str(path), "/grant", f"*S-1-1-0:{rights}"], check=True, capture_output=True)
+
+    return open_up
 
 
 @pytest.fixture

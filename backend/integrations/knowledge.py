@@ -59,7 +59,8 @@ class Document:
 
 
 def parse(path: Path) -> Document:
-    data = path.read_bytes()
+    # A Windows checkout has CRLF endings, and a file must hash the same on every machine.
+    data = path.read_bytes().replace(b"\r\n", b"\n")
     text = data.decode("utf-8")
     if not text.startswith("---\n"):
         raise KnowledgeRefused(f"{path.name}: no provenance header")

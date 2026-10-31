@@ -135,7 +135,7 @@ def test_the_workspace_never_writes_html_from_data(client):
     from backend.config import WEB_DIR
 
     for script in (WEB_DIR / "js" / "care").glob("*.js"):
-        text = script.read_text()
+        text = script.read_text(encoding="utf-8")
         assert "innerHTML" not in text, script.name
         assert "insertAdjacentHTML" not in text, script.name
         assert "document.write" not in text, script.name
@@ -146,5 +146,5 @@ def test_the_workspace_never_passes_empty_parts_to_the_page(client):
 
     # replaceChildren prints null and lists as text. show() is the safe one.
     for script in (WEB_DIR / "js" / "care").glob("*.js"):
-        uses = script.read_text().count(".replaceChildren(")
+        uses = script.read_text(encoding="utf-8").count(".replaceChildren(")
         assert uses == (2 if script.name == "ui.js" else 0), script.name

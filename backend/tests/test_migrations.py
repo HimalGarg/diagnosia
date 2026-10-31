@@ -7,6 +7,7 @@ from backend import db as database
 from backend import migrations
 from backend.config import settings
 from backend.operator_cli import main as operator
+from backend.private_files import is_private
 
 # The schema as it stood before account states, with synthetic rows.
 OLD_DATABASE = """
@@ -140,7 +141,7 @@ def test_a_copy_is_taken_before_changing_a_database_with_records(old_database):
     database.init_db()
     copies = list(old_database.parent.glob("copy.db.pre-migration-*.bak"))
     assert len(copies) == 1
-    assert oct(copies[0].stat().st_mode & 0o777) == "0o600"
+    assert is_private(copies[0])
     backup = open_database(copies[0])
     assert "account_status" not in [row[1] for row in backup.execute("PRAGMA table_info(users)")]
     backup.close()

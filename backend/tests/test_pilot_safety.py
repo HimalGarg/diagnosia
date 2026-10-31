@@ -151,7 +151,7 @@ def test_readiness_never_passes_on_signoffs_alone(db):
 
 
 def test_there_is_no_all_in_one_override():
-    source = (Path(__file__).parents[1] / "safety.py").read_text().lower()
+    source = (Path(__file__).parents[1] / "safety.py").read_text(encoding="utf-8").lower()
     assert "override" not in source.replace("no switch", "")
     assert "skip_readiness" not in source
     assert "force" not in source
@@ -181,6 +181,6 @@ def test_the_command_line_reports_not_ready(db, capsys):
 def test_external_messaging_has_no_provider_in_the_code():
     folder = Path(__file__).parents[1] / "reminders"
     for path in folder.glob("*.py"):
-        tree = ast.parse(path.read_text())
+        tree = ast.parse(path.read_text(encoding="utf-8"))
         imported = {alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
         assert not {"httpx", "requests", "twilio"} & imported

@@ -36,6 +36,7 @@ backend/    One FastAPI app: accounts and one folder per tool.
   db.py             SQLite schema (users, sessions, intakes)
   migrations.py     Numbered schema changes for existing databases
   safety.py         Pilot readiness checks and signoffs
+  private_files.py  Owner-only files and folders, on Linux, macOS and Windows
   settings_store.py Models, tool switches and defaults, set in the app
   operator_cli.py   Command-line setup, keys, backups, first administrator
   llm.py            Groq and Gemini calls, with fallback. ask(system, content, schema, tool)
@@ -195,6 +196,9 @@ The photo isn't stored. A consent box says it goes to outside AI services.
 - Don't add dependencies without a reason. `backend/requirements.txt` is the app,
   `backend/requirements-skin.txt` is the heavy skin tool.
 - A new tool's routes join the sweep in `test_security.py`. Add a real gate, not a list entry.
+- Code and tests must work on both Windows and Linux. Protect sensitive files with
+  `private_files.py`, because `chmod` does nothing on Windows. Pass `encoding="utf-8"` when reading
+  text, because Windows otherwise uses cp1252.
 
 ## CareFlow
 
