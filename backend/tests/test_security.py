@@ -57,7 +57,7 @@ NEEDS_NO_RECORD = {
     "consent_purposes", "list_patients", "create_patient", "create_my_record", "join_with_code", "list_notifications",
     "mark_notification_read", "get_practitioner", "save_practitioner", "create_organization", "list_organizations",
     "list_mappings", "inbox", "sent", "exception_queue", "board", "follow_up", "call_list", "read", "explain",
-    "read_aloud", "analyze", "upload_report", "create_referral", "create_episode",
+    "read_aloud", "calendar", "analyze", "upload_report", "create_referral", "create_episode",
     "public_config", "list_settings", "forms", "queue",
 }
 

@@ -135,7 +135,7 @@ class RecordingAI:
 
 def guidance():
     return Guidance(
-        medicines=[], foods_to_eat=["Dal"], foods_to_avoid=[], yoga=[], lifestyle=[]
+        medicines=[]
     )
 
 
@@ -340,3 +340,233 @@ def test_more_photos_than_one_vision_request_takes_are_read_in_groups(client, de
     assert response.status_code == 200
     assert [sum(part["type"] == "image" for part in call["content"]) for call in ai.calls] == [3, 1]
     assert len(response.json()["medicines"]) == 2 * len(read_result().medicines)
+
+
+def test_duration_parsing_handles_various_formats():
+    from backend.prescription import shorthand
+
+    assert shorthand.parse_duration_days("5 days") == 5
+    assert shorthand.parse_duration_days("x 5 days") == 5
+    assert shorthand.parse_duration_days("for 2 weeks") == 14
+    assert shorthand.parse_duration_days("1 month") == 30
+    assert shorthand.parse_duration_days("3d") == 3
+    assert shorthand.parse_duration_days("") is None
+
+
+def test_calendar_reminders_build_google_urls_and_ics():
+    med1 = medicine("Amoxicillin", frequency="1-0-1").model_copy(update={"duration": field("5 days")})
+    med2 = medicine("Paracetamol", frequency="SOS").model_copy(update={"duration": field("3 days")})
+    reminders = analyzer.build_calendar_reminders([med1, med2], "en-IN", start_date="2026-11-01")
+
+    assert "morning" in reminders["slots"]
+    assert "night" in reminders["slots"]
+    assert "afternoon" not in reminders["slots"]
+
+    morning = reminders["slots"]["morning"]
+    assert morning["duration_days"] == 5
+    assert "calendar.google.com/calendar/render" in morning["google_url"]
+    assert "20261101T080000" in morning["google_url"]
+
+    # Paracetamol is SOS so it must be in as_needed, not scheduled slots
+    as_needed = reminders["as_needed"]
+    assert len(as_needed) == 1
+    assert as_needed[0]["name"] == "Paracetamol"
+
+    # ICS calendar payload
+    assert "BEGIN:VCALENDAR" in reminders["ics_calendar"]
+    assert "RRULE:FREQ=DAILY;COUNT=5" in reminders["ics_calendar"]
+    assert "TRIGGER:-PT10M" in reminders["ics_calendar"]
+
+
+def test_calendar_endpoint_with_custom_times(client, details):
+    signed_in(client, details)
+    med = medicine("Azithromycin", frequency="1-0-0").model_copy(update={"duration": field("3 days")})
+    response = client.post(
+        "/api/prescription/calendar",
+        json={
+            "medicines": [json.loads(med.model_dump_json())],
+            "language": "hi-IN",
+            "start_date": "2026-11-05",
+            "times": {"morning": "09:15"},
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["times"]["morning"] == "09:15"
+    assert "morning" in data["slots"]
+    assert "20261105T091500" in data["slots"]["morning"]["google_url"]
+    assert data["slots"]["morning"]["duration_days"] == 3
+
+
+
+# Reminders and the plan behind them
+
+
+def timed(name, frequency="", day_pattern="", duration="", notes="", dose=""):
+    return ConfirmedMedicine(
+        name=field(name), dose=field(dose), frequency=field(frequency), day_pattern=field(day_pattern),
+        duration=field(duration), notes=field(notes),
+    )
+
+
+@pytest.mark.parametrize(
+    "frequency, notes, expected",
+    [
+        ("BD", "", ["morning", "night"]),
+        ("TDS", "", ["morning", "afternoon", "night"]),
+        ("OD", "", ["morning"]),
+        ("OD", "take at night", ["night"]),
+        ("HS", "", ["night"]),
+        ("twice daily after meals", "", ["morning", "night"]),
+        ("1 tab thrice a day", "", ["morning", "afternoon", "night"]),
+        ("QID", "", []),
+        ("SOS", "", []),
+        ("every other day", "", []),
+        ("", "", []),
+    ],
+)
+def test_usual_times_for_a_frequency_written_without_marks(frequency, notes, expected):
+    from backend.prescription.shorthand import typical_slots
+
+    assert list(typical_slots(frequency, "", notes)) == expected
+
+
+def test_a_medicine_written_as_bd_is_in_the_plan_marked_as_usual_times():
+    reminders = analyzer.build_calendar_reminders([timed("T. Cefix 200", "BD", duration="x 5 days")], "en-IN", start_date="2026-11-01")
+    assert set(reminders["slots"]) == {"morning", "night"}
+    item = reminders["slots"]["morning"]["medicines"][0]
+    assert item["assumed"] is True
+    assert reminders["unscheduled"] == []
+    assert [entry["assumed"] for entry in build_schedule([timed("T. Cefix 200", "BD")])["night"]] == [True]
+
+
+def test_marks_that_disagree_with_the_frequency_are_not_scheduled_or_replaced_by_usual_times():
+    reminders = analyzer.build_calendar_reminders([timed("T. Cefix 200", "OD", day_pattern="1-0-1")], "en-IN")
+    assert reminders["slots"] == {}
+    assert reminders["unscheduled"][0]["name"] == "T. Cefix 200"
+    assert "don't match" in reminders["unscheduled"][0]["reason"]
+
+
+def test_a_medicine_with_no_usable_timing_is_listed_and_not_dropped():
+    reminders = analyzer.build_calendar_reminders([timed("T. Feburic 40mg", "QID")], "en-IN")
+    assert reminders["slots"] == {} and reminders["ics_calendar"] == ""
+    assert [item["name"] for item in reminders["unscheduled"]] == ["T. Feburic 40mg"]
+
+
+def test_each_medicine_stops_being_listed_when_its_own_course_ends():
+    short = timed("T. Short", day_pattern="1-0-0", duration="x 5 days")
+    long = timed("T. Long", day_pattern="1-0-0", duration="x 15 days")
+    reminders = analyzer.build_calendar_reminders([short, long], "en-IN", start_date="2026-11-01")
+    first, second = reminders["slots"]["morning"]["segments"]
+    assert [m["name"] for m in first["medicines"]] == ["T. Short", "T. Long"]
+    assert [m["name"] for m in second["medicines"]] == ["T. Long"]
+    assert (first["duration_days"], second["duration_days"]) == (5, 10)
+    assert first["dtstart"].startswith("20261101") and second["dtstart"].startswith("20261106")
+    assert "COUNT=5" in reminders["ics_calendar"] and "COUNT=10" in reminders["ics_calendar"]
+
+
+def test_the_plan_says_when_the_course_length_was_not_written():
+    reminders = analyzer.build_calendar_reminders([timed("T. Open", day_pattern="1-0-0")], "en-IN")
+    item = reminders["slots"]["morning"]["medicines"][0]
+    assert item["duration_assumed"] is True and item["duration_days"] == analyzer.UNKNOWN_DURATION_DAYS
+
+
+def test_reminder_lines_read_naturally_and_never_repeat_the_dose():
+    reminders = analyzer.build_calendar_reminders(
+        [timed("T. Pregaba 75mg", day_pattern="0-0-1", dose="75mg", duration="x 5 days", frequency="HS PC")], "en-IN"
+    )
+    text = reminders["slots"]["night"]["description"]
+    assert "T. Pregaba 75mg - 1 tablet, after food" in text
+    assert text.count("75mg") == 1
+
+
+def test_unreadable_medicines_never_get_a_reminder():
+    reminders = analyzer.build_calendar_reminders([medicine(name="", name_legibility="unreadable")], "en-IN")
+    assert reminders["slots"] == {} and reminders["unscheduled"] == []
+
+
+class PlanAI:
+    """Answers the planning question, and fails the test if it is asked something else."""
+
+    def __init__(self, answer=None, error=None):
+        self.answer, self.error, self.calls = answer, error, []
+
+    def __call__(self, system, content, schema, **options):
+        self.calls.append({"schema": schema, **options})
+        assert schema is analyzer.SchedulePlan
+        if self.error:
+            raise self.error
+        return analyzer.SchedulePlan(medicines=self.answer)
+
+
+def slot_plan(index, slots, clear=True, reason=""):
+    return analyzer.SlotPlan(index=index, slots=slots, clear=clear, reason=reason)
+
+
+def test_only_what_the_rules_cannot_place_is_sent_to_the_planning_model(monkeypatch):
+    ai = PlanAI([slot_plan(2, ["morning", "afternoon", "night"])])
+    monkeypatch.setattr(llm, "ask", ai)
+    meds = [timed("A", day_pattern="1-0-1"), timed("B", "BD"), timed("C", "every 8 hours"), timed("D", "SOS")]
+    plan = analyzer.plan_unresolved(meds)
+    assert plan == {"2": {"slots": ["morning", "afternoon", "night"], "reason": ""}}
+    assert ai.calls[0]["tool"] == "prescription_plan"
+
+
+def test_the_model_is_not_called_when_the_rules_place_everything(monkeypatch):
+    ai = PlanAI([])
+    monkeypatch.setattr(llm, "ask", ai)
+    assert analyzer.plan_unresolved([timed("A", "BD"), timed("B", day_pattern="1-0-0")]) == {}
+    assert ai.calls == []
+
+
+def test_a_model_answer_that_changes_the_times_a_day_is_refused(monkeypatch):
+    monkeypatch.setattr(llm, "ask", PlanAI([slot_plan(0, ["morning"])]))
+    plan = analyzer.plan_unresolved([timed("A", "every 8 hours, three times a day text", notes="")])
+    # "three times a day" is stated, so a one-slot answer disagrees with it and is dropped
+    assert plan == {} or plan["0"]["slots"] == []
+
+
+def test_an_unclear_model_answer_keeps_its_reason_and_schedules_nothing(monkeypatch):
+    monkeypatch.setattr(llm, "ask", PlanAI([slot_plan(0, [], clear=False, reason="Every other day")]))
+    meds = [timed("A", "alternate days", duration="x 5 days")]
+    plan = analyzer.plan_unresolved(meds)
+    reminders = analyzer.build_calendar_reminders(meds, "en-IN", plan=plan)
+    assert reminders["slots"] == {} and reminders["unscheduled"][0]["reason"] == "Every other day"
+
+
+def test_a_planned_medicine_is_scheduled_and_marked_as_not_written(monkeypatch):
+    monkeypatch.setattr(llm, "ask", PlanAI([slot_plan(0, ["morning", "night"])]))
+    meds = [timed("A", "subah shaam", duration="x 3 days")]
+    plan = analyzer.plan_unresolved(meds)
+    reminders = analyzer.build_calendar_reminders(meds, "en-IN", plan=plan)
+    assert set(reminders["slots"]) == {"morning", "night"}
+    assert reminders["slots"]["morning"]["medicines"][0]["assumed"] is True
+
+
+def test_the_plan_survives_an_ai_outage_by_leaving_medicines_for_the_pharmacist(monkeypatch):
+    monkeypatch.setattr(llm, "ask", PlanAI(error=llm.AIUnavailable("down")))
+    meds = [timed("A", "every 8 hours")]
+    assert analyzer.plan_unresolved(meds) == {}
+    assert analyzer.build_calendar_reminders(meds, "en-IN")["unscheduled"][0]["name"] == "A"
+
+
+def test_the_calendar_endpoint_reuses_the_plan_without_calling_the_ai(client, details, monkeypatch):
+    def refuse(*_args, **_options):
+        raise AssertionError("the calendar route must not call the AI")
+
+    monkeypatch.setattr(llm, "ask", refuse)
+    signed_in(client, details)
+    meds = [json.loads(timed("A", "subah shaam", duration="x 3 days").model_dump_json())]
+    response = client.post(
+        "/api/prescription/calendar",
+        json={"medicines": meds, "language": "en-IN", "plan": {"0": {"slots": ["morning", "night"], "reason": ""}}},
+    )
+    assert response.status_code == 200
+    assert set(response.json()["slots"]) == {"morning", "night"}
+
+
+def test_marks_alone_are_enough_directions_to_explain_a_medicine():
+    assert is_explainable(timed("T. Pulmocus AB", day_pattern="1-0-1"))
+    assert not is_explainable(timed("T. Pulmocus AB"))
+    assert not is_explainable(ConfirmedMedicine(
+        name=field("T. X"), dose=field(), frequency=field("", "unreadable"), day_pattern=field("", "unreadable"), duration=field(), notes=field()))

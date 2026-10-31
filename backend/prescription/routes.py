@@ -3,7 +3,7 @@
 Sign-in is required because every request costs money in AI fees.
 """
 import sqlite3
-from typing import List
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
@@ -35,6 +35,15 @@ class ExplainRequest(BaseModel):
 
 class SaveRequest(BaseModel):
     medicines: List[ConfirmedMedicine] = Field(min_length=1, max_length=30)
+
+
+class CalendarRequest(BaseModel):
+    medicines: List[ConfirmedMedicine] = Field(max_length=30)
+    language: Language
+    guidance: Optional[dict] = None
+    start_date: Optional[str] = None
+    times: Optional[dict] = None
+    plan: Optional[Dict[str, dict]] = None
 
 
 class SpeakRequest(BaseModel):
@@ -106,6 +115,19 @@ def save_to_record(request: SaveRequest, user=Depends(require_user), db: sqlite3
     return {"saved": True, "medicines": len(request.medicines)}
 
 
+@router.post("/calendar")
+def calendar(request: CalendarRequest, _user=Depends(require_user)) -> dict:
+    return analyzer.build_calendar_reminders(
+        request.medicines,
+        request.language,
+        request.guidance,
+        request.start_date,
+        request.times,
+        request.plan,
+    )
+
+
 @router.post("/speak")
 def read_aloud(request: SpeakRequest, _user=Depends(require_user)) -> Response:
     return Response(speak(request.text, request.language), media_type="audio/wav")
+

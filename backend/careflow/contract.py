@@ -267,6 +267,7 @@ UNTRACKED_ROUTES: Dict[str, str] = {
     "add_typed_segment": "A line of transcript. Too small a step to show, and its content can't be recorded",
     "transcribe_chunk": "Runs every 25 seconds while recording. Only a failure is recorded",
     "read_aloud": "Reads text aloud and stores nothing",
+    "calendar": "Regenerates calendar links from already-confirmed medicines, stores nothing",
     "approve": "LOINC mapping governance, kept in the audit log",
     "reject": "LOINC mapping governance, kept in the audit log",
     "correct": "LOINC mapping governance, kept in the audit log",

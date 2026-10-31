@@ -48,6 +48,11 @@ def _day_amounts(raw: str) -> Optional[Tuple[str, str, str]]:
     return tuple("0" if mark in ("x", "X", "-", "–", "—") else mark for mark in match.groups())
 
 
+def day_marks(raw: str) -> bool:
+    """Whether morning, afternoon and night marks such as 1-0-1 are written in this text."""
+    return bool(raw) and _day_amounts(raw) is not None
+
+
 def decode(raw: str) -> Optional[str]:
     """Turns shorthand such as "1-0-1 PC x 5 days" into plain language."""
     parts: List[str] = []
@@ -70,6 +75,35 @@ def decode(raw: str) -> Optional[str]:
     return ". ".join(dict.fromkeys(parts)) if parts else None
 
 
+def is_as_needed(raw: str) -> bool:
+    """Checks whether a medicine is taken only as needed (SOS/PRN)."""
+    return bool(AS_NEEDED & set(_words(raw)))
+
+
+DURATION_PARSER = re.compile(
+    r"(?:(?:x|for|×)\s*)?(\d+)\s*(days?|d|weeks?|wks?|w|months?|m)\b", re.IGNORECASE
+)
+
+
+def parse_duration_days(raw: str) -> Optional[int]:
+    """Extracts duration in days from shorthand or duration string."""
+    if not raw:
+        return None
+    match = DURATION_PARSER.search(raw)
+    if not match:
+        return None
+    amount = int(match.group(1))
+    unit = match.group(2).lower().rstrip("s")
+    unit = UNITS.get(unit, unit)
+    if unit == "day":
+        return amount
+    if unit == "week":
+        return amount * 7
+    if unit == "month":
+        return amount * 30
+    return None
+
+
 def daily_slots(raw: str, frequency: str = "") -> Dict[str, str]:
     """When to take a medicine, only if the prescription states it exactly.
 
@@ -77,9 +111,70 @@ def daily_slots(raw: str, frequency: str = "") -> Dict[str, str]:
     so no schedule is given rather than a possibly wrong one.
     """
     amounts = _day_amounts(raw)
-    if not amounts or AS_NEEDED & set(_words(frequency)):
+    if not amounts or is_as_needed(frequency):
         return {}
     slots = zip(("morning", "afternoon", "night"), amounts)
     result = {slot: AMOUNTS.get(amount, amount) for slot, amount in slots if amount != "0"}
     expected = next((DOSES_A_DAY[word] for word in _words(frequency) if word in DOSES_A_DAY), None)
     return {} if expected is not None and expected != len(result) else result
+
+
+
+SLOTS = ("morning", "afternoon", "night")
+FOOD_WORDS = {"AC": "before food", "PC": "after food"}
+FOOD_PHRASES = (
+    (r"\b(before|prior to)\s+(food|meals?|eating|breakfast|lunch|dinner)\b", "before food"),
+    (r"\b(after|post)\s+(food|meals?|eating|breakfast|lunch|dinner)\b", "after food"),
+    (r"\b(with|along with)\s+(food|meals?)\b", "with food"),
+    (r"\bempty stomach\b", "on an empty stomach"),
+)
+# Standard abbreviations and phrases that give a count of doses a day but no times.
+PHRASE_COUNTS = (
+    (r"\b(twice|2\s*(?:times|x))\s*(?:a|per|every)?\s*(?:day|daily)\b", 2),
+    (r"\b(thrice|three times|3\s*(?:times|x))\s*(?:a|per|every)?\s*(?:day|daily)\b", 3),
+    (r"\b(once|1\s*(?:time|x))\s*(?:a|per|every)?\s*(?:day|daily)\b|\bdaily\b", 1),
+)
+NIGHT_CUES = re.compile(r"\b(night|bed\s*time|bedtime|sleep|dinner|evening)\b", re.IGNORECASE)
+
+
+def food_timing(*texts: str) -> str:
+    """Before, after or with food, if the prescription says so. Empty if it doesn't."""
+    for raw in texts:
+        for word in _words(raw or ""):
+            if word in FOOD_WORDS:
+                return FOOD_WORDS[word]
+        for pattern, label in FOOD_PHRASES:
+            if re.search(pattern, raw or "", re.IGNORECASE):
+                return label
+    return ""
+
+
+def doses_a_day(*texts: str) -> Optional[int]:
+    """How many times a day the written frequency says, from abbreviations or plain English."""
+    for raw in texts:
+        for word in _words(raw or ""):
+            if word in DOSES_A_DAY:
+                return DOSES_A_DAY[word]
+        for pattern, count in PHRASE_COUNTS:
+            if re.search(pattern, raw or "", re.IGNORECASE):
+                return count
+    return None
+
+
+def typical_slots(frequency: str, day_pattern: str = "", notes: str = "") -> Dict[str, str]:
+    """The usual times for a frequency written without marks, such as BD or twice a day.
+
+    Only for reminders, and always shown to the patient as typical, never as written. Once a day
+    is the morning unless the prescription says night or bedtime. Four times a day has no usual
+    set of three times, so it returns nothing.
+    """
+    texts = (frequency, day_pattern, notes)
+    if any(is_as_needed(text or "") for text in texts):
+        return {}
+    count = doses_a_day(*texts)
+    if count is None:
+        return {}
+    if count == 1:
+        at_night = "HS" in {w for text in texts for w in _words(text or "")} or any(NIGHT_CUES.search(text or "") for text in texts)
+        return {"night" if at_night else "morning": ""}
+    return {slot: "" for slot in {2: ("morning", "night"), 3: SLOTS}.get(count, ())}
