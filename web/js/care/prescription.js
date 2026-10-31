@@ -70,7 +70,24 @@ function listCard(title, items, language) {
         language && listenButton(items.join('. ').slice(0, 2400), language));
 }
 
-function resultsView(data, language, reading) {
+function saveButton(medicines) {
+    const button = h('button', { type: 'button', class: 'quiet no-print' }, 'Save to my record');
+    button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+            await api('/api/prescription/save', { method: 'POST', body: { medicines } });
+            button.textContent = 'Saved to your record';
+        } catch (error) {
+            toast(error.message, true);
+            button.disabled = false;
+        }
+    });
+    return h('div', { class: 'sheet no-print' },
+        h('p', {}, 'Keep the medicines you ticked in your record, so your doctors can see them. Your photo is not kept.'),
+        button);
+}
+
+function resultsView(data, language, reading, confirmed) {
     const guidance = data.guidance;
     const hasSchedule = Object.values(data.schedule).some((entries) => entries.length);
     return [
@@ -94,6 +111,7 @@ function resultsView(data, language, reading) {
         ].filter(([, items]) => items.length).map(([title, items]) => listCard(title, items, language)),
         reading.follow_up_date.value && listCard('Next appointment', [reading.follow_up_date.value]),
         data.ask_pharmacist.length > 0 && listCard('Please ask your pharmacist or doctor about', data.ask_pharmacist),
+        confirmed.length > 0 && saveButton(confirmed),
         h('div', { class: 'banner' }, "Always follow your doctor's instructions. This explains your prescription. It doesn't replace your doctor's advice."),
     ];
 }
@@ -115,11 +133,13 @@ export function renderPrescription(container) {
             explain.textContent = 'Explaining...';
             try {
                 const notes = reading.doctor_notes.legibility === 'unreadable' ? '' : reading.doctor_notes.value;
+                const medicines = confirmedMedicines(reading, list);
                 const data = await api('/api/prescription/explain', {
                     method: 'POST',
-                    body: { medicines: confirmedMedicines(reading, list), language: language.value, doctor_notes: notes.slice(0, 2000) },
+                    body: { medicines, language: language.value, doctor_notes: notes.slice(0, 2000) },
                 });
-                show(stepThree, resultsView(data, language.value, reading));
+                const ticked = medicines.filter((medicine) => medicine.name.legibility !== 'unreadable');
+                show(stepThree, resultsView(data, language.value, reading, ticked));
                 stepThree.scrollIntoView({ behavior: 'smooth' });
             } catch (error) {
                 toast(error.message, true);

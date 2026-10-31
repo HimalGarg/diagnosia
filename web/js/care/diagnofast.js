@@ -1,5 +1,6 @@
 // DiagnoFast: reception sends a single-use link, and the doctor reads the report.
 import { act, api, badge, form, h, show, when } from './ui.js';
+import { packPanel } from './pack.js';
 
 const STATUS_TEXT = {
     waiting: 'Not started',
@@ -27,8 +28,9 @@ function bullets(title, items) {
     return h('div', {}, h('strong', {}, title), h('ul', {}, (items.length ? items : ['None stated']).map((item) => h('li', {}, item))));
 }
 
-function reportView(detail) {
+function reportView(detail, context) {
     const { report, patient } = detail;
+    const pack = h('div', { class: 'no-print' });
     const person = [patient.age, patient.sex].filter(Boolean).join(', ');
     return h('div', { class: 'sheet' },
         h('h2', {}, `${patient.name}: pre-consultation report`),
@@ -62,13 +64,15 @@ function reportView(detail) {
             turn.has_audio && h('audio', { class: 'no-print', controls: true, preload: 'none', src: `/api/diagnofast/intakes/${detail.id}/audio/${index}` }))),
         h('div', { class: 'row no-print' },
             h('a', { class: 'button quiet', href: '#/diagnofast' }, 'Back to the queue'),
-            h('button', { type: 'button', class: 'quiet', onclick: () => window.print() }, 'Print or save as PDF')));
+            h('button', { type: 'button', class: 'quiet', onclick: () => window.print() }, 'Print or save as PDF'),
+            patient.record_id && h('button', { type: 'button', class: 'quiet', onclick: async () => show(pack, await packPanel(patient.record_id, context)) }, "Open the patient's pack")),
+        pack);
 }
 
-async function renderReport(container, id) {
+async function renderReport(container, id, context) {
     const load = async () => {
         const detail = await api(`/api/diagnofast/intakes/${id}`);
-        show(container, h('h1', { class: 'no-print' }, 'DiagnoFast'), reportView(detail));
+        show(container, h('h1', { class: 'no-print' }, 'DiagnoFast'), reportView(detail, context));
         return detail;
     };
     const detail = await load();
@@ -88,7 +92,7 @@ export async function renderDiagnoFast(container, context) {
         return;
     }
     if (route) {
-        await renderReport(container, route);
+        await renderReport(container, route, context);
         return;
     }
     const forms = await api('/api/diagnofast/forms');

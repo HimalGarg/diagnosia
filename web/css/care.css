@@ -171,6 +171,8 @@ mark, .unreviewed {
 .banner.danger { background: var(--alert-tint); color: var(--alert); font-weight: 500; }
 .error { color: var(--alert); font-weight: 500; }
 .muted { color: var(--ink-soft); font-size: .9rem; }
+.pack-source { margin-top: 6px; font-size: .9rem; }
+.pack-record { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-soft); margin: 6px 0; }
 .empty { padding: 16px; border: 1px dashed var(--rule); border-radius: 6px; color: var(--ink-soft); }
 
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

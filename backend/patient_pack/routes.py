@@ -41,7 +41,7 @@ def pack_status(patient_id: str, user=Depends(require_user), db: sqlite3.Connect
     pack = db.execute("SELECT state FROM patient_packs WHERE patient_id = ?", (patient_id,)).fetchone()
     items = rows(
         db.execute(
-            "SELECT source_type, source_id, state, last_error, created_at FROM pack_items WHERE patient_id = ? ORDER BY created_at DESC",
+            "SELECT id, source_type, source_id, state, last_error, created_at FROM pack_items WHERE patient_id = ? ORDER BY created_at DESC",
             (patient_id,),
         )
     )
@@ -53,6 +53,17 @@ def pack_status(patient_id: str, user=Depends(require_user), db: sqlite3.Connect
         "still_syncing": brief.syncing(db, patient_id),
         "items": [{**item, "label": brief.LABELS[item["source_type"]]} for item in items],
     }
+
+
+@router.get("/items/{item_id}")
+def pack_item(patient_id: str, item_id: str, user=Depends(require_doctor), db: sqlite3.Connection = Depends(get_db)) -> dict:
+    """The record behind a citation, so a doctor can check a statement against what was written."""
+    open_pack(db, user, patient_id, "pack.item.read")
+    item = db.execute("SELECT * FROM pack_items WHERE id = ? AND patient_id = ? AND state = 'ready'", (item_id, patient_id)).fetchone()
+    source = brief.source_text(db, item) if item else None
+    if source is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "We couldn't find that record.")
+    return {key: source[key] for key in ("label", "date", "text", "source_type", "source_id")}
 
 
 @router.post("/brief")

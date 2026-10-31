@@ -1,7 +1,9 @@
 // ReferralLoop: send a referral and follow it until the outcome is reviewed.
 import { act, api, ask, badge, form, h, section, table, when, show } from './ui.js';
+import { packPanel } from './pack.js';
 
 const BASE = '/api/addons/referrals';
+const PACK_STATUSES = ['accepted', 'appointment_offered', 'booked', 'rescheduled', 'no_show', 'attended', 'outcome_returned'];
 const RECEIVER_ACTIONS = {
     sent: [['acknowledged', 'Acknowledge'], ['needs_information', 'Ask for more information'], ['declined', 'Decline'], ['redirected', 'Redirect']],
     acknowledged: [['accepted', 'Accept'], ['needs_information', 'Ask for more information'], ['declined', 'Decline'], ['redirected', 'Redirect']],
@@ -60,6 +62,8 @@ function referralDetail(area, referral, context, reload) {
         },
     ) : null;
     const open = !['closed', 'cancelled'].includes(referral.status);
+    const pack = h('div', {});
+    const showsPack = referral.side === 'receiver' && referral.pack_shared && PACK_STATUSES.includes(referral.status);
 
     show(area,
         h('div', { class: 'sheet' },
@@ -72,6 +76,9 @@ function referralDetail(area, referral, context, reload) {
             referral.clinical_question ? h('p', {}, h('strong', {}, 'Question: '), referral.clinical_question) : null,
             h('p', { class: 'muted' }, `From ${referral.referring_clinician}. Reply needed by ${when(referral.respond_by)}.${referral.manual_destination ? ` Sent to: ${referral.manual_destination}.` : ''}`),
             referral.documents?.length ? h('ul', {}, referral.documents.map((item) => h('li', {}, h('a', { href: `/api/documents/${item.id}/file` }, item.filename)))) : null,
+            showsPack ? h('div', { style: 'margin:8px 0' },
+                h('button', { type: 'button', class: 'quiet', onclick: async () => show(pack, await packPanel(referral.patient_id, context)) }, "Open the patient's pack"),
+                pack) : null,
             referral.appointments.length ? table(
                 [
                     { label: 'Appointment', cell: (row) => when(row.scheduled_at) },
@@ -165,9 +172,14 @@ function newReferral(context, organizations, documents, duplicate) {
             { name: 'manual_destination', label: 'If by phone, fax or paper: who' },
             { name: 'reason', label: 'Reason', type: 'textarea', required: true },
             { name: 'clinical_question', label: 'Your question for the specialist', type: 'textarea' },
+            { name: 'share_pack', label: 'The patient agrees to share their whole pack with the doctor who accepts, until the referral closes', type: 'checkbox' },
         ],
         'Send referral',
         async (values) => {
+            if (values.share_pack) {
+                const agreed = await act(() => api(`/api/patients/${patient.id}/consents`, { method: 'POST', body: { purpose: 'pack_sharing' } }), context);
+                if (!agreed) return;
+            }
             const body = {
                 patient_id: patient.id,
                 specialty: values.specialty,

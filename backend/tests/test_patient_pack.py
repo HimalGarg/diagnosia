@@ -469,6 +469,31 @@ def test_a_brief_cites_its_sources(server, doctor, patient, monkeypatch):
     assert "Rash after penicillin" in fake.calls[0]["content"]
 
 
+def test_a_doctor_can_read_the_record_behind_a_citation(server, doctor, patient):
+    ready_pack(server, doctor, patient)
+    item = item_state(patient)[0]
+    found = doctor.get(f"/api/patients/{patient['id']}/pack/items/{item['id']}").json()
+    assert found["label"] == "Signed consultation note" and "Rash after penicillin" in found["text"] and "pack-item" not in found["text"]
+
+
+def test_a_citation_cant_reach_another_patients_record(server, doctor, patient):
+    ready_pack(server, doctor, patient)
+    other = doctor.post("/api/patients", json={"first_name": "Lata", "last_name": "Rao"}).json()
+    item = item_state(patient)[0]
+    assert doctor.get(f"/api/patients/{other['id']}/pack/items/{item['id']}").status_code == 404
+
+
+def test_a_receiver_loses_citations_when_the_referral_closes(server, doctor, patient, specialist):
+    ready_pack(server, doctor, patient)
+    grant(doctor, patient["id"], "pack_sharing")
+    referral_id = refer(doctor, specialist, patient)
+    accept(specialist, referral_id)
+    item = item_state(patient)[0]
+    assert specialist.get(f"/api/patients/{patient['id']}/pack/items/{item['id']}").status_code == 200
+    doctor.post(f"/api/addons/referrals/{referral_id}/close", json={"reason": "Done"})
+    assert specialist.get(f"/api/patients/{patient['id']}/pack/items/{item['id']}").status_code == 404
+
+
 def test_a_statement_citing_nothing_real_is_dropped(server, doctor, patient, monkeypatch):
     ready_pack(server, doctor, patient)
     claims = [brief.Claim(text="Rash after penicillin in 2019.", sources=[99]), brief.Claim(text="Rash after penicillin.", sources=[])]

@@ -2,6 +2,7 @@
 import { act, api, ask, badge, form, h, section, table, when, show } from './ui.js';
 import { canUse } from './catalogue.js';
 import { visitStrip } from './home.js';
+import { packPanel } from './pack.js';
 
 export function needPatient(container, message = 'Choose a patient from the bar above, or go to Home.') {
     show(container, h('h1', {}, 'Open a patient first'), h('p', { class: 'empty' }, message, ' ', h('a', { href: '#/home' }, 'Go to Home')));
@@ -160,11 +161,17 @@ export async function renderOverview(container, context) {
         { inline: true },
     ) : null;
     const upload = form(
-        [{ name: 'file', label: 'PDF, JPG or PNG', type: 'file', required: true }],
+        [
+            { name: 'file', label: 'PDF, JPG or PNG', type: 'file', required: true },
+            { name: 'document_type', label: 'What is it', type: 'select', options: [['other', 'Other'], ['x_ray', 'X-ray'], ['scan', 'Scan'], ['prescription', "Doctor's prescription"], ['report', 'Report']] },
+            { name: 'description', label: 'Describe it, so it can be found later', maxlength: 2000 },
+        ],
         'Upload document',
-        async ({ file }) => {
+        async ({ file, document_type: documentType, description }) => {
             const data = new FormData();
             data.append('file', file);
+            data.append('document_type', documentType);
+            data.append('description', description || '');
             await act(() => api(`/api/patients/${patient.id}/documents`, { method: 'POST', form: data }), context, 'Document uploaded');
             refresh();
         },
@@ -199,6 +206,7 @@ export async function renderOverview(container, context) {
                     h('span', {}, item.urgent.length ? `Urgent: ${item.urgent.join(', ')}` : 'DiagnoFast interview'),
                     h('span', { class: 'muted' }, when(item.created_at))))
                 : h('p', { class: 'muted' }, 'None yet. ', h('a', { href: '#/diagnofast' }, 'Send a DiagnoFast link'))) : null,
+        patient.relationship !== 'caregiver' ? section('Patient pack', await packPanel(patient.id, context)) : null,
         ...section('Allergies', allergyForm),
         ...section('Consent', h('p', { class: 'muted' }, 'Tools check this list before they run. Revoking takes effect at once.'), await consentPanel(context)),
         ...section('Who can see this record', await careTeamPanel(context)),

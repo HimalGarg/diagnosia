@@ -62,7 +62,7 @@ class Question(BaseModel):
     question: str = Field(min_length=3, max_length=500)
 
 
-def _source(db: sqlite3.Connection, item: sqlite3.Row) -> Optional[dict]:
+def source_text(db: sqlite3.Connection, item: sqlite3.Row) -> Optional[dict]:
     text = render.render(db, item["id"], item["source_type"], item["source_id"])
     if text is None:
         return None
@@ -133,7 +133,7 @@ def syncing(db: sqlite3.Connection, patient_id: str) -> int:
 def build_brief(db: sqlite3.Connection, patient_id: str) -> dict:
     found, length, left_out = [], 0, 0
     for item in _ready_items(db, patient_id):
-        source = _source(db, item)
+        source = source_text(db, item)
         if source is None:
             continue
         if length + len(source["text"]) > MAX_RECORD_CHARS:
@@ -173,7 +173,7 @@ def _matching_items(db: sqlite3.Connection, patient_id: str, hits: List[dict]) -
 def answer(db: sqlite3.Connection, client: meko.MekoClient, datapack_id: str, patient_id: str, question: str) -> dict:
     """Raises MekoUnavailable if the pack can't be searched, which must never read as nothing found."""
     hits = client.search(datapack_id, question, SEARCH_RESULTS)
-    found = [source for source in (_source(db, item) for item in _matching_items(db, patient_id, hits)) if source]
+    found = [source for source in (source_text(db, item) for item in _matching_items(db, patient_id, hits)) if source]
     result = {"found_in_records": False, "statements": [], "records_searched": len(_ready_items(db, patient_id)),
               "still_syncing": syncing(db, patient_id), "statements_dropped": 0}
     if not found:
