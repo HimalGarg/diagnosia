@@ -28,7 +28,8 @@ def test_a_restricted_folder_is_private_and_still_usable(tmp_path, expose):
     make_private(folder)
     assert is_private(folder)
     (folder / "inside.txt").write_text("secret", encoding="utf-8")
-    assert is_private(folder / "inside.txt")
+    if WINDOWS:  # a Windows folder passes its access list down. On Linux, the folder itself keeps others out.
+        assert is_private(folder / "inside.txt")
 
 
 @pytest.mark.skipif(not WINDOWS, reason="Windows access lists")
