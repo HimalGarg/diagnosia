@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from backend.auth import require_doctor, require_user
+from backend.careflow import events
 from backend.db import get_db
 from backend.medguard import drugs, engine, references
 from backend.medguard import rules as rule_store
@@ -286,6 +287,11 @@ def reconcile(
             knowledge_version=version,
             fingerprint=finding["fingerprint"],
         )
+    waiting = db.execute("SELECT COUNT(*) FROM medication_alerts WHERE reconciliation_id = ? AND disposition = 'pending'", (reconciliation_id,)).fetchone()[0]
+    flow = events.for_patient(db, request.patient_id, user)
+    events.emit(db, "MedGuard", "safety_check.completed", flow, user=user, metadata={"alert_count": waiting}, operation="medguard.reconcile")
+    if waiting:
+        events.emit(db, "MedGuard", "safety_check.review_required", flow, "review_required", user, metadata={"alert_count": waiting, "review_required": True}, operation="medguard.reconcile")
     return _payload(db, _reconciliation(db, reconciliation_id))
 
 

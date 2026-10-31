@@ -220,3 +220,35 @@ def test_temperature_scaling_fixes_overconfidence():
     before = expected_calibration_error(softmax(overconfident, axis=1), labels)
     after = expected_calibration_error(softmax(overconfident / temperature, axis=1), labels)
     assert after < before
+
+
+def test_a_resumed_download_keeps_whole_chunks_and_covers_the_rest():
+    from backend.skin.training import download_isic
+
+    chunk = download_isic.CHUNK_BYTES
+    assert download_isic.chunks_for(chunk * 3, chunk + 5) == [(chunk, chunk * 2 - 1), (chunk * 2, chunk * 3 - 1)]
+    assert download_isic.chunks_for(chunk * 2 - 10, 0)[-1] == (chunk, chunk * 2 - 11)
+
+
+def test_the_integrity_check_matches_how_s3_builds_a_multipart_etag(tmp_path):
+    import hashlib
+
+    from backend.skin.training import download_isic
+
+    path = tmp_path / "file.bin"
+    path.write_bytes(b"a" * 10 + b"b" * 5)
+    parts = hashlib.md5(b"a" * 10).digest() + hashlib.md5(b"b" * 5).digest()
+    assert download_isic.etag_of(path, 10) == f"{hashlib.md5(parts).hexdigest()}-2"
+
+
+def test_a_tie_on_validation_goes_to_the_simpler_model():
+    from backend.skin.training.train_classifier import choose_strength
+
+    picked = choose_strength([(0.5724, 0.001, "a"), (0.5852, 0.01, "b"), (0.5881, 0.1, "c"), (0.5649, 1.0, "d")])
+    assert picked[1] == 0.01
+
+
+def test_a_clear_winner_on_validation_still_wins():
+    from backend.skin.training.train_classifier import choose_strength
+
+    assert choose_strength([(0.50, 0.01, "a"), (0.60, 0.1, "b")])[1] == 0.1

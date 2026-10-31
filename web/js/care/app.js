@@ -6,6 +6,7 @@ import { renderInbox, renderOverview, renderTasks } from './overview.js';
 import { leaveRecording, renderClinScribe } from './clinscribe.js';
 import { renderMedGuard } from './medguard.js';
 import { renderLabLens } from './lablens.js';
+import { renderCareFlow } from './careflow.js';
 import { renderChronicCare } from './chroniccare.js';
 import { renderDiagnoFast } from './diagnofast.js';
 import { renderPrescription } from './prescription.js';
@@ -25,6 +26,7 @@ const RENDERERS = {
     reminders: renderReminders,
     inbox: renderInbox,
     account: renderAccount,
+    careflow: renderCareFlow,
     governance: renderGovernance,
     settings: renderSettings,
     diagnofast: renderDiagnoFast,
@@ -48,6 +50,7 @@ const GROUPS = [
             { id: 'overview', label: 'Patient record' },
             { id: 'tasks', label: 'Tasks' },
             { id: 'reminders', label: 'Reminders' },
+            { id: 'careflow', label: 'CareFlow' },
         ],
     },
     ...STAGES,

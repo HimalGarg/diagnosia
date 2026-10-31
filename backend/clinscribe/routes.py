@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from backend import settings_store, speech
 from backend.auth import require_doctor, require_user
+from backend.careflow import events
 from backend.clinscribe import drafting, verifier
 from backend.db import get_db
 from backend.records import access as gate
@@ -300,6 +301,10 @@ def draft_note(
         author_name=f"AI draft ({model})",
         content=dumps(content),
         created_at=now_iso(),
+    )
+    events.emit(
+        db, "ClinScribe", "note_draft.created", events.for_patient(db, session["patient_id"], user), "review_required", user,
+        key=note_id, metadata={"review_required": True}, used_ai=True,
     )
     return _note_payload(db, _note(db, note_id))
 

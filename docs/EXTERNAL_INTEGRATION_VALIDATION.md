@@ -20,6 +20,10 @@ Each client has explicit timeouts and bounded retries: Groq chat 120 seconds and
 60 seconds and 1 retry, references 6 seconds and 1 retry. A rate limit with a long wait isn't retried. Failures give a clear message
 and invent nothing. Authentication failures aren't retried.
 
+## CareFlow integrations
+
+MongoDB Atlas, YugabyteDB and Meko are recorded in [integrations/EXTERNAL_INTEGRATION_VALIDATION.md](integrations/EXTERNAL_INTEGRATION_VALIDATION.md).
+
 ## Stand-in Groq server
 
 `backend/tests/browser/fake_groq.py` answers like Groq's API over real HTTP. In Chrome, against it,

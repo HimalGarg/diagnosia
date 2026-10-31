@@ -1,14 +1,14 @@
 """Who saw or changed what. Audit rows can't be edited or deleted, by trigger."""
 import logging
 import sqlite3
-from contextvars import ContextVar
 from typing import Optional
 
+from backend.careflow import events as careflow
 from backend.db import connect
+from backend.integrations.execution import request_id
 from backend.records.store import insert, new_id, now_iso
 
 logger = logging.getLogger("diagnosia")
-request_id: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
 
 
 def record(
@@ -34,6 +34,7 @@ def record(
         request_id=request_id.get(),
         created_at=now_iso(),
     )
+    careflow.from_audit(db, user, action, patient_id, resource_type, resource_id, outcome, request_id.get())
 
 
 def record_denied(user: Optional[sqlite3.Row], action: str, patient_id: Optional[str], reason: str) -> None:

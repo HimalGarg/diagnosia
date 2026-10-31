@@ -215,12 +215,18 @@ class TwoProviders:
         return ["groq" if "groq.com" in call["url"] else "gemini" for call in self.calls]
 
 
+def choose(monkeypatch, **chosen):
+    """Settings as they are by default, apart from what a test picks."""
+    defaults = {"ai.primary": "groq", "ai.strategy": "fallback", **chosen}
+    monkeypatch.setattr(settings_store, "get", lambda key, db=None: defaults.get(key, settings_store.SETTINGS[key]["default"]))
+
+
 @pytest.fixture
 def both(monkeypatch):
     monkeypatch.setattr(settings, "groq_api_key", "groq-test-key")
     monkeypatch.setattr(settings, "gemini_api_key", "gemini-test-key")
     monkeypatch.setattr(settings_store, "model_for", lambda tool: "openai/gpt-oss-120b")
-    monkeypatch.setattr(settings_store, "get", lambda key, db=None: {"ai.primary": "groq", "ai.strategy": "fallback", "ai.model.gemini": "gemini-3.5-flash-lite"}[key])
+    choose(monkeypatch)
     return monkeypatch
 
 
@@ -299,14 +305,14 @@ def test_no_keys_at_all_says_ai_isnt_set_up(both):
 
 
 def test_the_primary_provider_is_a_setting(both):
-    both.setattr(settings_store, "get", lambda key, db=None: {"ai.primary": "gemini", "ai.strategy": "fallback", "ai.model.gemini": "gemini-3.5-flash-lite"}[key])
+    choose(both, **{"ai.primary": "gemini"})
     double = two(both)
     llm.ask("Be careful.", "Say hello", Answer, tool="clinscribe_note")
     assert double.asked == ["gemini"]
 
 
 def test_round_robin_takes_turns(both):
-    both.setattr(settings_store, "get", lambda key, db=None: {"ai.primary": "groq", "ai.strategy": "round_robin", "ai.model.gemini": "gemini-3.5-flash-lite"}[key])
+    choose(both, **{"ai.strategy": "round_robin"})
     both.setattr(llm, "_turns", __import__("itertools").count())
     double = two(both)
     for _ in range(4):
@@ -315,7 +321,7 @@ def test_round_robin_takes_turns(both):
 
 
 def test_round_robin_still_falls_back_when_the_turn_goes_to_a_broken_provider(both):
-    both.setattr(settings_store, "get", lambda key, db=None: {"ai.primary": "groq", "ai.strategy": "round_robin", "ai.model.gemini": "gemini-3.5-flash-lite"}[key])
+    choose(both, **{"ai.strategy": "round_robin"})
     both.setattr(llm, "_turns", __import__("itertools").count())
     double = two(both, groq=httpx.Response(503))
     assert [llm.ask("Be careful.", "Say hello", Answer, tool="clinscribe_note").text for _ in range(2)] == ["from gemini"] * 2
@@ -340,3 +346,54 @@ def test_the_environment_placeholder_for_gemini_counts_as_empty(monkeypatch):
 
     monkeypatch.setenv("GEMINI_API_KEY", "your-gemini-key")
     assert Settings().gemini_api_key == ""
+
+
+# The reading tools prefer Gemini
+
+
+def models_asked(double):
+    return [(who, call["json"]["model"]) for who, call in zip(double.asked, double.calls)]
+
+
+@pytest.mark.parametrize("tool", ["prescription_read", "lablens_read"])
+def test_reading_tools_try_the_larger_gemini_model_first(both, tool):
+    double = two(both)
+    llm.ask("Read.", "Say hello", Answer, tool=tool)
+    assert models_asked(double) == [("gemini", "gemini-3.5-flash")]
+
+
+def test_a_busy_larger_model_falls_back_to_the_smaller_one_before_leaving_gemini(both):
+    replies = iter([httpx.Response(503), None])
+    double = TwoProviders()
+    both.setattr(httpx, "post", lambda url, **kw: double.calls.append({"url": url, **kw}) or (next(replies) or groq_reply('{"text": "from lite"}')))
+    assert llm.ask("Read.", "Say hello", Answer, tool="lablens_read").text == "from lite"
+    assert [call["json"]["model"] for call in double.calls] == ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
+    assert all("generativelanguage" in call["url"] for call in double.calls)
+
+
+def test_when_gemini_is_wholly_down_a_reading_tool_ends_on_groq(both):
+    double = two(both, gemini=httpx.Response(503))
+    assert llm.ask("Read.", "Say hello", Answer, tool="lablens_read").text == "hello"
+    assert [who for who, _ in models_asked(double)] == ["gemini", "gemini", "groq"]
+
+
+def test_reading_tools_ignore_round_robin_and_the_general_first_choice(both):
+    choose(both, **{"ai.strategy": "round_robin", "ai.primary": "groq"})
+    both.setattr(llm, "_turns", __import__("itertools").count())
+    double = two(both)
+    for _ in range(3):
+        llm.ask("Read.", "Say hello", Answer, tool="prescription_read")
+    assert set(double.asked) == {"gemini"}
+
+
+def test_a_reading_tool_can_be_pointed_back_at_the_general_setting(both):
+    choose(both, **{"ai.provider.lablens_read": "default", "ai.primary": "groq"})
+    double = two(both)
+    llm.ask("Read.", "Say hello", Answer, tool="lablens_read")
+    assert double.asked == ["groq"]
+
+
+def test_other_tools_still_use_the_one_general_gemini_model(both):
+    double = two(both, groq=httpx.Response(503))
+    llm.ask("Draft.", "Say hello", Answer, tool="clinscribe_note")
+    assert models_asked(double)[-1] == ("gemini", "gemini-3.5-flash-lite")

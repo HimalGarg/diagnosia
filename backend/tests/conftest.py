@@ -13,12 +13,15 @@ from backend.records import staff, vault
 
 
 @pytest.fixture(autouse=True)
-def no_real_ai_keys(request, monkeypatch):
+def no_real_ai_keys(request, monkeypatch, tmp_path):
     """A developer's .env may hold real keys. Tests use fakes, and must never reach a real service.
 
-    Tests marked `live` are the exception: they exist to use the real keys, and only run on request."""
-    if request.node.get_closest_marker("live"):
+    Tests marked `live` or `local_stack` are the exception, and only run on request."""
+    if request.node.get_closest_marker("live") or request.node.get_closest_marker("local_stack"):
         return
+    monkeypatch.setattr(settings, "db_path", tmp_path / "isolated.db")  # no test touches the real AI run records
+    for switch in ("mongodb_enabled", "yugabyte_enabled", "meko_enabled", "mongodb_change_streams"):
+        monkeypatch.setattr(settings, switch, False)  # nor a service switched on in a developer's .env
     monkeypatch.setattr(settings, "groq_api_key", "")
     monkeypatch.setattr(settings, "gemini_api_key", "")
 

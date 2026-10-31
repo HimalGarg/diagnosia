@@ -1,0 +1,4 @@
+# Optional. Only needed when the MongoDB Atlas or YugabyteDB integrations are switched on.
+# The Meko adapter uses httpx, which is already in requirements.txt.
+pymongo>=4.9,<5
+psycopg[binary,pool]>=3.2,<4

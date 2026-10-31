@@ -1,6 +1,10 @@
 import re
+import shutil
+import subprocess
 
 import pytest
+
+from backend.config import WEB_DIR
 
 
 @pytest.mark.parametrize(
@@ -109,6 +113,18 @@ def test_the_workspace_may_show_heatmaps_but_no_other_data_scripts(client):
     policy = client.get("/care.html").headers["content-security-policy"]
     assert "img-src 'self' data: blob:" in policy
     assert "script-src 'self';" in policy
+
+
+def test_every_workspace_script_parses(tmp_path):
+    """One stray bracket in any module stops the whole workspace, and only a parser can see it."""
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node isn't installed")
+    for script in sorted((WEB_DIR / "js" / "care").glob("*.js")):
+        copy = tmp_path / f"{script.stem}.mjs"
+        copy.write_text(script.read_text(encoding="utf-8"), encoding="utf-8")
+        checked = subprocess.run([node, "--check", str(copy)], capture_output=True, text=True, timeout=30)
+        assert checked.returncode == 0, f"{script.name}: {checked.stderr[:300]}"
 
 
 def test_care_pages_have_no_analytics(client):

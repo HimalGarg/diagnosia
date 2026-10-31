@@ -80,6 +80,13 @@ def _intake_patient_link(db: sqlite3.Connection) -> None:
     db.execute("CREATE INDEX intakes_patient ON intakes (patient_id)")
 
 
+def _delivery_detail(db: sqlite3.Connection) -> None:
+    """When each delivery was last tried, what it produced, and whether MongoDB has seen its state yet."""
+    db.execute("ALTER TABLE careflow_deliveries ADD COLUMN last_attempt_at TEXT")
+    db.execute("ALTER TABLE careflow_deliveries ADD COLUMN result_ref TEXT")
+    db.execute("ALTER TABLE careflow_deliveries ADD COLUMN mirrored INTEGER NOT NULL DEFAULT 0")
+
+
 MIGRATIONS: List[Tuple[int, str, Callable[[sqlite3.Connection], None]]] = [
     (1, "account_states", _account_states),
     (2, "organization_verification", _organization_verification),
@@ -87,6 +94,7 @@ MIGRATIONS: List[Tuple[int, str, Callable[[sqlite3.Connection], None]]] = [
     (4, "document_encryption", _document_encryption),
     (5, "medication_rule_authority", _medication_rule_authority),
     (6, "intake_patient_link", _intake_patient_link),
+    (7, "delivery_detail", _delivery_detail),
 ]
 
 

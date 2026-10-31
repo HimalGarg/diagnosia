@@ -48,6 +48,8 @@ backend/    One FastAPI app: accounts and one folder per tool.
   clinscribe/ lablens/ medguard/ referralloop/ chroniccare/ dischargecare/
   maternacare/ amrguard/ reminders/   One folder per tool, each with its schema.sql
   skin/             classifier.py, encoder.py, routes.py, training/, metrics.json
+  careflow/         Activity timeline: event contract, outbox, delivery, routes
+  integrations/     Optional Meko and YugabyteDB adapters, and AI run records
   tests/            pytest suite (no API keys needed)
 archive/    Retired tools. See archive/README.md.
 pitch/      Pitch material.
@@ -195,6 +197,13 @@ The photo isn't stored. A consent box says it goes to outside AI services.
   `backend/requirements-skin.txt` is the heavy skin tool.
 - A new tool's routes join the sweep in `test_security.py`. Add a real gate, not a list entry.
 
+## CareFlow
+
+Events go through `backend/careflow/events.py`, never straight to a store. The outbox write shares the
+transaction with the change, usually through the audit hook. Events hold no free text, so don't add
+any: a new metadata key needs a reason. SQLite stays the record, and nothing flows back from MongoDB,
+YugabyteDB or Meko. See `docs/integrations/`.
+
 ## Team workflow
 
 - `main` is the shared, working version. **Don't commit to `main` directly.**
@@ -219,7 +228,8 @@ The photo isn't stored. A consent box says it goes to outside AI services.
 - **Live on both, lightly.** A Hindi interview and a synthetic prescription work on Groq and Gemini.
   Reading quality on real handwriting and real Hindi speech is untested. Run `backend/tests/live/`
   with `DIAGNOSIA_LIVE_TESTS=1` after changing a model.
-- **Model choice.** Each tool's Groq model is a setting, and Gemini has one model for all tools. A
+- **Reading tools use Gemini first.** Prescription reading and explaining, and lab report reading, are pinned to Gemini (own settings), after a comparison on synthetic photos in `backend/tests/ai_eval/`. Re-run it when models change.
+- **Model choice.** Each tool's Groq model is a setting, and Gemini has one model for the other tools. A
   failed call goes to the other provider, or providers take turns (`ai.strategy`). With one provider,
   a failed call is retried once. A DiagnoFast question times out at 45 seconds per provider.
 - **Languages.** Hindi and English only.

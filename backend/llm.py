@@ -15,13 +15,14 @@ import logging
 import re
 import threading
 import time
-from typing import List, Optional, Type, TypeVar, Union
+from typing import List, Optional, Tuple, Type, TypeVar, Union
 
 import httpx
 from pydantic import BaseModel, ValidationError
 
 from backend import settings_store
 from backend.config import settings
+from backend.integrations import execution
 
 logger = logging.getLogger("diagnosia")
 
@@ -159,14 +160,22 @@ def _providers_in_order(tool: str) -> List[str]:
     return names
 
 
-def _ask_provider(
-    provider: str, system: str, content: Union[str, list], schema: Type[Schema], tool: str, max_tokens: int, timeout: int, attempts: int
+def _attempts(tool: str) -> List[Tuple[str, str]]:
+    """Each (provider, model) to try, in order. Gemini may appear twice, with a backup model."""
+    attempts = []
+    for provider in _providers_in_order(tool):
+        if provider == "gemini":
+            attempts += [("gemini", model) for model in settings_store.gemini_models(tool)]
+        else:
+            attempts.append(("groq", settings_store.model_for(tool)))
+    return attempts
+
+
+def _ask_model(
+    provider: str, model: str, system: str, content: Union[str, list], schema: Type[Schema], max_tokens: int, timeout: int, attempts: int
 ) -> Schema:
     key = settings_store.api_key(None, provider)
-    if provider == "gemini":
-        model, base_url = settings_store.gemini_model(tool), settings.gemini_base_url
-    else:
-        model, base_url = settings_store.model_for(tool), None
+    base_url = settings.gemini_base_url if provider == "gemini" else None
     response = _post(build_request(system, content, schema, model, max_tokens), key, timeout, base_url, attempts)
     if response.status_code in (401, 403):
         raise AIUnavailable(f"status {response.status_code}")
@@ -191,18 +200,24 @@ def ask(
     max_tokens: int = 6000,
     timeout: int = REQUEST_TIMEOUT_SECONDS,
 ) -> Schema:
-    """Calls the model chosen for this tool, and the other provider if that one fails."""
-    providers = _providers_in_order(tool)
-    if not providers:
+    """Calls the model chosen for this tool, and the next choice if that one fails."""
+    attempts = _attempts(tool)
+    if not attempts:
         raise AINotConfigured("no API key")
-    # With a second provider waiting, a slow first one costs more than it's worth retrying.
-    attempts = MAX_ATTEMPTS if len(providers) == 1 else 1
+    # With another choice waiting, a slow first one costs more than it's worth retrying.
+    tries = MAX_ATTEMPTS if len(attempts) == 1 else 1
     failure: Exception = AIUnavailable("no attempt made")
-    for provider in providers:
+    run = execution.AgentRun(tool)
+    for provider, model in attempts:
         try:
-            return _ask_provider(provider, system, content, schema, tool, max_tokens, timeout, attempts)
+            answer = _ask_model(provider, model, system, content, schema, max_tokens, timeout, tries)
+            run.tried(provider, model, "succeeded")
+            run.finish("succeeded")
+            return answer
         except (AIUnavailable, AIDeclined) as error:
             failure = error
-            if len(providers) > 1:
-                logger.warning("%s failed (%s), trying the other provider", provider, type(error).__name__)
+            run.tried(provider, model, type(error).__name__)
+            if len(attempts) > 1:
+                logger.warning("%s %s failed (%s), trying the next choice", provider, model, type(error).__name__)
+    run.finish("failed")
     raise failure

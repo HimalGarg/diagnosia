@@ -6,26 +6,26 @@
     "test": 3619
   },
   "classifier_strength": 0.01,
-  "temperature": 1.189070048353033,
-  "balanced_accuracy": 0.605480191795123,
-  "macro_auroc": 0.933879809472604,
-  "melanoma_auroc": 0.8812251439425416,
+  "temperature": 1.1897209511228302,
+  "balanced_accuracy": 0.603895524608674,
+  "macro_auroc": 0.9338752752530768,
+  "melanoma_auroc": 0.8812376403107848,
   "sensitivity_by_condition": {
     "MEL": 0.6718266253869969,
-    "BCC": 0.6940928270042194,
-    "SCC": 0.5444444444444444,
+    "BCC": 0.6919831223628692,
+    "SCC": 0.5333333333333333,
     "AK": 0.45161290322580644,
     "BKL": 0.5946666666666667,
     "DF": 0.5,
-    "NV": 0.7760869565217391,
+    "NV": 0.7766304347826087,
     "VASC": 0.6111111111111112
   },
   "referral": {
-    "threshold": 0.22137072682380676,
-    "concerning_lesions_referred": 0.9430284857571214,
-    "melanomas_referred": 0.9009287925696594,
-    "benign_lesions_referred": 0.42669584245076586
+    "threshold": 0.22211918234825134,
+    "concerning_lesions_referred": 0.9415292353823088,
+    "melanomas_referred": 0.8978328173374613,
+    "benign_lesions_referred": 0.42538293216630196
   },
-  "calibration_error": 0.02210633418414434,
+  "calibration_error": 0.021540617911517207,
   "test_lesions_marked_uncertain": 0.011881735285990605
 }

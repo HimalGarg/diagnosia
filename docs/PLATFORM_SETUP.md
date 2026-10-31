@@ -41,6 +41,12 @@ place, or as `GEMINI_API_KEY`. With both keys:
 | When both providers have a key | **fallback**: the other one answers only when the first fails. **round_robin**: they take turns, and a failure still falls back to the other |
 | Gemini model | One model for every tool. Default `gemini-3.5-flash-lite` |
 
+Three tools prefer Gemini whichever general setting is chosen, because it read photos better in
+our comparison (`backend/tests/ai_eval/README.md`): reading prescription photos, reading scanned lab
+reports, and explaining a prescription. Each has its own provider and Gemini model setting. The
+reading ones default to `gemini-3.5-flash`, which is often busy or over its free limit, so they back
+up to `gemini-3.5-flash-lite` and then to Groq. Round robin never moves these three.
+
 Gemini carries text and images. Speech to text and the English voice stay on Groq, and the browser's
 own voice covers the rest, so Gemini alone can't transcribe a consultation. A failed call is logged
 by provider name only, never with its content. **Both providers receive patient content**, so each

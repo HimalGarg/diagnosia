@@ -15,6 +15,7 @@ from PIL import Image
 from pydantic import BaseModel
 
 from backend import llm, settings_store
+from backend.careflow import events
 from backend.db import connect
 from backend.lablens import parser
 from backend.prescription.analyzer import prepare_photo
@@ -22,6 +23,7 @@ from backend.records import care, documents
 from backend.records.store import dumps, insert, one, update
 
 logger = logging.getLogger("diagnosia")
+MODULE = "LabLens"
 
 MAX_PAGES = 30
 MAX_AI_PAGES = 9
@@ -193,12 +195,14 @@ def process(report_id: str) -> None:
             return
         document = one(db.execute("SELECT * FROM clinical_documents WHERE id = ?", (report["document_id"],)).fetchone())
         data = documents.read(document)
+        events.emit_separately(MODULE, "lab.extraction.started", lambda connection: events.for_patient(connection, report["patient_id"]), "started", operation="lablens.extract")
         db.execute("DELETE FROM lab_results WHERE report_id = ?", (report_id,))
         fields = _extract(db, report, document, data)
         patient = db.execute("SELECT first_name, last_name FROM patients WHERE id = ?", (report["patient_id"],)).fetchone()
         name = fields.get("name_on_report", "")
         identity = parser.identity_check(name, patient["first_name"], patient["last_name"])
         update(db, "lab_reports", report_id, identity_check=identity, parser_version=parser.VERSION, **fields)
+        _record_result(db, report, fields)
         db.commit()
     except llm.AINotConfigured:
         db.rollback()
@@ -220,7 +224,21 @@ def process(report_id: str) -> None:
 def _fail(db: sqlite3.Connection, report_id: str, reason: str, error: Exception) -> None:
     logger.warning("Lab report %s failed: %s", report_id, type(error).__name__)
     update(db, "lab_reports", report_id, status="failed", failure_reason=reason)
+    report = db.execute("SELECT patient_id FROM lab_reports WHERE id = ?", (report_id,)).fetchone()
+    if report is not None:
+        events.emit(db, MODULE, "lab.extraction.failed", events.for_patient(db, report["patient_id"]), "failed", metadata={"error_category": events.category_of(error)}, operation="lablens.extract")
     db.commit()
+
+
+def _record_result(db: sqlite3.Connection, report: sqlite3.Row, fields: dict) -> None:
+    """Commits with the status it describes. AI output and low-confidence lines wait for a person."""
+    flow = events.for_patient(db, report["patient_id"])
+    method = fields.get("extraction_method", "none")
+    usable = fields.get("status") == "needs_review"
+    if usable:
+        count = db.execute("SELECT COUNT(*) FROM lab_results WHERE report_id = ?", (report["id"],)).fetchone()[0]
+        events.emit(db, MODULE, "lab.extraction.completed", flow, metadata={"extraction_method": method, "item_count": count}, used_ai=method == "ai-vision", operation="lablens.extract")
+    events.emit(db, MODULE, "lab.review_required", flow, "review_required", metadata={"extraction_method": method, "review_required": True}, operation="lablens.extract")
 
 
 def recover_interrupted() -> None:

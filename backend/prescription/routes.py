@@ -7,13 +7,16 @@ from typing import List
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
 
+from backend import llm
 from backend.auth import require_user
+from backend.careflow import events
 from backend.images import MAX_IMAGE_BYTES, read_image
 from backend.prescription import analyzer
 from backend.prescription.analyzer import ConfirmedMedicine
 from backend.speech import MAX_SPEECH_CHARS, Language, speak
 
 MAX_PHOTOS = 4
+MODULE = "Prescription Analyzer"
 
 router = APIRouter(prefix="/api/prescription")
 
@@ -29,11 +32,15 @@ class SpeakRequest(BaseModel):
     language: Language
 
 
+def _workflow(user):
+    return lambda db: events.for_person(db, user, MODULE)
+
+
 @router.post("/read")
 def read(
     images: List[UploadFile] = File(...),
     consent: bool = Form(...),
-    _user=Depends(require_user),
+    user=Depends(require_user),
 ) -> dict:
     if not consent:
         raise HTTPException(
@@ -44,14 +51,27 @@ def read(
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_ENTITY, f"Please upload at most {MAX_PHOTOS} photos."
         )
-    return analyzer.read_prescription(
-        [read_image(image.file.read(MAX_IMAGE_BYTES + 1)) for image in images]
-    )
+    photos = [read_image(image.file.read(MAX_IMAGE_BYTES + 1)) for image in images]
+    locate = _workflow(user)
+    with events.tracked(MODULE, "prescription.processing.started", "prescription.processing.failed", locate, user):
+        reading = analyzer.read_prescription(photos)
+    count = len(reading["medicines"])
+    if reading["is_prescription"] and count:
+        events.emit_separately(MODULE, "prescription.extraction.completed", locate, user=user, metadata={"item_count": count}, used_ai=True)
+        events.emit_separately(MODULE, "prescription.confirmation_required", locate, "review_required", user, metadata={"item_count": count, "review_required": True})
+    return reading
 
 
 @router.post("/explain")
-def explain(request: ExplainRequest, _user=Depends(require_user)) -> dict:
-    return analyzer.explain_prescription(request.medicines, request.language, request.doctor_notes)
+def explain(request: ExplainRequest, user=Depends(require_user)) -> dict:
+    locate = _workflow(user)
+    try:
+        result = analyzer.explain_prescription(request.medicines, request.language, request.doctor_notes)
+    except (llm.AIUnavailable, llm.AIDeclined) as error:
+        events.emit_separately(MODULE, "prescription.processing.failed", locate, "failed", user, metadata={"error_category": events.category_of(error)})
+        raise
+    events.emit_separately(MODULE, "prescription.explained", locate, user=user, metadata={"language": request.language}, used_ai=bool(result["guidance"]))
+    return result
 
 
 @router.post("/speak")

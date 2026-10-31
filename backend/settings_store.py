@@ -41,6 +41,9 @@ READING_TOOLS = {
     "prescription_explain": "Prescription: explaining to patients",
     "lablens_read": "LabLens: reading scanned reports",
 }
+# Chosen by comparing models on synthetic photos (backend/tests/ai_eval). The larger model was the
+# only one to keep every value on its own row in a tilted, glared lab photo. Explaining needs no eyes.
+READING_MODELS = {"prescription_read": "gemini-3.5-flash", "prescription_explain": "gemini-3.5-flash-lite", "lablens_read": "gemini-3.5-flash"}
 GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
 TEXT_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
 VISION_MODELS = ["qwen/qwen3.8-27b", "meta-models/muse-spark-open"]
@@ -62,7 +65,7 @@ SETTINGS: Dict[str, dict] = {
         for tool, label in READING_TOOLS.items()
     },
     **{
-        f"ai.gemini_model.{tool}": {"section": "AI providers", "label": f"{label}: Gemini model", "type": "model", "choices": GEMINI_MODELS, "default": "READING_DEFAULT"}
+        f"ai.gemini_model.{tool}": {"section": "AI providers", "label": f"{label}: Gemini model", "type": "model", "choices": GEMINI_MODELS, "default": READING_MODELS[tool]}
         for tool, label in READING_TOOLS.items()
     },
     "ai.model.gemini": {"section": "AI providers", "label": "Gemini model, for every tool", "type": "model", "choices": GEMINI_MODELS, "default": "gemini-3.5-flash-lite"},
@@ -139,11 +142,12 @@ def model_for(tool: str) -> str:
     return get(f"ai.model.{tool}")
 
 
-def gemini_model(tool: Optional[str] = None) -> str:
-    """One Gemini model for most tools, and a stronger one chosen for the reading tools."""
+def gemini_models(tool: Optional[str] = None) -> List[str]:
+    """Gemini models to try, best first. The larger ones are often busy, so the general model backs them up."""
+    general = get("ai.model.gemini")
     if tool in READING_TOOLS:
-        return get(f"ai.gemini_model.{tool}")
-    return get("ai.model.gemini")
+        return list(dict.fromkeys([get(f"ai.gemini_model.{tool}"), general]))
+    return [general]
 
 
 def provider_order(db: Optional[sqlite3.Connection] = None, tool: Optional[str] = None) -> List[str]:

@@ -12,6 +12,10 @@ STORAGE_DIR = ROOT_DIR / "backend" / "storage"
 load_dotenv(ROOT_DIR / ".env")
 
 
+def _flag(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in ("1", "true", "yes", "on")
+
+
 def _real_key(value: str) -> str:
     return "" if not value or "your" in value.lower() else value
 
@@ -47,6 +51,24 @@ class Settings:
             "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai"
         ).rstrip("/")
     )
+    # Optional integrations. Each is off unless set to exactly 1, and none is needed to run the app.
+    demo_mode: bool = field(default_factory=lambda: os.environ.get("DIAGNOSIA_DEMO_MODE", "1").strip().lower() not in ("0", "false", "no", "off"))
+    mongodb_enabled: bool = field(default_factory=lambda: _flag("ENABLE_MONGODB_ATLAS_INTEGRATION"))
+    mongodb_uri: str = field(default_factory=lambda: _real_key(os.environ.get("MONGODB_ATLAS_URI", "")))
+    mongodb_database: str = field(default_factory=lambda: os.environ.get("MONGODB_DATABASE_NAME") or os.environ.get("MONGODB_DATABASE") or "diagnosia_atlas")
+    mongodb_timeout_ms: int = field(default_factory=lambda: int(os.environ.get("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")))
+    mongodb_change_streams: bool = field(default_factory=lambda: _flag("ENABLE_MONGODB_CHANGE_STREAMS"))
+    mongodb_change_stream_collection: str = field(default_factory=lambda: os.environ.get("MONGODB_CHANGE_STREAM_COLLECTION", "care_events"))
+    yugabyte_enabled: bool = field(default_factory=lambda: _flag("ENABLE_YUGABYTEDB_INTEGRATION"))
+    yugabyte_dsn: str = field(default_factory=lambda: _real_key(os.environ.get("YUGABYTEDB_YSQL_DSN", "")))
+    yugabyte_pool_max: int = field(default_factory=lambda: int(os.environ.get("YUGABYTEDB_POOL_MAX_SIZE", "4")))
+    meko_enabled: bool = field(default_factory=lambda: _flag("ENABLE_MEKO_INTEGRATION"))
+    meko_api_key: str = field(default_factory=lambda: _real_key(os.environ.get("MEKO_API_KEY", "")))
+    meko_datapack_id: str = field(default_factory=lambda: os.environ.get("MEKO_DATAPACK_ID", ""))
+    meko_url: str = field(default_factory=lambda: os.environ.get("MEKO_MCP_URL", "https://mcp.mekodata.ai/mcp"))
+    event_batch_size: int = field(default_factory=lambda: int(os.environ.get("EVENT_DELIVERY_BATCH_SIZE", "50")))
+    event_max_attempts: int = field(default_factory=lambda: int(os.environ.get("EVENT_DELIVERY_MAX_ATTEMPTS", "8")))
+    event_backoff_seconds: int = field(default_factory=lambda: int(os.environ.get("EVENT_DELIVERY_BACKOFF_SECONDS", "30")))
     ai_base_url: str = field(
         default_factory=lambda: os.environ.get("AI_BASE_URL", "https://api.groq.com/openai/v1").rstrip("/")
     )

@@ -30,6 +30,7 @@ from pydantic import BaseModel, Field
 
 from backend import llm, speech
 from backend.auth import require_doctor
+from backend.careflow import events
 from backend.db import connect, get_db
 from backend.diagnofast import abha, agent, recordings
 from backend.records.access import READ, WRITE, open_patient
@@ -37,6 +38,8 @@ from backend.records.access import READ, WRITE, open_patient
 MAX_AUDIO_BYTES = 5 * 1024 * 1024
 MAX_TYPED_ANSWER = 2000
 OPEN_STATUSES = ("waiting", "in_progress")
+
+MODULE = "DiagnoFast"
 
 logger = logging.getLogger("diagnosia.diagnofast")
 router = APIRouter(prefix="/api/diagnofast")
@@ -55,6 +58,11 @@ class StartRequest(BaseModel):
     language: speech.Language
     consent: bool
     abha_consent: bool = False
+
+
+def _workflow(db: sqlite3.Connection, row: sqlite3.Row) -> sqlite3.Row:
+    """A link for a patient joins that patient's workflow. A loose link is its own."""
+    return events.for_patient(db, row["patient_id"]) if row["patient_id"] else events.for_intake(db, row["id"], row["doctor_id"])
 
 
 def _hash(token: str) -> str:
@@ -122,6 +130,8 @@ def create_intake(
             details.patient_id,
         ),
     )
+    if not details.patient_id:  # with a patient, the audit entry above has already recorded this
+        events.emit(db, MODULE, "intake.link_created", events.for_intake(db, cursor.lastrowid, doctor["id"]), user=doctor)
     return {"id": cursor.lastrowid, "link": f"intake.html?token={token}"}
 
 
@@ -226,6 +236,7 @@ def start_interview(
         """,
         (request.language, json.dumps(records) if records else None, question, row["id"]),
     )
+    events.emit(db, MODULE, "intake.started", _workflow(db, row), "started", actor="patient", key=str(row["id"]), metadata={"language": request.language})
     return {"question": question, "audio": _spoken(question, request.language)}
 
 
@@ -248,10 +259,12 @@ def _build_report(intake_id: int) -> None:
                 "UPDATE intakes SET report = ?, status = 'done' WHERE id = ?",
                 (report.model_dump_json(), intake_id),
             )
+            events.emit(db, MODULE, "intake.review_required", _workflow(db, row), "review_required", key=str(intake_id), metadata={"review_required": True}, used_ai=True)
         except (llm.AIUnavailable, llm.AIDeclined) as error:
             # The doctor can still read the answers and transcript.
             logger.warning("Report failed for intake %s: %s", intake_id, error)
             db.execute("UPDATE intakes SET status = 'report_failed' WHERE id = ?", (intake_id,))
+            events.emit(db, MODULE, "intake.failed", _workflow(db, row), "failed", key=str(intake_id), metadata={"error_category": events.category_of(error)})
         db.commit()
     finally:
         db.close()
@@ -292,10 +305,17 @@ def answer(
     form = agent.load_form(row["form_id"])
     answers = json.loads(row["answers"])
     conversation = [{"question": turn["question"], "answer": turn["answer"]} for turn in transcript]
-    turn = agent.next_turn(form, answers, conversation, language)
+    try:
+        turn = agent.next_turn(form, answers, conversation, language)
+    except (llm.AIUnavailable, llm.AIDeclined) as error:
+        events.emit_separately(MODULE, "intake.failed", lambda connection: _workflow(connection, row), "failed", metadata={"error_category": events.category_of(error)})
+        raise
     step = agent.apply_turn(form, answers, turn, row["questions_asked"], language)
 
     finished = step.question is None
+    flow = _workflow(db, row)
+    if audio_name:
+        events.emit(db, MODULE, "intake.transcription.completed", flow, actor="patient", metadata={"language": language})
     db.execute(
         """
         UPDATE intakes SET answers = ?, transcript = ?, urgent = ?, current_question = ?,
@@ -312,6 +332,7 @@ def answer(
         ),
     )
     if finished:
+        events.emit(db, MODULE, "intake.completed", flow, actor="patient", key=str(row["id"]), metadata={"question_count": row["questions_asked"], "urgent_stop": bool(step.urgent)}, used_ai=True)
         # Commit first: the report task reads this row on its own connection.
         db.commit()
         background.add_task(_build_report, row["id"])

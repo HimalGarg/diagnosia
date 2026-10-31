@@ -12,6 +12,7 @@ import os
 import secrets
 import shutil
 import sqlite3
+import subprocess
 import sys
 from pathlib import Path
 from typing import List
@@ -402,6 +403,136 @@ def setup_local(args) -> int:
     return 0
 
 
+def _print_status(items) -> int:
+    for item in items:
+        print(f"{item.name}: {item.state}  {item.detail}")
+        for label, passed, detail in item.checks:
+            print(f"    {'pass' if passed else 'FAIL'}  {label}: {detail}")
+    return 1 if any(item.state == "FAILED" for item in items) else 0
+
+
+def integrations_status(_args) -> int:
+    """Tries each service now. A setting alone never counts as connected."""
+    from backend.integrations import status
+
+    init_db()
+    return _print_status(status.overview())
+
+
+def _health_command(name: str):
+    def run(_args) -> int:
+        from backend.integrations import status
+
+        init_db()
+        return _print_status([status.CHECKS[name](True)])
+
+    return run
+
+
+def integrations_validate(_args) -> int:
+    """Runs the live tests for each service that's set up, and names what's blocking the others."""
+    from backend.integrations import status
+
+    init_db()
+    items = status.overview(deep=True)
+    code = _print_status(items)
+    names = {"MONGODB_ATLAS": "atlas", "YUGABYTEDB": "yugabytedb", "MEKO": "meko"}
+    live = [names[item.name] for item in items if item.state == status.CONNECTED]
+    for item in items:
+        if item.state != status.CONNECTED:
+            print(f"Not tested live: {item.name} is {item.state}")
+    if not live:
+        return code
+    env = {**os.environ, "DIAGNOSIA_LIVE_INTEGRATIONS": "1"}
+    command_line = [sys.executable, "-m", "pytest", "-m", "live", "backend/tests/live/test_live_integrations.py", "-q", "-k", " or ".join(live)]
+    return subprocess.run(command_line, env=env).returncode or code
+
+
+def meko_ingest(args) -> int:
+    """Uploads the knowledge base through Meko's documented tools. --dry-run only checks the files."""
+    from backend.integrations import knowledge, meko
+
+    documents = knowledge.corpus()
+    print(f"{len(documents)} files passed the checks.")
+    if args.dry_run:
+        for document in documents:
+            print(f"  {document.path.name}  {document.fields['category']}  v{document.fields['version']}")
+        return 0
+    client = meko.client()
+    if client is None:
+        print("Meko isn't set up. Set ENABLE_MEKO_INTEGRATION, MEKO_API_KEY and MEKO_DATAPACK_ID.", file=sys.stderr)
+        return 1
+    init_db()
+    db = connect()
+    results = knowledge.ingest(client, db, documents)
+    db.close()
+    for result in results:
+        print(f"  {result['document']}: {result['state']}")
+    return 1 if any(result["state"].startswith("failed") or result["state"] in ("abandoned", "oversized") for result in results) else 0
+
+
+def meko_seed_memory(_args) -> int:
+    """Adds the reviewed conventions as memory. Promoting one to everyone stays a person's choice."""
+    from backend.integrations import knowledge, meko
+
+    client = meko.client()
+    if client is None:
+        print("Meko isn't set up. Set ENABLE_MEKO_INTEGRATION, MEKO_API_KEY and MEKO_DATAPACK_ID.", file=sys.stderr)
+        return 1
+    entries = json.loads((knowledge.FOLDER / "memory.json").read_text(encoding="utf-8"))
+    print(f"Saved {knowledge.seed_memory(client, entries)} conventions.")
+    return 0
+
+
+def careflow_deliver(_args) -> int:
+    """One delivery pass, for checking a connection by hand. The running app does this by itself."""
+    from backend.careflow import delivery
+
+    init_db()
+    print(json.dumps(delivery.deliver_once()))
+    db = connect()
+    print(json.dumps(delivery.backlog(db)))
+    db.close()
+    return 0
+
+
+def careflow_replay(args) -> int:
+    """Puts failed deliveries back in the queue. Destinations ignore repeats, so this is safe."""
+    from backend.careflow import delivery
+
+    db = connect()
+    count = delivery.replay_dead(db, args.channel)
+    db.commit()
+    db.close()
+    print(f"Queued {count} deliveries again.")
+    return 0
+
+
+def careflow_demo(args) -> int:
+    """A repeatable synthetic journey. It refuses anything but a development setup."""
+    from backend.careflow import demo as careflow_demo_journey
+    from backend.careflow.events import active
+
+    if settings.environment != "development" or not active():
+        print("The CareFlow demo only runs in development, in demo mode, without real patient data.", file=sys.stderr)
+        return 1
+    init_db()
+    print(json.dumps(careflow_demo_journey.run(real_ai=args.real_ai)))
+    return 0
+
+
+def integrations_migrate(_args) -> int:
+    """Creates the technical tables in the separately provisioned YugabyteDB."""
+    from backend.integrations import yugabyte
+
+    store = yugabyte.store()
+    if store is None:
+        print("YugabyteDB isn't switched on. Set ENABLE_YUGABYTEDB_INTEGRATION=1 and YUGABYTEDB_YSQL_DSN.", file=sys.stderr)
+        return 1
+    print("Migrations up to date.", store.migrate())
+    return 0
+
+
 def readiness(_args) -> int:
     init_db()
     db = connect()
@@ -457,6 +588,17 @@ def parser() -> argparse.ArgumentParser:
     )
     command("revoke-signoff", revoke_signoff, (("--item",), required), (("--operator",), required))
     command("readiness", readiness)
+    command("careflow-deliver", careflow_deliver)
+    command("careflow-replay", careflow_replay, (("--channel",), {"choices": ["mongodb", "yugabyte", "meko"]}))
+    command("careflow-demo", careflow_demo, (("--real-ai",), {"action": "store_true"}))
+    command("integrations-migrate", integrations_migrate)
+    command("integrations-status", integrations_status)
+    command("integrations-validate", integrations_validate)
+    command("mongodb-health", _health_command("mongodb"))
+    command("yugabyte-health", _health_command("yugabyte"))
+    command("meko-health", _health_command("meko"))
+    command("meko-ingest", meko_ingest, (("--dry-run",), {"action": "store_true"}))
+    command("meko-seed-memory", meko_seed_memory)
     command(
         "setup-local",
         setup_local,

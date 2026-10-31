@@ -23,6 +23,7 @@ WEIGHTS_FILE = ROOT_DIR / "backend" / "skin" / "weights" / "classifier.npz"
 METRICS_FILE = ROOT_DIR / "backend" / "skin" / "metrics.json"
 TARGET_SENSITIVITY = 0.95  # miss at most 1 in 20 concerning lesions on validation
 UNCERTAIN_PERCENTILE = 1.0  # the least familiar 1% of validation images set the bar
+SAME_SCORE = 0.005  # validation scores closer than this are noise on about 3,600 images, with rare classes
 CONCERNING_INDEX = [CODES.index(code) for code in sorted(CONCERNING)]
 
 
@@ -70,6 +71,16 @@ def familiarity(features: np.ndarray, mean: np.ndarray, precision: np.ndarray) -
     return -np.einsum("ij,jk,ik->i", difference, precision, difference)
 
 
+def choose_strength(candidates: list) -> tuple:
+    """The simplest model among those tied on validation, so a lucky score can't pick an overfit one.
+
+    Candidates are (score, C, model), and a smaller C means a simpler model. Unlike the highest score
+    alone, this is the rule that picked C=0.01 here on both machines this was trained on."""
+    best = max(score for score, _strength, _model in candidates)
+    tied = [candidate for candidate in candidates if best - candidate[0] <= SAME_SCORE]
+    return min(tied, key=lambda candidate: candidate[1])
+
+
 def main() -> None:
     split = pd.read_csv(SPLIT_FILE)
     features = np.load(FEATURE_FILE)
@@ -80,15 +91,14 @@ def main() -> None:
     std = features[part["train"]].std(axis=0) + 1e-6
     scaled = (features - mean) / std
 
-    best = None
+    candidates = []
     for strength in (0.001, 0.01, 0.1, 1.0):
         model = LogisticRegression(C=strength, max_iter=2000, class_weight="balanced")
         model.fit(scaled[part["train"]], labels[part["train"]])
         score = balanced_accuracy_score(labels[part["val"]], model.predict(scaled[part["val"]]))
         print(f"C={strength}: validation balanced accuracy {score:.4f}", flush=True)
-        if best is None or score > best[0]:
-            best = (score, strength, model)
-    _, strength, model = best
+        candidates.append((score, strength, model))
+    _, strength, model = choose_strength(candidates)
 
     logits = scaled @ model.coef_.T + model.intercept_
     temperature = fit_temperature(logits[part["val"]], labels[part["val"]])

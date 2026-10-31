@@ -20,6 +20,7 @@ automatically.
 | Sessions | Hashed tokens, server-side logout, expiry, suspended accounts lose sessions, 12-hour staff sessions | Auth, security tests |
 | Cookies | HttpOnly, SameSite=Lax, Secure with `DIAGNOSIA_HTTPS=1` | Security tests |
 | CSRF | Origin and Sec-Fetch-Site checked on writes, plus SameSite | Security tests |
+| CareFlow access | Each read is limited to workflows the person can open in SQLite, so a store can't widen access. Revocation applies at once | CareFlow tests |
 | Sign-in redirect | Only paths inside the workspace are accepted, so a crafted link can't send someone elsewhere | Site test |
 | XSS | All page content is text nodes, no `innerHTML`, strict script policy on the workspace | Site tests. In Chrome, a hostile patient name rendered as text and did not run |
 | SQL injection | Parameterised queries, static scan, hostile values stored as text | Security tests |
@@ -61,6 +62,8 @@ automatically.
 | A suspended account is suspended everywhere, by any organization it belongs to | S2 | Product decision |
 | Throttling is per email, not per address | S2 | Technical work |
 | Sessions have no idle timeout | S2 | Technical work |
+| An open CareFlow stream keeps its workflow list until it reconnects. It only ever says that something changed, and the reload rechecks access | S3 | Accepted |
+| CareFlow's references are pseudonymous, but event timing could still identify someone to a person who knows the visit | S2 | Keep to synthetic data, and review before any real use |
 | DiagnoFast links are bearer tokens in a URL, so they appear in server access logs until used | S2 | Set log retention. Links are single use |
 | No rate limit on DiagnoFast links or AI routes, so a signed-in user can run up AI costs | S2 | Technical work |
 | DiagnoFast has no retention limit for recordings | S2 | Policy decision |

@@ -17,6 +17,8 @@ No code from any GPL, AGPL, MPL or unlicensed source is in this repository.
 | Package | Licence | Scope |
 |---|---|---|
 | RapidFuzz | MIT | Runtime |
+| PyMongo | Apache-2.0 | Optional, for MongoDB |
+| psycopg, psycopg-pool | LGPL-3.0 | Optional, for YugabyteDB. Used unmodified as libraries |
 | pdfplumber, pdfminer.six | MIT | Runtime |
 | cryptography | Apache-2.0 or BSD-3-Clause | Runtime |
 | pypdfium2 | BSD-3-Clause, Apache-2.0, bundled PDFium licences | Runtime |

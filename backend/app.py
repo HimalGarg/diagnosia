@@ -18,6 +18,10 @@ from starlette.formparsers import MultiPartParser
 
 from backend import auth, llm, safety, settings_store, speech
 from backend.amrguard import routes as amrguard
+from backend.careflow import delivery as careflow_delivery
+from backend.careflow import events as careflow_events
+from backend.careflow import live as careflow_live
+from backend.careflow import routes as careflow
 from backend.chroniccare import routes as chroniccare
 from backend.chroniccare.routes import MEASURES
 from backend.clinscribe import routes as clinscribe
@@ -25,6 +29,7 @@ from backend.config import WEB_DIR
 from backend.db import connect, init_db
 from backend.diagnofast import routes as diagnofast
 from backend.dischargecare import routes as dischargecare
+from backend.integrations import execution
 from backend.lablens import extract as lablens_jobs
 from backend.lablens import mappings as lablens_mappings
 from backend.lablens import routes as lablens
@@ -44,6 +49,7 @@ from backend.skin import routes as skin
 logger = logging.getLogger("diagnosia")
 
 SWEEP_SECONDS = 300
+DELIVERY_SECONDS = 5
 MAX_REQUEST_BYTES = 25 * 1024 * 1024
 MAX_PHOTOS_REQUEST_BYTES = 45 * 1024 * 1024  # four prescription photos of 10 MB, plus the form
 # Uploads stay in memory rather than in a plaintext temporary file.
@@ -80,6 +86,16 @@ async def _sweep_forever() -> None:
             logger.warning("Escalation sweep failed: %s", error)
 
 
+async def _deliver_forever() -> None:
+    """Sends outbox events on. A destination that's down delays its own channel, and nothing else."""
+    while True:
+        await asyncio.sleep(DELIVERY_SECONDS)
+        try:
+            await run_in_threadpool(careflow_delivery.deliver_once)
+        except Exception as error:  # An optional integration must never stop the app.
+            logger.warning("CareFlow delivery pass failed: %s", type(error).__name__)
+
+
 def _prepare_content() -> None:
     """Loads starter content as unreviewed, then refuses a deployment that asks for too much."""
     connection = connect()
@@ -97,11 +113,17 @@ async def lifespan(_: FastAPI):
     init_db()
     _prepare_content()
     lablens_jobs.recover_interrupted()
+    execution.recover_interrupted()
     # Takes about 10 seconds, so load it now rather than during the first upload.
     threading.Thread(target=get_medicine_list, daemon=True).start()
     sweep = asyncio.create_task(_sweep_forever())
+    delivering = asyncio.create_task(_deliver_forever())
+    watching = careflow_live.start()
     yield
     sweep.cancel()
+    delivering.cancel()
+    if watching:
+        await run_in_threadpool(watching.stop)
 
 
 app = FastAPI(title="Diagnosia", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
@@ -111,6 +133,7 @@ app.include_router(staff.router)
 app.include_router(medguard_rules.router)
 app.include_router(lablens_mappings.router)
 app.include_router(settings_store.router)
+app.include_router(careflow.router)
 
 
 def _tool(router, name: str) -> None:
@@ -154,6 +177,7 @@ async def request_guard(request: Request, call_next):
         response = await call_next(request)
     finally:
         audit.request_id.reset(token)
+        careflow_events.forget(request_id)
     response.headers["X-Request-ID"] = request_id
     for name, value in SECURITY_HEADERS.items():
         response.headers.setdefault(name, value)
@@ -168,6 +192,7 @@ def _friendly_failure(status_code: int, message: str):
     # Only the type is logged. An error's own text can hold configuration or patient details.
     async def handler(_: Request, error: Exception) -> JSONResponse:
         logger.warning("%s on request %s", type(error).__name__, audit.request_id.get())
+        careflow_events.request_failed(audit.request_id.get(), error)
         return JSONResponse({"detail": message}, status_code=status_code)
 
     return handler

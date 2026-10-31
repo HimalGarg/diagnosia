@@ -50,7 +50,7 @@ def test_the_sweep_sees_the_whole_api():
 GATES = (
     "open_patient", "lookup", "require_membership", "require_profession", "_verifying_admin", "_staff_gate", "_clinical",
     "_editable", "_side", "_change", "_decide", "_is_receiver", "_require_admin",
-    "_readable_intake", "_open_intake",
+    "_readable_intake", "_open_intake", "_open_workflow", "_allowed", "gate_staff",
 )
 NEEDS_NO_RECORD = {
     "register", "login", "logout", "me", "my_status", "accept_invitation", "system_status", "system_readiness",

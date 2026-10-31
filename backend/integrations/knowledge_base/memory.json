@@ -1,0 +1,7 @@
+[
+  {"text": "Diagnosia convention: a handoff carries references only, and the receiving tool re-reads the source record.", "source": "backend/integrations/knowledge_base/handoff-rules.md", "version": "1.0"},
+  {"text": "Diagnosia convention: only LabLens to ChronicCare and Prescription Analyzer to MedGuard are real handoffs.", "source": "backend/careflow/contract.py", "version": "1.0"},
+  {"text": "Diagnosia convention: AI output needs a person's review. Generated doesn't mean approved.", "source": "backend/integrations/knowledge_base/workflow-rules.md", "version": "1.0"},
+  {"text": "Diagnosia convention: unreadable or unsure content goes to a person and is never guessed.", "source": "backend/integrations/knowledge_base/workflow-rules.md", "version": "1.0"},
+  {"text": "Diagnosia convention: the Diagnosia database is the record, and shared context is supplemental.", "source": "docs/integrations/ARCHITECTURE.md", "version": "1.0"}
+]

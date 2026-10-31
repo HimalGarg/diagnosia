@@ -322,8 +322,9 @@ def test_without_torch_the_skin_tool_says_it_isnt_installed(monkeypatch):
         raise ImportError("torch")
 
     monkeypatch.setattr(skin, "get_classifier", missing)
+    monkeypatch.setattr(skin.events, "emit_separately", lambda *args, **options: None)
     with pytest.raises(HTTPException) as refused:
-        skin.classifier_dependency()
+        skin.classifier_dependency({"id": 1, "role": "doctor"})
     assert refused.value.status_code == 503
 
 
@@ -381,3 +382,14 @@ def test_the_provider_order_follows_the_setting_and_skips_missing_keys(admin, mo
     assert settings_store.provider_order() == ["gemini", "groq"]
     monkeypatch.setattr(settings, "groq_api_key", "")
     assert settings_store.provider_order() == ["gemini"]
+
+
+def test_the_reading_tools_have_their_own_provider_and_model_settings(admin):
+    rows = {row["key"]: row["value"] for row in admin.get("/api/platform/settings").json()["settings"]}
+    for tool in ("prescription_read", "prescription_explain", "lablens_read"):
+        assert rows[f"ai.provider.{tool}"] == "gemini"
+        assert rows[f"ai.gemini_model.{tool}"].startswith("gemini-")
+    assert put(admin, "ai.provider.lablens_read", "groq").status_code == 200
+    assert put(admin, "ai.provider.lablens_read", "other").status_code == 422
+    assert put(admin, "ai.gemini_model.lablens_read", "gemini-2.5-flash").status_code == 200
+    assert settings_store.gemini_models("lablens_read") == ["gemini-2.5-flash", "gemini-3.5-flash-lite"]

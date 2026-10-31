@@ -12,14 +12,14 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Project-Scope%20Locked-6554C0?style=for-the-badge" alt="Project scope locked" />
   <img src="https://img.shields.io/badge/Clinical%20Modules-8%20Add--ons-2563EB?style=for-the-badge" alt="Eight add-ons" />
-  <img src="https://img.shields.io/badge/MLH%20Tracks-4-0F766E?style=for-the-badge" alt="Four sponsor tracks" />
+  <img src="https://img.shields.io/badge/MLH%20Tracks-3-0F766E?style=for-the-badge" alt="Three sponsor tracks" />
   <img src="https://img.shields.io/badge/Operating%20Mode-Synthetic%20Pilot%20Only-D97706?style=for-the-badge" alt="Synthetic pilot only" />
 </p>
 
 <p align="center">
   <a href="#overview">Overview</a> ·
   <a href="#the-eight-add-ons">Eight Add-ons</a> ·
-  <a href="#the-four-sponsor-integrations">Sponsor Integrations</a> ·
+  <a href="#the-three-sponsor-integrations">Sponsor Integrations</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#getting-started">Getting Started</a> ·
   <a href="#safety-and-readiness">Safety & Readiness</a>
@@ -37,7 +37,7 @@
 - [Product scope](#product-scope)
 - [Core Diagnosia tools](#core-diagnosia-tools)
 - [The eight add-ons](#the-eight-add-ons)
-- [The four sponsor integrations](#the-four-sponsor-integrations)
+- [The three sponsor integrations](#the-three-sponsor-integrations)
 - [How the technologies work together](#how-the-technologies-work-together)
 - [Architecture](#architecture)
 - [End-to-end demonstration](#end-to-end-demonstration)
@@ -58,14 +58,14 @@
 
 **Diagnosia is a connected healthcare workflow platform designed to help clinicians, specialists, patients and care teams manage information across the patient journey.** It brings patient intake, medical-document understanding, clinical documentation, medication review workflows, laboratory reports, chronic-care follow-ups, discharge coordination, maternal-care coordination and specialist referrals into one shared patient-record experience.
 
-The project combines three core clinical tools with eight integrated add-on modules. For the MLH hackathon scope, four sponsor technologies extend the platform in clearly separated roles:
+The project combines three core clinical tools with eight integrated add-on modules. For the MLH hackathon scope, three sponsor technologies extend the platform in clearly separated roles:
 
 | Sponsor technology | Responsibility in Diagnosia |
 |---|---|
 | **Google Gemini API** | Multimodal understanding, structured extraction, summarization and controlled requests to existing backend functions |
-| **YugabyteDB + Meko** | Shared context, agent memory, workflow handoffs and execution traces |
-| **MongoDB Atlas** | Flexible workflow events and patient-journey timeline projections |
-| **IOMETE** | Lakehouse analytics over minimized operational events using Iceberg, Spark and SQL |
+| **YugabyteDB** | Technical records of AI runs, attempts and handoffs, in a database Diagnosia owns |
+| **Meko** | Shared agent context: approved knowledge, memory and handoff notes |
+| **MongoDB Atlas** | Workflow events and timeline projections for the CareFlow view |
 
 The goal is not to create a collection of disconnected AI demos. Diagnosia is designed as one coordinated system: information enters through existing workflows, AI prepares reviewable drafts, authorized modules reuse relevant context, workflow events update the patient journey, and aggregated operational data helps clinics understand where coordination is getting delayed.
 
@@ -78,7 +78,7 @@ The goal is not to create a collection of disconnected AI demos. Diagnosia is de
 | **Core tools** | DiagnoFast, Skin Cancer Detection, Prescription Analyzer |
 | **Add-on modules** | 8 focused workflows |
 | **Accessibility companion** | OptiKinesis (separate assistive-computing application) |
-| **Hackathon integrations** | Gemini API, YugabyteDB + Meko, MongoDB Atlas, IOMETE |
+| **Hackathon integrations** | Gemini API, YugabyteDB, Meko, MongoDB Atlas |
 | **Backend foundation** | Python, FastAPI and the existing Diagnosia data/authentication layer |
 | **Frontend** | HTML, CSS and JavaScript served by FastAPI |
 | **Demo data policy** | Synthetic data only |
@@ -103,13 +103,13 @@ The project scope is now **feature-frozen**. The final product consists of:
 
 - The existing core Diagnosia tools.
 - The eight selected add-on modules described below.
-- The four selected sponsor integrations.
+- The three selected sponsor integrations.
 - Shared platform capabilities required to connect, secure, observe and demonstrate those modules.
 - One shared operational analytics view: the **Care Continuity Observatory**.
 
 The Care Continuity Observatory is a platform-level analytics surface, **not a ninth clinical add-on**. No additional standalone healthcare tools are planned. Remaining development should focus on implementing the finalized integrations, closing technical gaps, validating existing workflows, improving reliability, documentation and review evidence—not expanding the product scope.
 
-> **Implementation-status note:** the eight add-ons have been built into Diagnosia and exercised end to end as pilots. The four sponsor technologies below describe the finalized integration scope and intended responsibilities. Do not describe a sponsor integration as fully implemented until the repository contains the integration and a working end-to-end test or demo proves it.
+> **Implementation-status note:** the eight add-ons have been built into Diagnosia and exercised end to end as pilots. Gemini, YugabyteDB, Meko and MongoDB integrations are built. See [the validation record](docs/integrations/EXTERNAL_INTEGRATION_VALIDATION.md) for exactly what has been proved against each real service.
 
 ## Core Diagnosia tools
 
@@ -123,14 +123,14 @@ DiagnoFast helps collect a patient's history before or during a clinical visit. 
 **Existing workflow and technology**
 
 - Voice-first patient history capture.
-- Existing Sarvam AI speech-to-text integration using the Saaras model family.
-- Existing Sarvam AI text-to-speech integration using the Bulbul model family.
+- Speech to text through Groq Whisper.
+- English voice through Groq Orpheus, and the browser's voice for Hindi.
 - AI-assisted extraction into structured intake fields and a concise clinician-facing draft.
 - Intended support for Hindi and Indian English workflows.
 
-**Final sponsor integration**
+**Integration status**
 
-Gemini may structure a synthetic transcript and supporting documents into a reviewable intake draft. Meko can make approved workflow context available to authorized downstream modules. Atlas can record intake and review lifecycle events; IOMETE can analyze intake-review throughput.
+Each interview step is recorded in CareFlow: the link, the start, each transcribed answer, completion and the report waiting for a doctor. AI runs are recorded with the provider that answered.
 
 **Boundary:** patient statements remain patient-reported information until reviewed. DiagnoFast does not independently diagnose, triage or prescribe.
 </details>
@@ -151,8 +151,7 @@ The existing skin-image workflow uses a PanDerm-based visual representation with
 
 The documented pipeline includes image preprocessing, classifier output, Grad-CAM visualization, calibration and out-of-distribution uncertainty handling. The workflow is intended for clinician review, not standalone patient diagnosis.
 
-**Final sponsor integration:** preserve the existing model boundary. Gemini must not replace or overrule the skin model, generate a second unvalidated diagnosis or turn a model output into a clinical decision. Atlas/IOMETE may receive minimized workflow-status events only.
-
+**Integration status:** the model boundary stays as it is. Gemini must not replace or overrule the skin model, generate a second unvalidated diagnosis or turn a model output into a clinical decision. CareFlow records that an analysis ran and needs review, and never records the finding.
 **Boundary:** this module has an unresolved calibration test failure and requires a CDSCO/regulatory assessment and appropriate clinical validation before any real-world use.
 </details>
 
@@ -169,7 +168,7 @@ The Prescription Analyzer helps interpret prescription images and explain readab
 - Unclear instructions are surfaced for pharmacist/doctor confirmation.
 - The system must not silently alter a dose, substitute a brand or recommend stopping a medication.
 
-**Final sponsor integration:** Gemini can be evaluated as an additional document-understanding path on synthetic prescription images. Its output remains a candidate draft; the deterministic parser, confirmation workflow and human review remain in control.
+**Integration status:** Gemini is the first choice for reading prescription photos, and Groq is the fallback. Every medicine still needs the patient's confirmation. CareFlow records the steps and never the medicines.
 
 **Boundary:** model extraction is not a verified prescription or medication order.
 </details>
@@ -200,7 +199,7 @@ The eight add-ons share the Diagnosia patient-record and workflow foundation. Th
 
 ClinScribe turns clinician-entered information (text or voice transcript) into a structured encounter-note draft. Its role is to reduce repetitive documentation while keeping the clinician responsible for the final note.
 
-**Planned Gemini/Meko/Atlas connections:** Gemini structures the supplied note content; Meko retrieves relevant, authorized prior workflow context; Atlas records draft, review and finalization events; IOMETE measures documentation turnaround and outstanding review volume.
+**CareFlow:** records session, draft, review and sign-off steps, and names the model that drafted. ClinScribe drafts from the consultation transcript alone. It doesn't read lab results or shared context.
 
 **Guardrail:** generated text stays a draft until the clinician reviews and approves it. The system must not invent an examination finding, diagnosis or treatment plan.
 </details>
@@ -212,7 +211,7 @@ MedGuard organizes medication information from available sources, highlights dis
 
 **Current pilot limitation:** all 21 starter medication rules are unapproved. MedGuard therefore performs **no authoritative drug-interaction checks**. A missing alert must never be interpreted as evidence that a medication is safe. RxNorm and openFDA lookups are informational suggestions, not a complete or validated safety engine.
 
-**Planned Gemini/Meko/Atlas/IOMETE connections:** Gemini may explain a pharmacist-approved finding in plain language; Meko can retrieve medication-source history and prior review status; Atlas records reconciliation events; IOMETE measures workflow volume and review completion—not medication safety.
+**CareFlow:** records list changes, the start and end of each check, alerts waiting for review, and finalisation. Medicines confirmed in the Prescription Analyzer reach MedGuard through a real handoff.
 
 **Guardrail:** do not create, activate or imply approval of medication rules without qualified pharmacist review.
 </details>
@@ -222,7 +221,7 @@ MedGuard organizes medication information from available sources, highlights dis
 
 ChronicCare supports continuity through care plans, follow-up tasks, reminders and patient/care-team progress tracking.
 
-**Planned sponsor connections:** Meko supplies authorized workflow context; Atlas stores task and reminder lifecycle events; IOMETE analyzes overdue tasks and completion patterns; Gemini may prepare patient-friendly explanations of already reviewed care-plan information.
+**CareFlow:** records conditions, care plans, approvals, readings, symptoms and adherence. ChronicCare has no follow-up task system. Confirmed LabLens results reach its trends through a real handoff.
 
 **Guardrail:** it is not a new disease-risk predictor or autonomous treatment planner.
 </details>
@@ -232,7 +231,7 @@ ChronicCare supports continuity through care plans, follow-up tasks, reminders a
 
 LabLens extracts laboratory report content into structured, reviewable fields. The workflow is designed to retain the original source, preserve test names and values, and expose uncertainty for human correction.
 
-**Planned sponsor connections:** Gemini provides multimodal PDF understanding for synthetic reports; Meko supports authorized continuity between LabLens and ClinScribe/ChronicCare; Atlas stores extraction and review events; IOMETE measures report-review backlog and turnaround.
+**CareFlow:** records each report from receipt to confirmation. Text PDFs are read locally, and scanned reports by Gemini first, then Groq. Confirmed results hand off to ChronicCare.
 
 **Current pilot limitations:** the parser has been exercised against synthetic layouts, not a representative real-world Indian laboratory dataset. The reported synthetic test set found 37/37 expected tests, but that is not a real-world accuracy claim. None of the 58 proposed LOINC mappings is approved; exports retain the laboratory's own test name rather than presenting an unreviewed mapping as verified.
 
@@ -244,7 +243,7 @@ LabLens extracts laboratory report content into structured, reviewable fields. T
 
 DischargeCare organizes discharge information and candidate post-discharge tasks so that a transition from hospital to home or another care setting has traceable next steps.
 
-**Planned sponsor connections:** Gemini structures synthetic discharge documents into candidate tasks; Meko makes approved discharge context available to ChronicCare and ReferralLoop; Atlas records task lifecycle events; IOMETE analyzes completion and delay patterns.
+**CareFlow:** records the episode, checklist changes, approval and closure.
 
 **Guardrail:** extracted tasks require human verification before becoming active care tasks. Summarization is not a substitute for discharge instructions or clinical review.
 </details>
@@ -254,7 +253,7 @@ DischargeCare organizes discharge information and candidate post-discharge tasks
 
 MaternaCare provides a workflow for maternal-care timelines, appointments, reminders and follow-up coordination.
 
-**Planned sponsor connections:** Gemini may simplify clinician-approved instructions; Meko supports authorized workflow continuity; Atlas records reminder and follow-up states; IOMETE reports operational completion patterns.
+**CareFlow:** records the episode, due date, visits, observations, risks, education, birth plan, delivery, and concerns with their responses.
 
 **Current pilot limitation:** maternal clinical content is intentionally empty pending qualified maternal-health partners. Reminders are currently in-app/staff-follow-up workflows; SMS and automated voice delivery are not connected.
 
@@ -268,7 +267,7 @@ AMR Guard represents the administrative and review coordination side of antimicr
 
 **Current pilot limitation:** clinical decision support is unavailable. The recommendation route has been removed/disabled, and the module must not recommend antibiotics, doses, substitutions or treatment choices.
 
-**Planned sponsor connections:** Meko may retrieve approved stewardship workflow guidance; Atlas records review status; IOMETE analyzes administrative review throughput. Gemini must not generate antibiotic recommendations.
+**CareFlow:** records imports, antibiogram runs and approvals, culture reviews, stewardship reviews and guidelines, against the organization. Gemini generates no antibiotic recommendations.
 </details>
 
 <details>
@@ -276,129 +275,55 @@ AMR Guard represents the administrative and review coordination side of antimicr
 
 ReferralLoop tracks a referral from request through routing, scheduling, specialist encounter and return of a consultation note. It focuses on coordination and preventing referrals from silently falling through workflow gaps.
 
-**Planned sponsor connections:** Meko supports context handoffs between referring and receiving teams; Atlas maintains the referral timeline; IOMETE analyzes completion, turnaround and pending-referral patterns; Gemini may summarize referral documents as drafts.
+**CareFlow:** records every referral step from creation to closure, including contact attempts and priority changes.
 
 **Guardrail:** referral urgency and clinical appropriateness remain decisions for qualified clinicians. Workflow analytics must not silently prioritize or deprioritize patients.
 </details>
 
-## The four sponsor integrations
+## The three sponsor integrations
 
-These are the **final sponsor-track integrations** selected for the project. Each has one primary responsibility. They should not duplicate the role of the existing Diagnosia database or of one another.
+Each has one job, and none replaces the Diagnosia database. All are optional, and off by default. Status as of the last validation is in [EXTERNAL_INTEGRATION_VALIDATION.md](docs/integrations/EXTERNAL_INTEGRATION_VALIDATION.md). Local stand-ins are never reported as these services.
 
-### 1. Google Gemini API — multimodal intelligence
+### 1. Google Gemini API: reading documents
 
-**Role:** understand incoming information and prepare structured, evidence-linked drafts inside existing workflows.
+Gemini is the first choice for reading prescription photos, reading scanned lab reports, and explaining a prescription. If it's busy, a smaller Gemini model takes over, then Groq. Other tools use Groq first, with Gemini as a fallback. Output is checked against a schema and a person reviews it. Gemini has no function calling here, and can't request anything from the backend.
 
-**Where it fits**
+### 2. YugabyteDB and Meko: execution records and shared context
 
-- **DiagnoFast:** structure synthetic patient transcripts and identify missing intake fields.
-- **LabLens:** understand synthetic laboratory PDFs, including tables and visual layout; return candidate test names, values, units, reference ranges and source-page references.
-- **Prescription Analyzer:** provide an additional synthetic-image extraction path while preserving `clear` / `unsure` / `unreadable` states.
-- **ClinScribe:** organize clinician-provided content into a structured note draft.
-- **DischargeCare:** extract candidate follow-up tasks from synthetic discharge documents.
-- **Other add-ons:** explain only already-approved workflow information in accessible language; do not create new clinical rules.
+These are two separate things. **YugabyteDB** is Diagnosia's own database, holding technical records of each AI run, its attempts and each handoff, so nothing about a request depends on it. **Meko** holds approved knowledge and notes that a handoff happened, reached only through its documented MCP server. Its internal database is never touched.
 
-**Controlled function calling**
+Neither is a clinical record, and neither proves identity, consent or approval. A receiving tool always re-reads the source record.
 
-Gemini may request a permitted backend function, such as retrieving a timeline or pending task list. The backend—not the model—must authenticate the user, verify patient/case scope, check consent, validate arguments and execute the operation. Model-supplied IDs or roles are never trusted as authorization.
+### 3. MongoDB Atlas: the CareFlow timeline
 
-**Demo proof:** show a real Gemini request using synthetic input, structured output validation, source provenance, uncertainty and a visible pending-review state.
+Atlas stores one safe event for each workflow step and a prepared summary for each workflow. Events are written to a local outbox in the same transaction as the change they describe, then delivered, retried and deduplicated. Change Streams update open screens straight away, with a 15-second refresh as the fallback.
 
-### 2. YugabyteDB + Meko — shared context engine
+### Which tool uses what
 
-**Role:** provide shared, retrievable context so authorized agents can continue a workflow without independently reconstructing every earlier step.
-
-**Where it fits**
-
-- Shared case context across the eight add-ons.
-- Agent-to-agent handoffs, for example LabLens → ClinScribe → ChronicCare.
-- Retrieval of prior workflow events, source references and human review decisions.
-- Shared operational knowledge for approved workflow conventions.
-- Agent conversation and tool-execution traces for demo observability.
-
-**Important boundary:** Meko is the context/memory layer, not the authoritative patient database, consent engine or access-control system. Diagnosia must check permissions before retrieving or supplying context. Memory is a convenience for continuity; important clinical facts must be re-fetched from the authoritative record and revalidated.
-
-**Demo proof:** one module writes an authorized synthetic case context item and another module retrieves it to continue a task. Show the handoff and relevant Meko trace. Confirm with the organizers whether their Yugabyte track requires an additional direct YugabyteDB interaction beyond the Meko-managed integration.
-
-### 3. MongoDB Atlas — patient journey and workflow events
-
-**Role:** store flexible workflow events and read-optimized timeline projections for the synthetic patient journey.
-
-Suggested event types include:
-
-- `intake_submitted`
-- `lab_report_uploaded`
-- `lab_extraction_created`
-- `review_requested`
-- `review_completed`
-- `clinical_note_drafted`
-- `referral_created`
-- `referral_status_changed`
-- `reminder_scheduled`
-- `follow_up_completed`
-- `discharge_task_created`
-
-Use MongoDB Change Streams to detect relevant collection changes and notify the timeline/analytics pipeline. Use an outbox or retryable event-publishing pattern to avoid losing events when the primary application database and Atlas are temporarily out of sync.
-
-**Important boundary:** Atlas is not a competing patient identity or approved-clinical-record database. The existing Diagnosia database remains authoritative for accounts, patient identity, care-team relationships, consent, permissions and approved clinical records. Store only the minimum workflow fields required for the Atlas timeline. Do not send real patient information to a hackathon Atlas environment.
-
-**Demo proof:** a real write to Atlas, a query showing the event in the patient timeline, and a Change Stream consumer reacting to the event.
-
-### 4. IOMETE — Care Continuity Observatory
-
-**Role:** analyze minimized operational events at clinic/workflow level, rather than perform transactional patient-record operations.
-
-**Proposed analytical pipeline**
-
-1. Diagnosia emits a workflow event.
-2. Atlas stores the workflow event/projection.
-3. A consumer forwards a minimized, synthetic or properly de-identified event to IOMETE.
-4. IOMETE Event Stream ingests the event into an Apache Iceberg table.
-5. Spark jobs or SQL queries aggregate the data.
-6. The Care Continuity Observatory displays the resulting operational metrics.
-
-**Potential metrics**
-
-- Referral completion and turnaround time.
-- Laboratory report review backlog and turnaround.
-- Clinical note draft-to-review time.
-- Follow-up task completion and overdue counts.
-- Discharge follow-up workflow completion.
-- Reminder delivery and staff-contact outcomes.
-- Administrative stewardship review throughput.
-
-Metrics must state their date range, denominator and sample size. Avoid presenting percentages based on tiny synthetic samples as clinical or population-level conclusions.
-
-**Important boundary:** IOMETE is an analytical layer, not a transactional patient-record store or a clinical risk-scoring engine. Use aggregated or minimized synthetic events; never use the analytics layer to make autonomous clinical decisions.
-
-**Demo proof:** show an ingested event in an Iceberg table, a Spark/SQL transformation and a dashboard metric changing after a new synthetic event arrives.
-
-### Track-to-module integration matrix
-
-| Existing module | Gemini API | YugabyteDB + Meko | MongoDB Atlas | IOMETE |
-|---|---|---|---|---|
-| DiagnoFast | Structure transcript/intake drafts | Share approved intake context | Intake lifecycle events | Intake-review throughput |
-| Skin Cancer Detection | No diagnostic replacement | Workflow references only | Minimized review-state events | Operational counts only |
-| Prescription Analyzer | Alternate synthetic extraction | Medication-review context | Extraction/confirmation events | Workflow throughput only |
-| ClinScribe | Note draft and summary | Retrieve prior authorized context | Draft/review/final events | Documentation backlog |
-| MedGuard | Explain approved findings only | Medication-source/review context | Reconciliation events | Review workflow metrics |
-| ChronicCare | Explain reviewed plans | Follow-up continuity context | Task/reminder events | Overdue/completion trends |
-| LabLens | Multimodal report extraction | Cross-module report context | Extraction/review events | Report-review backlog |
-| DischargeCare | Discharge summary/task draft | Handoff to ChronicCare/ReferralLoop | Discharge task events | Post-discharge workflow trends |
-| MaternaCare | Simplify approved instructions | Authorized continuity context | Reminder/follow-up states | Operational completion only |
-| AMR Guard | No antibiotic recommendation | Approved workflow references only | Review/unavailable states | Administrative throughput only |
-| ReferralLoop | Summarize referral documents | Referrer/specialist handoff context | Referral lifecycle | Referral completion/turnaround |
+| Tool | AI | CareFlow events | Handoff |
+|---|---|---|---|
+| DiagnoFast | Groq, then Gemini | Yes | None |
+| Skin Cancer Detection | Local model | Yes, with no finding recorded | None |
+| Prescription Analyzer | Gemini, then Groq | Yes | To MedGuard |
+| ClinScribe | Groq, then Gemini | Yes | None |
+| MedGuard | None | Yes | From Prescription Analyzer |
+| ChronicCare | None | Yes | From LabLens |
+| LabLens | Gemini, then Groq, for scans | Yes | To ChronicCare |
+| DischargeCare | None | Yes | None |
+| MaternaCare | None | Yes | None |
+| AMR Guard | None | Yes | None |
+| ReferralLoop | None | Yes | None |
 
 ## How the technologies work together
 
-The integration is intentionally separated into an intelligence layer, context layer, workflow-event layer and analytics layer:
+Each layer does one job:
 
-1. **Gemini understands:** interprets a synthetic document or transcript and returns structured candidate information.
-2. **Diagnosia validates:** checks schema, provenance, user permissions and workflow rules; saves the result as a draft.
-3. **Meko carries context:** an authorized downstream module retrieves relevant prior workflow context and execution history.
-4. **MongoDB records the journey:** a workflow event updates the synthetic case timeline.
-5. **IOMETE analyzes operations:** a minimized event is ingested and aggregated for clinic-level analytics.
-6. **A human reviews:** clinical content remains pending until an authorized person reviews and approves it.
+1. **AI reads and drafts:** Gemini or Groq returns structured candidates, checked against a schema.
+2. **Diagnosia validates:** permissions, consent and workflow rules are applied, and the result is saved as a draft.
+3. **A person reviews:** clinical content stays pending until an authorized person approves it.
+4. **The outbox records it:** an event commits in the same transaction as the change.
+5. **MongoDB shows the journey:** the worker delivers the event, and CareFlow's timeline updates.
+6. **YugabyteDB and Meko keep the rest:** technical AI and handoff records go to YugabyteDB, and handoff notes to Meko.
 
 ## Architecture
 
@@ -413,14 +338,16 @@ flowchart TD
     API --> DB[(Existing Diagnosia Database<br/>Identity · Consent · Permissions<br/>Approved Records · Audit)]
     API --> DOCS[(Encrypted Document Storage)]
 
-    API <--> GEM[Google Gemini API<br/>Multimodal Understanding / Drafts]
-    API <--> MEKO[YugabyteDB + Meko<br/>Shared Context / Memory / Traces]
-
-    API --> OUTBOX[Workflow Event Outbox]
-    OUTBOX --> ATLAS[(MongoDB Atlas<br/>Events / Timeline Projections)]
-    ATLAS --> STREAM[Change Stream / Event Consumer]
-    STREAM --> IOMETE[IOMETE<br/>Event Stream / Iceberg / Spark / SQL]
-    IOMETE --> OBS[Care Continuity Observatory]
+    API <--> GEM[Gemini and Groq<br/>Reading / Drafts]
+    API --> OUTBOX[Workflow Event Outbox<br/>Same transaction as the change]
+    API --> RUNS[(Local AI Run Records)]
+    OUTBOX --> WORKER[Delivery Worker]
+    RUNS --> WORKER
+    WORKER --> ATLAS[(MongoDB Atlas<br/>Events / Timeline Projections)]
+    WORKER --> YB[(YugabyteDB<br/>AI Runs / Attempts / Handoffs)]
+    WORKER --> MEKO[Meko MCP<br/>Knowledge / Memory]
+    ATLAS --> STREAM[Change Stream]
+    STREAM --> WEB
 
     API --> REVIEW[Human Review and Approval]
     REVIEW --> DB
@@ -431,12 +358,12 @@ flowchart TD
 | Data category | Authoritative owner | Role of sponsor technology |
 |---|---|---|
 | Accounts, sessions, staff verification | Existing Diagnosia database | No sponsor database becomes the identity authority |
-| Patient identity, consent and care-team access | Existing Diagnosia database | Meko/Atlas/IOMETE must not override access decisions |
-| Approved clinical records and audit events | Existing Diagnosia database | Gemini creates drafts; Meko supplies context; Atlas holds workflow projections; IOMETE analyzes minimized events |
-| Original clinical document | Diagnosia encrypted document storage | Do not treat Gemini, Meko, Atlas or IOMETE as the document vault |
+| Patient identity, consent and care-team access | Existing Diagnosia database | Meko, Atlas and YugabyteDB must not override access decisions |
+| Approved clinical records and audit events | Existing Diagnosia database | Gemini creates drafts, Meko supplies context, and Atlas holds workflow projections |
+| Original clinical document | Diagnosia encrypted document storage | Never copied to Gemini for keeping, or to Meko, Atlas or YugabyteDB |
 | Shared agent context | Meko, bounded by Diagnosia authorization | Context retrieval and agent handoffs |
 | Workflow timeline | MongoDB Atlas projection | Flexible event persistence and Change Streams |
-| Aggregated operational analytics | IOMETE Iceberg tables/views | Large-scale analytical processing |
+| AI run, attempt and handoff records | Local run records, copied to YugabyteDB | Technical metadata only |
 | AI inference | Gemini API | Inference only; no authority to approve clinical records |
 
 ### Why the separation matters
@@ -445,55 +372,23 @@ Putting the same patient data into every system would create conflicting sources
 
 ## End-to-end demonstration
 
-The recommended hackathon demo uses one clearly synthetic case, for example `CASE-DEMO-001`.
+The demo uses one clearly synthetic case, `case_demo_001`, and goes through the real routes.
 
-<details open>
-<summary><strong>Step 1 — Intake and document understanding</strong></summary>
+```bash
+.venv/bin/python -m backend.operator_cli careflow-demo             # fixed answers, no AI cost
+.venv/bin/python -m backend.operator_cli careflow-demo --real-ai   # real Gemini and Groq, synthetic data
+```
 
-A demo patient submits a synthetic symptom transcript and a synthetic laboratory PDF through existing DiagnoFast/LabLens workflows. Gemini returns a structured draft with source-page references, uncertainty and schema version. The backend validates it and marks it `pending_review`.
+Sign in as `careflow.demo.doctor@example.com` with `Synthetic-demo-only-1`, and open **CareFlow**.
 
-**Show:** the Gemini request, structured response, extracted fields, source evidence and draft status.
-</details>
+1. **DiagnoFast** runs an interview, and its report waits for a doctor.
+2. **LabLens** reads two text reports locally and a scanned one with Gemini. The AI run goes to YugabyteDB.
+3. **A real handoff** takes confirmed lab results from LabLens to ChronicCare. Meko is searched for relevant knowledge, and the handoff is recorded in YugabyteDB and MongoDB.
+4. **MedGuard** runs its check, and **ClinScribe** drafts a note that waits for a clinician.
+5. **ReferralLoop** follows a referral to a booked appointment.
+6. **Failure and recovery:** run `python -m backend.tests.local_stack.end_to_end`, which interrupts a destination and shows recovery with no duplicates.
 
-<details>
-<summary><strong>Step 2 — Human review and context creation</strong></summary>
-
-The demo clinician accepts, corrects or rejects candidate fields. Diagnosia records the review in its authoritative audit trail. Only the permitted synthetic workflow facts are placed into the Meko context workspace.
-
-**Show:** the original source next to the draft, the review action and the Meko context write.
-</details>
-
-<details>
-<summary><strong>Step 3 — Cross-agent handoff</strong></summary>
-
-ClinScribe starts an encounter draft and retrieves relevant context through Meko. It also fetches current approved workflow information from Diagnosia services; Meko memory is not treated as final clinical truth. The clinician reviews the generated draft.
-
-**Show:** a real context retrieval, agent/tool trace, source references and the draft-to-review transition.
-</details>
-
-<details>
-<summary><strong>Step 4 — Patient journey timeline</strong></summary>
-
-Diagnosia publishes a workflow event through a retryable outbox process. MongoDB Atlas stores the event. The timeline projection displays the new activity, and a Change Stream consumer receives the event.
-
-**Show:** Atlas document, timeline query and Change Stream event.
-</details>
-
-<details>
-<summary><strong>Step 5 — Clinic operations analytics</strong></summary>
-
-The consumer forwards a minimized synthetic event to IOMETE. IOMETE writes it to Iceberg; Spark or SQL aggregates the workflow data; the Care Continuity Observatory refreshes a metric such as pending report reviews or referral turnaround.
-
-**Show:** ingestion result, Iceberg table, SQL/Spark query and updated dashboard.
-</details>
-
-<details>
-<summary><strong>Step 6 — Safety and traceability</strong></summary>
-
-The clinician opens the case timeline and can distinguish AI drafts from reviewed records. The demo shows source references, reviewer identity, audit events and the Meko execution trace. No unreviewed result is represented as an approved clinical fact.
-
-**Show:** review status, provenance and access/audit trail.
-</details>
+CareFlow shows all of this in order, says which store it came from, and updates without a reload.
 
 ## Data ownership and review lifecycle
 
@@ -521,21 +416,21 @@ The current implementation reports that unreviewed material is highlighted and e
 
 ## Technology stack
 
-The following separates the documented existing foundation from the selected sponsor integration scope.
+The stack as implemented.
 
 | Layer | Technology | Responsibility |
 |---|---|---|
 | Backend API | Python, FastAPI | Application endpoints, workflow orchestration and authorization |
 | Data validation | Pydantic | Request/response schemas and validation |
 | Existing database | SQLite in the documented development setup; configured through `DIAGNOSIA_DB` | Existing accounts, sessions and patient/workflow records |
-| ORM/data access | SQLAlchemy and existing database layer | Persistence and relationships |
+| Data access | Plain `sqlite3` with parameterised SQL | Persistence |
 | Frontend | HTML, CSS, JavaScript | Landing pages, auth, dashboards and care workspace |
 | Clinical image pipeline | PanDerm-based visual representation, PyTorch and scikit-learn classifier components | Existing skin-image workflow |
-| Language model integrations | Existing Anthropic integration; selected Google Gemini API scope | Structured extraction, drafting and multimodal understanding |
-| Speech | Sarvam AI Saaras STT and Bulbul TTS | Existing Indian-language voice workflow |
-| Context engine | YugabyteDB + Meko | Shared agent context, memory and traces |
-| Workflow event store | MongoDB Atlas | Flexible events and patient-journey projections |
-| Analytics | IOMETE, Apache Iceberg, Spark and SQL | Operational workflow analytics |
+| Language models | Google Gemini and Groq, with fallback | Structured extraction, drafting and reading |
+| Speech | Groq Whisper and Orpheus, and the browser voice for Hindi | Voice interview and read-aloud |
+| Shared context | Meko, through MCP | Approved knowledge, memory and handoff notes |
+| Execution records | YugabyteDB, through YSQL | AI runs, attempts and handoffs |
+| Workflow event store | MongoDB Atlas | Events and CareFlow timeline projections |
 | Document protection | AES-256-GCM encrypted document storage | Protect uploaded reports and documents at rest |
 | Authentication security | Argon2id password hashing, hashed session tokens and HttpOnly cookies | Credential and session protection |
 
@@ -627,15 +522,22 @@ The environment file is local-only. The following keys are documented in the exi
 
 | Variable | Purpose | Notes |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Existing Claude integration | Do not send real patient data; vendor approval is outstanding |
-| `LLM_MODEL` | Existing language-model selection | Use a model explicitly configured and approved for the synthetic pilot |
-| `SARVAM_API_KEY` | Existing speech-to-text and text-to-speech | Live Sarvam use with patient data is not approved |
+| `GROQ_API_KEY` | Groq AI and speech | Do not send real patient data; vendor approval is outstanding |
+| `GEMINI_API_KEY` | Gemini AI | Do not send real patient data; vendor approval is outstanding |
 | `DIAGNOSIA_HTTPS` | Secure-cookie/deployment setting | Configure correctly for the environment; do not expose the app publicly by accident |
 | `DIAGNOSIA_DB` | Existing database path | Defaults and actual path are defined by `backend/config.py` |
-| `DIAGNOSIA_AUDIO` | Audio storage path | Apply retention and access controls |
 | `DIAGNOSIA_DOCUMENT_KEY_FILE` | Document encryption key file | Keep outside the repository; back up separately and securely |
 
-Gemini, Meko/YugabyteDB, MongoDB Atlas and IOMETE configuration must use the exact variable names and connection settings implemented in the relevant integration adapters and `.env.example`. This README intentionally does not invent names or credentials. Keep service-specific secrets in environment variables or an approved secret manager.
+MongoDB Atlas, YugabyteDB and Meko are built, optional and off by default. See [the setup guide](docs/integrations/SETUP.md). Their variables are in
+`.env.example`, and setup is in [docs/integrations/](docs/integrations/ARCHITECTURE.md). CareFlow works
+with none of them, from a local outbox. For a repeatable synthetic journey, run
+`.venv/bin/python -m backend.operator_cli careflow-demo`, then sign in as
+`careflow.demo.doctor@example.com` with `Synthetic-demo-only-1` and open CareFlow.
+
+The handoffs that really exist in the code are LabLens to ChronicCare, and Prescription Analyzer to
+MedGuard. ClinScribe drafts from the consultation transcript alone, so it takes no part in a handoff.
+
+Gemini configuration must use the exact variable names and connection settings implemented in the relevant integration adapters and `.env.example`. This README intentionally does not invent names or credentials. Keep service-specific secrets in environment variables or an approved secret manager.
 
 ## Running and testing
 
@@ -653,17 +555,19 @@ The following results were reported at the time this README was prepared. Re-run
 
 | Test area | Last reported result | Important qualification |
 |---|---:|---|
-| Main automated suite | **996 passed** | Synthetic/unit/integration coverage; not clinical validation |
-| Skin model suite | **15 passed, 1 failed** | `test_temperature_scaling_fixes_overconfidence` observed 1.974 against a required value greater than 2 |
-| Chrome microphone workflow | **28/28 passed** | Used a fake audio device, not a real microphone or real Sarvam speech call |
+| Main automated suite | **1,389 passed** | Synthetic/unit/integration coverage; not clinical validation |
+| Skin model suite | **21 passed** | Run in a separate environment with Torch. The trained model itself isn't on this machine yet |
+| Chrome microphone workflow | **30/30 passed** | Used a fake audio device, not a real microphone |
 | Full Chrome workflow | No page/server errors reported | Synthetic test data; phone-width layout also checked |
+| CareFlow in Chrome | **19/19 passed** | Local MongoDB, not Atlas |
+| YugabyteDB live | **7 passed** | A real server in Docker, not a cloud cluster |
+| MongoDB Atlas and Meko live | **Not run** | `BLOCKED_MISSING_CREDENTIALS` |
 | Live RxNorm/openFDA | **5 passed** | Informational lookups only; not a full medication safety validation |
-| Live Claude/Sarvam | **3 skipped** | Placeholder credentials; no live end-to-end model validation |
 
 Not yet demonstrated in the reported test run:
 
-- Real microphone recording and real speech through Sarvam.
-- Live Claude calls and all production fallback/retention configurations.
+- Real microphone recording and real speech on real devices.
+- MongoDB Atlas and Meko themselves, which need credentials.
 - Safari and Firefox compatibility.
 - SMS or automated voice reminders.
 - Validation against real Indian laboratory reports or representative external datasets.
@@ -703,7 +607,7 @@ These controls reduce risk but do not establish regulatory compliance or product
 | Staff security | MFA and password-reset work remain open in the latest reported review |
 | Patient rights workflows | Whole-record export and erasure workflows remain open in the latest reported review |
 | Security assurance | Independent penetration test remains outstanding |
-| Vendors | Live Claude/Sarvam use and data-retention/contractual terms require approval |
+| Vendors | Groq, Gemini, Atlas and Meko data terms require approval before any real data |
 | Privacy/regulation | DPDP and CDSCO assessments, notices and legal review remain open; generic FHIR is not ABDM compliance |
 | Lab validation | Synthetic report layouts only; real Indian lab formats have not been validated |
 
@@ -730,11 +634,11 @@ If a linked document is absent in a particular branch or release, treat the link
 
 ## Final scope and contribution boundaries
 
-The product scope is frozen at the three core clinical tools, eight add-ons, OptiKinesis companion and four selected sponsor integrations. Please do not add another standalone module, chatbot, diagnostic engine or parallel patient database.
+The product scope is frozen at the three core clinical tools, eight add-ons, OptiKinesis companion and three selected sponsor integrations. Please do not add another standalone module, chatbot, diagnostic engine or parallel patient database.
 
 Useful contributions within the approved scope include:
 
-- Completing and testing the four selected sponsor integrations.
+- Completing and testing the three selected sponsor integrations.
 - Fixing defects and improving reliability without weakening safety checks.
 - Improving provenance, review workflows, permission enforcement and auditability.
 - Strengthening automated tests and reproducible synthetic demo scenarios.
@@ -756,8 +660,7 @@ Before making changes, inspect `git status` and preserve existing uncommitted wo
 - [Meko MCP server reference](https://docs.mekodata.ai/reference/mcp-server/)
 - [MongoDB Atlas](https://www.mongodb.com/atlas)
 - [MongoDB Change Streams](https://www.mongodb.com/docs/manual/changestreams/)
-- [IOMETE platform](https://iomete.com/)
-- [IOMETE Event Stream](https://iomete.com/resources/user-guide/event-stream)
+- [YugabyteDB YSQL](https://docs.yugabyte.com/stable/api/ysql/)
 
 ### MLH student resources supplied with the track description
 
@@ -769,9 +672,8 @@ Before making changes, inspect `git status` and preserve existing uncommitted wo
 
 - [FastAPI](https://fastapi.tiangolo.com/)
 - [Pydantic](https://docs.pydantic.dev/)
-- [SQLAlchemy](https://www.sqlalchemy.org/)
 - [MediaPipe](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker)
-- [Sarvam AI](https://www.sarvam.ai/)
+- [Groq](https://console.groq.com/docs)
 - [RxNorm / RxNav APIs](https://www.nlm.nih.gov/research/umls/rxnorm/)
 - [openFDA Drug Label API](https://open.fda.gov/apis/drug/label/)
 - [ABDM FHIR Implementation Guide](https://www.nrces.in/ndhm/fhir/r4/)

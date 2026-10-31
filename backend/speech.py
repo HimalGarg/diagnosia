@@ -12,6 +12,7 @@ import httpx
 
 from backend import settings_store
 from backend.config import settings
+from backend.integrations import execution
 
 TTS_MODEL = "canopylabs/orpheus-v1-english"
 TTS_VOICE = "troy"
@@ -81,12 +82,26 @@ def _spoken_text(body: dict) -> str:
 
 
 def transcribe(audio: bytes, content_type: str, language: Language) -> str:
+    run = execution.AgentRun("speech_to_text")
+    model = settings_store.model_for("transcription")
+    try:
+        text = _transcribe(audio, content_type, language, model)
+    except (SpeechUnavailable, SpeechRejected) as error:
+        run.tried("groq", model, type(error).__name__)
+        run.finish("failed")
+        raise
+    run.tried("groq", model, "succeeded")
+    run.finish("succeeded")
+    return text
+
+
+def _transcribe(audio: bytes, content_type: str, language: Language, model: str) -> str:
     base_type = content_type.split(";")[0].strip()
     response = _post(
         "/audio/transcriptions",
         files={"file": (f"audio.{EXTENSIONS.get(base_type, 'webm')}", audio, content_type)},
         data={
-            "model": settings_store.model_for("transcription"),
+            "model": model,
             "language": LANGUAGE_CODES[language],
             "response_format": "verbose_json",
             "temperature": "0",

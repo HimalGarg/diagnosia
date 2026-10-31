@@ -100,6 +100,8 @@ the U.S. Food and Drug Administration, which does not endorse this product.
 | Library | Used by | Licence |
 |---|---|---|
 | RapidFuzz 3 | Prescription Analyzer, medicine name check | MIT |
+| PyMongo 4 | Optional, CareFlow event store | Apache-2.0 |
+| psycopg 3, psycopg-pool | Optional, YugabyteDB | LGPL-3.0 |
 | pdfplumber 0.11 | LabLens | MIT |
 | pdfminer.six | LabLens, through pdfplumber | MIT |
 | pypdfium2 5 | LabLens, through pdfplumber | BSD-3-Clause and Apache-2.0, plus bundled PDFium licences |

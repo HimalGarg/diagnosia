@@ -94,8 +94,11 @@ audit log not shipped off-host, and no independent penetration test.
 - DiagnoFast's urgent stop works in the browser, but the list of urgent symptoms comes from the AI's
   judgement and nobody clinical has reviewed it. It needs the clinical safety lead.
 - Silence that Whisper drops is now asked again, rather than saved as an empty answer.
-- Prescription reading and Hindi speech were tried on real samples only with the old providers.
-  **Their quality on Groq is unknown.** A four-photo prescription is read in two requests, so a
+- Reading prescriptions and lab photos now prefers Gemini. On **synthetic** photos it beat Groq's vision
+  model (see `backend/tests/ai_eval/README.md`), but those photos are easier than real handwriting, and
+  no real prescription or report was available. **Real accuracy is still unknown.** The best Gemini
+  model often hits its free limit, so the smaller one does much of the work.
+- Hindi speech quality is untested. A four-photo prescription is read in two requests, so a
   bracket spanning photos 3 and 4 could be missed. The patient still confirms every medicine.
 - The homepage's review image was removed. It praised features that don't exist, such as a BMI
   calculator and posture analysis.
@@ -138,9 +141,10 @@ Assessments for qualified reviewers, in `CLINICAL_GOVERNANCE.md`.
 
 | Suite | Result |
 |---|---|
-| Standard automated suite | **1,148 passed**, 12 live tests deselected |
-| `test_skin.py`, in a separate environment with torch | **19 passed** |
-| Live public services (RxNorm, openFDA) | 5 passed. Groq's 7 live tests can't run without a key |
+| Standard automated suite | **1,389 passed**, 47 deselected because they run separately |
+| `test_skin.py`, in a separate environment with torch | **21 passed** |
+| Live public services and AI | RxNorm and openFDA passed. Groq and Gemini: see section 8 |
+| CareFlow | Real YugabyteDB: 7 of 7. Local MongoDB and PostgreSQL stand-ins: 16 passed. Chrome: 19 of 19. Not Atlas or Meko |
 | Microphone in Chrome | 30 of 30 |
 | Public site, at 1280, 768 and 390 pixels | No horizontal overflow, FAQ opens, no page errors |
 | Every tool opened in the workspace with a patient open | Patient kept across all of them, no page errors |
@@ -167,6 +171,8 @@ journeys were scripted for this work, and aren't in the repository.
 | Groq speech to text | **Yes**, accepted a synthetic tone. Not tried on real speech |
 | Groq English voice | **No.** Returned 400 until the account owner accepts the model's terms in the Groq console. The browser voice covers it meanwhile |
 | Gemini chat and images | **Yes**, same date and data, including a full DiagnoFast interview and a prescription read |
+| YugabyteDB | **Yes**, a real server in Docker, not a cloud cluster |
+| MongoDB Atlas, Meko | **No.** No credentials. See `integrations/FINAL_COMPLETION_REPORT.md` |
 | Fallback between them | **Yes.** A wrong Groq key was answered by Gemini, and a real Groq rate limit was too |
 | Real microphone | **No.** Chrome's fake device |
 | SMS and voice | **No.** Not connected |
@@ -191,6 +197,7 @@ journeys were scripted for this work, and aren't in the repository.
   saved to the record at all.
 - Each tool has one model. A busy model gets one retry, with no fallback to a second model.
 - `terms_of_service.html` hasn't been reviewed for the new tools.
+- CareFlow records nothing if real patient data is allowed. MongoDB, YugabyteDB and Meko would each need their own agreement first.
 
 ## 10. Remaining human approvals
 

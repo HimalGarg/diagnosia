@@ -415,6 +415,11 @@ button:not(.quiet):not(.danger):not(.link-button):not(.patient-row),
 .queue-item.urgent { border-color: var(--alert); background: var(--alert-tint); color: var(--alert); font-weight: 500; }
 .link-box { display: block; margin-top: 6px; overflow-wrap: anywhere; font-size: .9rem; }
 
+.filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+.filters label { min-width: 180px; }
+.plain-list { list-style: none; margin: 0; padding: 0; }
+.plain-list li { padding: 6px 0; }
+
 /* Prescription Analyzer */
 .medicine-card { padding: 12px 14px; margin: 8px 0; border: 1px solid var(--rule); border-radius: 6px; }
 .medicine-card.unsure { border-color: var(--highlighter-ink); }

@@ -19,9 +19,9 @@ def _days(number: int) -> str:
     return (date.today() + timedelta(days=number)).isoformat()
 
 
-def _lab_pdf(collected: str, haemoglobin: str, hba1c: str) -> bytes:
+def _lab_pdf(collected: str, haemoglobin: str, hba1c: str, name: str = "Mr. Ravi Kumar") -> bytes:
     lines = [
-        "Demo Diagnostics Laboratory", "Patient Name : Mr. Ravi Kumar   Age : 56 Years", f"Sample Collected On : {collected}",
+        "Demo Diagnostics Laboratory", f"Patient Name : {name}   Age : 56 Years", f"Sample Collected On : {collected}",
         "Test Result Unit Reference Range", f"Haemoglobin {haemoglobin} g/dL 13.0 - 17.0", f"HbA1c {hba1c} % 4.0 - 5.6",
         "Creatinine 1.02 mg/dl < 1.3", "Total Cholesterol 212 mg/dL < 200",
     ]
@@ -65,13 +65,13 @@ def _chronic(doctor, patient_id: str) -> None:
         _check(doctor.post(f"{base}/patients/{patient_id}/readings", json={"measure": "glucose_fasting", "value": glucose, "effective_at": when}))
 
 
-def _labs(doctor, patient_id: str) -> None:
+def _labs(doctor, patient_id: str, name: str = "Mr. Ravi Kumar") -> None:
     for collected, haemoglobin, hba1c in (("12/03/2026", "11.2 L", "7.4"), ("20/08/2026", "12.6 L", "6.8")):
         report = _check(
             doctor.post(
                 "/api/addons/lablens/reports",
                 data={"patient_id": patient_id},
-                files={"file": ("demo-report.pdf", _lab_pdf(collected, haemoglobin, hba1c), "application/pdf")},
+                files={"file": ("demo-report.pdf", _lab_pdf(collected, haemoglobin, hba1c, name), "application/pdf")},
             )
         )
         _check(doctor.post(f"/api/addons/lablens/reports/{report['id']}/confirm", json={}))
