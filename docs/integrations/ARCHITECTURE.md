@@ -25,8 +25,9 @@ flowchart TD
 - **YugabyteDB** holds how AI calls ran: which provider and model, how long, and when a fallback
   was needed, plus a record of each handoff. It's your own cluster, and only the worker talks to
   it, so it can't slow or break a clinical request.
-- **Meko** holds shared knowledge for agents, and notes that a handoff happened. Knowledge is loaded through its documented tools. A receiving tool
-  always re-reads the source record. Meko's own internal database is never connected to.
+- **Meko** holds shared knowledge for agents, notes that a handoff happened, and one search index per
+  patient for [patient packs](PATIENT_PACKS.md). Knowledge is loaded through its documented tools. A
+  receiving tool always re-reads the source record. Meko's own internal database is never connected to.
 - **SQLite** stays the record, and the only thing that decides access.
 
 ## An event's journey
@@ -89,7 +90,8 @@ crash between the two writes.
 | Vector search in YugabyteDB | Meko already does retrieval, and a second embedding store would have no clear job |
 | An `integration_agent_tasks` table | Runs and attempts cover what happens. Delivery state already lives in the outbox |
 | `ai_drafts` in MongoDB | Nothing needs it, and draft text belongs in the Diagnosia database |
-| Meko context in clinical prompts | It would change clinical behaviour, which is out of scope |
+| Meko text in clinical prompts | Meko's text never reaches a prompt. For packs it only says which records to read, and they're read again from SQLite |
+| Meko memory for patient records | It rewrites text with an LLM and can drop details |
 | A second delivery system | SQLite's outbox decides what's sent. MongoDB's `integration_delivery` is only a view of it |
 
 ## Safety

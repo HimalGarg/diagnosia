@@ -5,9 +5,10 @@ guessed: a tool that isn't offered, or an argument it doesn't accept, is refused
 Meko is supplemental context. It is never proof of identity, consent, approval or clinical truth,
 and every failure is reported as unavailable, never as an empty result.
 
-Only technical workflow text goes in. In a datapack, the conversation bucket is visible to every
-member, so conversations aren't used for anything about a case. The API key is only ever sent to
-the MCP server, never to an upload URL.
+Technical workflow text goes in the shared datapack. A patient's finished records go only in that
+patient's own datapack, through `backend/patient_pack`. In a datapack, the conversation bucket is
+visible to every member, so conversations aren't used for anything about a case. The API key is only
+ever sent to the MCP server, never to an upload URL.
 """
 import base64
 import hashlib

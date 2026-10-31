@@ -50,6 +50,7 @@ backend/    One FastAPI app: accounts and one folder per tool.
   skin/             classifier.py, encoder.py, routes.py, training/, metrics.json
   careflow/         Activity timeline: event contract, outbox, delivery, routes
   integrations/     Optional Meko and YugabyteDB adapters, and AI run records
+  patient_pack/     One searchable view of a patient's records, on Meko: render, sync, access, brief, routes
   tests/            pytest suite (no API keys needed)
 archive/    Retired tools. See archive/README.md.
 pitch/      Pitch material.
@@ -162,6 +163,8 @@ The photo isn't stored. A consent box says it goes to outside AI services.
   `backend/storage/` and `*.db`. Check before you `git add`.
 - Groq receives this data in the United States, with no signed agreement yet. Keep personal details
   out of test photos. See `docs/CLINICAL_GOVERNANCE.md`.
+- Meko has no signed agreement either, and states nothing about compliance. Patient packs stop when
+  `ALLOW_REAL_PATIENT_DATA` is on. Don't remove that.
 
 **Licences**
 - **PanDerm** (code and weights) is CC-BY-NC-ND 4.0, non-commercial academic research only.
@@ -206,6 +209,19 @@ Events go through `backend/careflow/events.py`, never straight to a store. The o
 transaction with the change, usually through the audit hook. Events hold no free text, so don't add
 any: a new metadata key needs a reason. SQLite stays the record, and nothing flows back from MongoDB,
 YugabyteDB or Meko. See `docs/integrations/`.
+
+## Patient packs
+
+One Meko datapack per patient, used as a search index. See `docs/integrations/PATIENT_PACKS.md`.
+
+- A finished record is queued with `sync.enqueue`, in the same transaction. Only finished records go in:
+  never a draft, a pending result, a transcript or an unconfirmed medicine.
+- SQLite decides access, in `patient_pack/access.py`. Anything shown or given to the AI is read again
+  from SQLite. Meko's text never reaches a prompt or a screen.
+- Off by default, and stopped by `ALLOW_REAL_PATIENT_DATA`. There's no agreement with Meko, so made-up
+  patients only.
+- Clinical text never goes in Meko memory or conversations.
+- Meko never returns a datapack slot, so live tests must not create them freely.
 
 ## Team workflow
 

@@ -12,10 +12,14 @@ import pytest
 from backend import llm
 from backend.config import settings
 from backend.db import connect
+from backend.diagnofast import agent
+from backend.diagnofast import routes as diagnofast_routes
+from backend.diagnofast.agent import Report
 from backend.integrations import knowledge, meko
 from backend.patient_pack import brief, render, sync
 from backend.tests.conftest import FakeAI, grant
 from backend.tests.test_careflow import client_for
+from backend.tests.test_clinscribe import draft, fake_draft, ready_session
 
 
 class FakePackServer:
@@ -451,6 +455,66 @@ def test_an_unreadable_medicine_cant_be_saved(server, doctor, person):
 
 def test_saving_needs_a_patient_record(server, person):
     assert person("patient").post("/api/prescription/save", json={"medicines": [medicine()]}).status_code == 409
+
+
+def test_a_note_reaches_the_pack_only_once_signed_and_without_its_transcript(server, doctor, patient, monkeypatch):
+    grant(doctor, patient["id"], "patient_pack")
+    encounter = doctor.post(f"/api/patients/{patient['id']}/encounters", json={"reason": "Follow-up"}).json()
+    started = ready_session(doctor, patient, encounter)
+    monkeypatch.setattr(llm, "ask", FakeAI(fake_draft()))
+    note = draft(doctor, started["id"]).json()
+    run_worker(server)
+    assert stored_text(server) == ""  # a draft is still only a draft
+
+    assert doctor.post(f"/api/addons/clinscribe/notes/{note['id']}/approve", json={"acknowledge_flags": True}).status_code == 200
+    run_worker(server)
+    text = stored_text(server)
+    assert "Cough for three days" in text and "Signed consultation note" in text
+    assert "I have had a cough" not in text
+
+
+def finished_intake(doctor, patient_id, monkeypatch):
+    body = {"form_id": "general_physician", "patient_name": "Ravi Kumar"}
+    if patient_id:
+        body["patient_id"] = patient_id
+    assert doctor.post("/api/diagnofast/intakes", json=body).status_code == 201
+    report = Report(chief_complaint="Palpitations", present_illness="Two months", highlights=[], current_medicines=[], allergies=[], past_history="", gaps=[])
+    monkeypatch.setattr(agent, "write_report", lambda *_arguments: report)
+    db = connect()
+    intake_id = db.execute("SELECT MAX(id) FROM intakes").fetchone()[0]
+    db.execute("UPDATE intakes SET transcript = ?, answers = ? WHERE id = ?", (json.dumps([{"question": "Why?", "answer": "My neighbour Sunita sent me"}]), "{}", intake_id))
+    db.commit()
+    db.close()
+    diagnofast_routes._build_report(intake_id)
+
+
+def test_a_diagnofast_report_reaches_the_pack_labelled_and_without_the_interview(server, doctor, patient, monkeypatch):
+    grant(doctor, patient["id"], "patient_pack")
+    finished_intake(doctor, patient["id"], monkeypatch)
+    run_worker(server)
+    text = stored_text(server)
+    assert "Palpitations" in text and "not yet reviewed by a clinician" in text
+    assert "Sunita" not in text and "Ravi" not in text
+
+
+def test_an_interview_with_no_patient_record_stays_out_of_every_pack(server, doctor, patient, monkeypatch):
+    grant(doctor, patient["id"], "patient_pack")
+    finished_intake(doctor, None, monkeypatch)
+    run_worker(server)
+    assert server.datapacks == {}
+
+
+def test_a_referral_outcome_flows_back_into_the_pack(server, doctor, patient, specialist):
+    grant(doctor, patient["id"], "patient_pack")
+    referral_id = refer(doctor, specialist, patient)
+    accept(specialist, referral_id)
+    base = f"/api/addons/referrals/{referral_id}"
+    assert specialist.post(f"{base}/appointments", json={"scheduled_at": "2026-12-01T10:30", "booked": True}).status_code == 201
+    assert specialist.patch(f"{base}/status", json={"status": "attended"}).status_code == 200
+    assert specialist.post(f"{base}/outcome", data={"summary": "Echo was normal.", "recommendations": "Review in a year."}).status_code == 201
+    run_worker(server)
+    text = stored_text(server)
+    assert "Cardiology referral outcome" in text and "Echo was normal." in text
 
 
 def ready_pack(server, doctor, patient, text="Rash after penicillin in 2019."):

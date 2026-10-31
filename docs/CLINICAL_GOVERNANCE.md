@@ -126,7 +126,7 @@ September 2026) and [ASTRA Ready](https://www.astraready.com/insights/dpdp-rules
 | Correction | Allergies and profile fields, reviewed values | No formal request workflow |
 | Deletion | Transcript only | Whole-record erasure isn't built, and medical retention duties may conflict |
 | Retention | No periods set | See `DATA_PROTECTION_AND_RETENTION.md` |
-| Processors | Groq, and Google when a Gemini key is set | No signed agreement on file for either |
+| Processors | Groq, and Google when a Gemini key is set. Meko, hosted by Yugabyte, if patient packs are switched on | No signed agreement on file for any of them. Packs refuse to run with real patient data |
 | Breach response | Audit data exists | No procedure. Secondary sources mention a 72-hour Board report under Rule 7 and a separate CERT-In duty. Our fetched reference gave no figures, so confirm from the Gazette |
 | Grievance | Contact email only | No named contact or time limit. Confirm the Rule 14 period from the Gazette |
 | Children | Newborn records, under-18 patients | Rule 10 parental consent, and any healthcare exemption. Not confirmed here |

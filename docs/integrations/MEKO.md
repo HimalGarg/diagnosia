@@ -1,8 +1,8 @@
 # Meko setup
 
-Meko gives agents shared context. Here it does two things: it answers searches of approved workflow
-knowledge, and it keeps a note when a handoff happens. It's reached only through its documented MCP
-server, `https://mcp.mekodata.ai/mcp`.
+Meko gives agents shared context. Here it does three things: it answers searches of approved workflow
+knowledge, it keeps a note when a handoff happens, and it indexes [patient packs](PATIENT_PACKS.md). It's
+reached only through its documented MCP server, `https://mcp.mekodata.ai/mcp`.
 
 ## Connect
 
@@ -29,7 +29,7 @@ server, `https://mcp.mekodata.ai/mcp`.
 | `memory_add`, `memory_search` | A note that a handoff happened, and reviewed conventions |
 | `datapack_describe` | Checking the datapack can be reached |
 
-Tool names and schemas are read from the server at run time. A tool it doesn't offer, an argument it doesn't accept, a missing required argument or a wrong type is refused before anything is sent, so retired arguments such as `scope` can't go out. The datapack always comes from `.env`, and no request can choose it. The key is sent only to the MCP server, with the `User-Agent` header Meko asks for, and never to an upload URL.
+Tool names and schemas are read from the server at run time. A tool it doesn't offer, an argument it doesn't accept, a missing required argument or a wrong type is refused before anything is sent, so retired arguments such as `scope` can't go out. Most calls need a `conversation_id`, so the client creates one per process and writes nothing into it. Meko reports most failures as an ordinary reply holding `error`, and these count as failures. The shared datapack comes from `.env`, and a patient's comes from SQLite after the access gate, so no request can choose one. The key is sent only to the MCP server, with the `User-Agent` header Meko asks for, and never to an upload URL.
 
 ## Handoffs
 
@@ -40,9 +40,12 @@ For each real handoff, the worker searches the knowledge base for what's relevan
 **Yes:** the documents in the next section, and handoff notes, which are built from fixed text and
 module names only.
 
-**Never:** names, dates of birth, contact details, clinical text, images, or keys. Meko's context
-search can return conversations from every member of a datapack, so conversations aren't used for
-anything about a case.
+**Patient packs only, with consent, and only on made-up patients:** finished clinical records. See
+[PATIENT_PACKS.md](PATIENT_PACKS.md).
+
+**Never:** names, dates of birth, contact details, images, or keys, and clinical text anywhere outside a
+patient's own pack. Meko's context search can return conversations from every member of a datapack, so
+conversations aren't used for anything about a case.
 
 ## Loading knowledge
 
@@ -52,6 +55,7 @@ Automated. See [MEKO_KNOWLEDGE_INGESTION.md](MEKO_KNOWLEDGE_INGESTION.md).
 
 Timeouts are 15 seconds, with one retry. Any failure comes back as "unavailable", never as an empty
 result, and handoff notes stay queued. Meko's result is supplemental: it's never proof of identity,
-consent, approval or clinical truth, and it isn't fed into clinical prompts.
+consent, approval or clinical truth. Its text isn't fed into clinical prompts. A pack search only says
+which records to read, and those are read again from SQLite.
 
 The free plan allows 1,000 conversations and 10,000 retrievals a month. Check the current limits.

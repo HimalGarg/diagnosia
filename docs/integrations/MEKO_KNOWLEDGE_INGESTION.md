@@ -1,6 +1,6 @@
 # Meko knowledge ingestion
 
-**Upload is automated, through Meko's documented MCP tools. No portal step is needed, and nothing touches Meko's private database.** It hasn't yet run against a real account, because no Meko key is available.
+**Upload is automated, through Meko's documented MCP tools. No portal step is needed, and nothing touches Meko's private database.** The upload, indexing, search and delete calls have run against a real account for patient packs. `meko-ingest` itself hasn't been run live.
 
 ## The supported mechanism
 
@@ -12,7 +12,7 @@ From Meko's MCP reference and knowledge base guide:
 
 Only an owner or a maintainer of the datapack can upload. The free plan's file limit is 5 MB, well above these files.
 
-**One detail isn't published:** the exact shape of the presigned reply. `backend/integrations/knowledge.py` handles a reply with form fields and one without. If the real reply differs, the first live run will fail clearly, and the fix is small.
+The presigned reply holds `url`, `key` and form `fields`, and a successful POST answers 204. A new datapack indexes with no portal step, in about 2 to 8 seconds for a small file.
 
 ## What goes in
 
