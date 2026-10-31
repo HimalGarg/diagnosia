@@ -367,7 +367,7 @@ def test_the_provider_order_follows_the_setting_and_skips_missing_keys(admin, mo
 
 def test_the_reading_tools_have_their_own_provider_and_model_settings(admin):
     rows = {row["key"]: row["value"] for row in admin.get("/api/platform/settings").json()["settings"]}
-    for tool in ("prescription_read", "prescription_explain", "lablens_read"):
+    for tool in ("prescription_read", "prescription_explain", "prescription_plan", "lablens_read"):
         assert rows[f"ai.provider.{tool}"] == "gemini"
         assert rows[f"ai.gemini_model.{tool}"].startswith("gemini-")
     assert put(admin, "ai.provider.lablens_read", "groq").status_code == 200

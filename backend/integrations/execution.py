@@ -27,6 +27,7 @@ TOOL_MODULES = {
     "clinscribe_note": "ClinScribe",
     "prescription_read": "Prescription Analyzer",
     "prescription_explain": "Prescription Analyzer",
+    "prescription_plan": "Prescription Analyzer",
     "lablens_read": "LabLens",
     "diagnofast_turn": "DiagnoFast",
     "diagnofast_report": "DiagnoFast",

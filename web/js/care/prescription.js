@@ -88,7 +88,7 @@ const SLOT_ICONS = { morning: '🌅', afternoon: '☀️', night: '🌙' };
 function calendarRemindersView(reminders, language) {
     const slots = reminders.slots || {};
     const hasSlots = Object.keys(slots).length > 0;
-    if (!hasSlots && !(reminders.as_needed || []).length) return null;
+    if (!hasSlots && !(reminders.as_needed || []).length && !(reminders.unscheduled || []).length) return null;
 
     const startInput = h('input', {
         type: 'date',
@@ -121,12 +121,14 @@ function calendarRemindersView(reminders, language) {
                         medicines: reminders._medicines,
                         language,
                         guidance: reminders._guidance,
+                        plan: reminders._plan,
                         start_date: startInput.value,
                         times: customTimes,
                     },
                 });
                 updated._medicines = reminders._medicines;
                 updated._guidance = reminders._guidance;
+                updated._plan = reminders._plan;
                 const parent = refreshButton.closest('.sheet');
                 if (parent) show(parent, ...calendarRemindersView(updated, language).children);
             } catch (error) {
@@ -172,24 +174,23 @@ function calendarRemindersView(reminders, language) {
         }, '📅 Add All Reminders to Calendar')
         : null;
 
+    const medicineLine = (m) => h('li', {},
+        h('strong', {}, m.name),
+        m.quantity ? ` — ${m.quantity}` : '',
+        m.food ? `, ${m.food}` : '',
+        m.purpose ? h('em', {}, ` (${m.purpose})`) : '',
+        m.assumed ? h('span', { class: 'muted' }, ' · usual time, the prescription doesn\'t say') : '',
+        m.duration_assumed ? h('span', { class: 'muted' }, ` · course length not written, set to ${plural(m.duration_days, 'day')}`) : '',
+    );
     const slotCards = ['morning', 'afternoon', 'night']
         .filter((slot) => slots[slot])
-        .map((slot) => {
-            const data = slots[slot];
-            return h('div', { class: 'calendar-card' },
-                h('div', { class: 'slot-header' },
-                    h('strong', {}, `${SLOT_ICONS[slot]} ${data.title}`),
-                    h('span', { class: 'muted' }, `${data.time} · ${plural(data.duration_days, 'day')}`),
-                ),
-                h('ul', {},
-                    data.medicines.map((m) => h('li', {},
-                        `${m.name} (${m.amount})`,
-                        m.dose ? ` ${m.dose}` : '',
-                        m.purpose ? h('em', {}, ` — ${m.purpose}`) : '',
-                    )),
-                ),
-            );
-        });
+        .flatMap((slot) => (slots[slot].segments || [slots[slot]]).map((part) => h('div', { class: 'calendar-card' },
+            h('div', { class: 'slot-header' },
+                h('strong', {}, `${SLOT_ICONS[slot]} ${part.title}`),
+                h('span', { class: 'muted' }, `${slots[slot].time} · ${part.first_day ? `days ${part.first_day}–${part.last_day}` : plural(part.duration_days, 'day')}`),
+            ),
+            h('ul', {}, part.medicines.map(medicineLine)),
+        )));
 
     const asNeeded = reminders.as_needed || [];
     const asNeededSection = asNeeded.length
@@ -207,6 +208,14 @@ function calendarRemindersView(reminders, language) {
         )
         : null;
 
+    const unscheduled = reminders.unscheduled || [];
+    const unscheduledSection = unscheduled.length
+        ? h('div', { class: 'calendar-card' },
+            h('strong', {}, '❓ No reminder yet. Please ask your doctor or pharmacist when to take these'),
+            h('ul', {}, unscheduled.map((m) => h('li', {}, h('strong', {}, m.name), m.reason ? ` — ${m.reason}` : ''))),
+        )
+        : null;
+
     return h('div', { class: 'sheet' },
         h('h2', {}, '📅 Medicine Reminders'),
         h('p', { class: 'lede' }, 'Set daily alarms so you never miss a dose. Pick your preferred times and add all reminders to your calendar in one click.'),
@@ -215,6 +224,7 @@ function calendarRemindersView(reminders, language) {
         helperContainer,
         ...slotCards,
         asNeededSection,
+        unscheduledSection,
     );
 }
 
@@ -225,6 +235,7 @@ function resultsView(data, language, reading, confirmedMeds) {
     // Attach originals so the refresh button can re-request with updated times.
     reminders._medicines = confirmedMeds;
     reminders._guidance = guidance;
+    reminders._plan = data.plan;
     const remindersSection = calendarRemindersView(reminders, language);
     return [
         guidance && h('div', { class: 'sheet' },
@@ -238,7 +249,7 @@ function resultsView(data, language, reading, confirmedMeds) {
             h('h2', {}, 'Daily schedule'),
             h('div', { class: 'schedule' }, [['morning', 'Morning'], ['afternoon', 'Afternoon'], ['night', 'Night']].map(([slot, title]) => h('div', {},
                 h('strong', {}, title),
-                data.schedule[slot].map((entry) => h('p', {}, `${entry.name}: ${entry.amount}`)))))),
+                data.schedule[slot].map((entry) => h('p', {}, entry.amount ? `${entry.name}: ${entry.amount}` : `${entry.name}${entry.assumed ? ' (usual time)' : ''}`)))))),
         remindersSection,
         reading.follow_up_date.value && listCard('Next appointment', [reading.follow_up_date.value]),
         data.ask_pharmacist.length > 0 && listCard('Please ask your pharmacist or doctor about', data.ask_pharmacist),

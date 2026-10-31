@@ -33,6 +33,7 @@ class CalendarRequest(BaseModel):
     guidance: Optional[dict] = None
     start_date: Optional[str] = None
     times: Optional[dict] = None
+    plan: Optional[Dict[str, dict]] = None
 
 
 class SpeakRequest(BaseModel):
@@ -90,6 +91,7 @@ def calendar(request: CalendarRequest, _user=Depends(require_user)) -> dict:
         request.guidance,
         request.start_date,
         request.times,
+        request.plan,
     )
 
 
