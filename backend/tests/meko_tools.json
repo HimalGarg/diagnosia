@@ -1,0 +1,428 @@
+[
+ {
+  "name": "conversation_create",
+  "inputSchema": {
+   "properties": {
+    "agent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "datapack_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "metadata": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "run_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "session_id": {
+     "type": "string"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "datapack_create",
+  "inputSchema": {
+   "properties": {
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "name": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "name"
+   ]
+  }
+ },
+ {
+  "name": "datapack_delete",
+  "inputSchema": {
+   "properties": {
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "datapack_id"
+   ]
+  }
+ },
+ {
+  "name": "datapack_describe",
+  "inputSchema": {
+   "properties": {
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "type": "string"
+    },
+    "include_status": {
+     "type": "boolean"
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "datapack_update",
+  "inputSchema": {
+   "properties": {
+    "conversation_id": {
+     "type": "string"
+    },
+    "conversation_search_opt_out": {
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "datapack_id": {
+     "type": "string"
+    },
+    "description": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "datapack_id"
+   ]
+  }
+ },
+ {
+  "name": "knowledgebase_delete_document",
+  "inputSchema": {
+   "properties": {
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "type": "string"
+    },
+    "document_id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "document_id",
+    "conversation_id"
+   ]
+  }
+ },
+ {
+  "name": "knowledgebase_document_status",
+  "inputSchema": {
+   "properties": {
+    "agent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "document_key": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "document_key",
+    "conversation_id"
+   ]
+  }
+ },
+ {
+  "name": "knowledgebase_search",
+  "inputSchema": {
+   "properties": {
+    "agent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "type": "string"
+    },
+    "limit": {
+     "type": "integer"
+    },
+    "query": {
+     "type": "string"
+    },
+    "skip_conversation": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "query",
+    "conversation_id",
+    "datapack_id"
+   ]
+  }
+ },
+ {
+  "name": "knowledgebase_upload_document",
+  "inputSchema": {
+   "properties": {
+    "agent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "content_hash": {
+     "type": "string"
+    },
+    "content_head_base64": {
+     "type": "string"
+    },
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "filename": {
+     "type": "string"
+    },
+    "size": {
+     "type": "integer"
+    }
+   },
+   "required": [
+    "filename",
+    "size",
+    "content_hash",
+    "conversation_id",
+    "content_head_base64"
+   ]
+  }
+ },
+ {
+  "name": "memory_add",
+  "inputSchema": {
+   "properties": {
+    "agent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "messages": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "metadata": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "run_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "text": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "text",
+    "conversation_id"
+   ]
+  }
+ },
+ {
+  "name": "memory_search",
+  "inputSchema": {
+   "properties": {
+    "agent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "conversation_id": {
+     "type": "string"
+    },
+    "datapack_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "limit": {
+     "type": "integer"
+    },
+    "query": {
+     "type": "string"
+    },
+    "run_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "query",
+    "conversation_id"
+   ]
+  }
+ }
+]

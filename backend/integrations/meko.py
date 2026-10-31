@@ -30,6 +30,7 @@ AGENT_ID = "diagnosia-careflow"
 USER_AGENT = "diagnosia-careflow/1.0"
 JSON_TYPES = {"string": str, "integer": int, "number": (int, float), "boolean": bool, "array": list, "object": dict}
 CONTEXT_REF = re.compile(r"^[A-Za-z0-9_:.-]{1,120}$")
+ACCESS_ERRORS = {"datapack_access_denied", "FORBIDDEN", "UNAUTHORIZED"}
 
 
 class MekoUnavailable(Exception):
@@ -63,6 +64,7 @@ class MekoClient:
         self._tools: Optional[Dict[str, dict]] = None
         self._next_id = 0
         self._protocol = PROTOCOL_VERSION
+        self._conversation: Optional[str] = None
 
     def _headers(self) -> Dict[str, str]:
         headers = {
@@ -145,11 +147,29 @@ class MekoClient:
         result = self._rpc("tools/call", {"name": tool, "arguments": arguments})
         if result.get("isError"):
             raise MekoUnavailable(f"{tool} reported an error")
-        return _content_of(result)
+        found = _content_of(result)
+        if isinstance(found, dict) and found.get("error"):
+            # Meko reports most failures as an ordinary result, so they have to be looked for.
+            if found["error"] in ACCESS_ERRORS:
+                raise MekoRejected(f"{tool}: {found['error']}")
+            raise MekoUnavailable(f"{tool}: {found['error']}")
+        return found
 
-    def _scoped(self, tool: str, **arguments: Any) -> Any:
-        """The datapack always comes from server configuration, never from a request."""
-        return self.call(tool, datapack_id=self.datapack_id, **arguments)
+    def _conversation_id(self) -> str:
+        """Meko needs one on nearly every call, for tracing. One per process works across datapacks and
+        spares the monthly conversation limit. Nothing is ever written into it."""
+        if self._conversation is None:
+            created = self.call("conversation_create", title="Diagnosia service", agent_id=AGENT_ID)
+            identifier = created.get("id") if isinstance(created, dict) else None
+            if not identifier:
+                raise MekoUnavailable("no conversation id")
+            self._conversation = identifier
+        return self._conversation
+
+    def _scoped(self, tool: str, datapack_id: Optional[str] = None, **arguments: Any) -> Any:
+        """The datapack comes from server configuration or from SQLite after the access gate, never
+        from a request."""
+        return self.call(tool, datapack_id=datapack_id or self.datapack_id, conversation_id=self._conversation_id(), **arguments)
 
     def describe_datapack(self) -> Any:
         return self._scoped("datapack_describe", include_status=True)
@@ -163,7 +183,7 @@ class MekoClient:
 
     def remember(self, text: str, metadata: Dict[str, Any], run_id: Optional[str] = None) -> Any:
         """Saved under this agent's name. Only fixed or reviewed text ever reaches this method."""
-        arguments: Dict[str, Any] = {"text": text, "agent_id": AGENT_ID, "metadata": metadata}
+        arguments: Dict[str, Any] = {"text": text, "agent_id": AGENT_ID, "metadata": json.dumps(metadata)}
         if run_id:
             arguments["run_id"] = run_id
         return self._scoped("memory_add", **arguments)
@@ -184,10 +204,30 @@ class MekoClient:
         )
         return _reference_from(saved, handoff["handoff_id"])
 
-    def upload_request(self, filename: str, data: bytes) -> dict:
+    def create_datapack(self, name: str) -> str:
+        """Names are unique across all of Meko, and a created datapack uses up a slot for good."""
+        created = self.call("datapack_create", name=name, conversation_id=self._conversation_id())
+        identifier = created.get("datapack_id") if isinstance(created, dict) else None
+        if not identifier:
+            raise MekoUnavailable("no datapack id")
+        return identifier
+
+    def keep_conversations_out_of_search(self, datapack_id: str) -> None:
+        self.call("datapack_update", datapack_id=datapack_id, conversation_search_opt_out=True, conversation_id=self._conversation_id())
+
+    def delete_datapack(self, datapack_id: str) -> None:
+        """Permanent. Takes the id it's given, so it can never fall back to the configured datapack."""
+        self.call("datapack_delete", datapack_id=datapack_id, conversation_id=self._conversation_id())
+
+    def search(self, datapack_id: str, query: str, limit: int = 10) -> List[Any]:
+        """Raises on failure, because finding nothing and being unable to look must never read the same."""
+        return _as_list(self._scoped("knowledgebase_search", datapack_id, query=query, limit=limit, agent_id=AGENT_ID))
+
+    def upload_request(self, filename: str, data: bytes, datapack_id: Optional[str] = None) -> dict:
         """Asks for a presigned URL. Meko samples the first 3,072 bytes against the file's extension."""
         found = self._scoped(
             "knowledgebase_upload_document",
+            datapack_id,
             filename=filename,
             size=len(data),
             content_hash=hashlib.sha256(data).hexdigest(),
@@ -197,15 +237,15 @@ class MekoClient:
             raise MekoUnavailable("unexpected upload reply")
         return found
 
-    def document_status(self, document_key: str) -> dict:
-        found = self._scoped("knowledgebase_document_status", document_key=document_key)
+    def document_status(self, document_key: str, datapack_id: Optional[str] = None) -> dict:
+        found = self._scoped("knowledgebase_document_status", datapack_id, document_key=document_key)
         if not isinstance(found, dict):
             raise MekoUnavailable("unexpected status reply")
         return found
 
-    def delete_document(self, document_id: str) -> Any:
-        """Permanent. Only ever called by an operator's explicit command."""
-        return self._scoped("knowledgebase_delete_document", document_id=document_id)
+    def delete_document(self, document_id: str, datapack_id: Optional[str] = None) -> Any:
+        """Permanent. Called by an operator's explicit command, or to replace a corrected pack item."""
+        return self._scoped("knowledgebase_delete_document", datapack_id, document_id=document_id)
 
 
 def _reference_from(saved: Any, fallback: str) -> str:
@@ -233,14 +273,19 @@ def _message_from(response: httpx.Response) -> dict:
 
 
 def _content_of(result: dict) -> Any:
-    if "structuredContent" in result:
-        return result["structuredContent"]
-    texts = [part.get("text", "") for part in result.get("content", []) if part.get("type") == "text"]
-    joined = "\n".join(texts)
+    found = result.get("structuredContent")
+    if isinstance(found, dict) and set(found) == {"result"} and isinstance(found["result"], str):
+        return _decoded(found["result"])  # how Meko's server wraps a tool's JSON text
+    if found is not None:
+        return found
+    return _decoded("\n".join(part.get("text", "") for part in result.get("content", []) if part.get("type") == "text"))
+
+
+def _decoded(text: str) -> Any:
     try:
-        return json.loads(joined)
+        return json.loads(text)
     except ValueError:
-        return joined
+        return text
 
 
 def _as_list(found: Any) -> List[Any]:
@@ -258,8 +303,19 @@ _client: Optional[MekoClient] = None
 
 def client() -> Optional[MekoClient]:
     """None unless switched on and configured. The key and datapack stay on the server."""
+    if not (settings.meko_enabled and settings.meko_datapack_id):
+        return None
+    return _shared()
+
+
+def pack_client() -> Optional[MekoClient]:
+    """For patient packs, which need no configured datapack: each patient's comes from SQLite."""
+    return _shared() if settings.meko_patient_packs_enabled else None
+
+
+def _shared() -> Optional[MekoClient]:
     global _client
-    if not (settings.meko_enabled and settings.meko_api_key and settings.meko_datapack_id):
+    if not settings.meko_api_key:
         return None
     if _client is None:
         _client = MekoClient(settings.meko_url, settings.meko_api_key, settings.meko_datapack_id)

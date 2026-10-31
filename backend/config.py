@@ -63,6 +63,9 @@ class Settings:
     meko_api_key: str = field(default_factory=lambda: _real_key(os.environ.get("MEKO_API_KEY", "")))
     meko_datapack_id: str = field(default_factory=lambda: os.environ.get("MEKO_DATAPACK_ID", ""))
     meko_url: str = field(default_factory=lambda: os.environ.get("MEKO_MCP_URL", "https://mcp.mekodata.ai/mcp"))
+    meko_patient_packs_enabled: bool = field(default_factory=lambda: _flag("ENABLE_MEKO_PATIENT_PACKS"))
+    # Deleting a datapack doesn't return its slot, so creations are capped well below the plan's limit.
+    meko_pack_limit: int = field(default_factory=lambda: int(os.environ.get("MEKO_PACK_LIMIT", "6")))
     event_batch_size: int = field(default_factory=lambda: int(os.environ.get("EVENT_DELIVERY_BATCH_SIZE", "50")))
     event_max_attempts: int = field(default_factory=lambda: int(os.environ.get("EVENT_DELIVERY_MAX_ATTEMPTS", "8")))
     event_backoff_seconds: int = field(default_factory=lambda: int(os.environ.get("EVENT_DELIVERY_BACKOFF_SECONDS", "30")))

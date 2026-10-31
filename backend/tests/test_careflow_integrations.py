@@ -525,13 +525,7 @@ async def _collect(allowed, source):
 # Meko: the MCP contract
 
 
-SCHEMA_TOOLS = [
-    {"name": "knowledgebase_search", "inputSchema": {"properties": {"query": {"type": "string"}, "limit": {"type": "integer"}, "agent_id": {"type": "string"}, "datapack_id": {"type": "string"}}, "required": ["query"]}},
-    {"name": "memory_add", "inputSchema": {"properties": {"text": {"type": "string"}, "agent_id": {}, "run_id": {}, "metadata": {"type": "object"}, "datapack_id": {}}}},
-    {"name": "datapack_describe", "inputSchema": {"properties": {"datapack_id": {}, "include_status": {"type": "boolean"}}}},
-    {"name": "knowledgebase_upload_document", "inputSchema": {"properties": {"filename": {}, "size": {"type": "integer"}, "content_hash": {}, "content_head_base64": {}, "datapack_id": {}}}},
-    {"name": "knowledgebase_document_status", "inputSchema": {"properties": {"document_key": {}, "datapack_id": {}}}},
-]
+SCHEMA_TOOLS = FakeMcp.TOOLS
 
 
 class Server(FakeMcp):
@@ -630,6 +624,7 @@ def test_a_handoff_looks_up_real_context_before_it_is_noted(client, monkeypatch)
     monkeypatch.setattr(meko, "client", lambda: client_for(server))
     assert delivery.deliver_once()["meko"]["delivered"] == 2
     names = [call["body"]["params"]["name"] for call in server.calls if call["body"]["method"] == "tools/call"]
+    names = [name for name in names if name != "conversation_create"]
     assert names[:2] == ["knowledgebase_search", "memory_add"]
     assert "DischargeCare to ReferralLoop" in json.dumps(server.calls[-1]["body"])
 

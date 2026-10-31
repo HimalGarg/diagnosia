@@ -7,6 +7,7 @@ import json
 import sqlite3
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import httpx
 import pytest
@@ -805,10 +806,8 @@ def test_a_handoff_carries_only_fixed_text_and_references(handed_off):
 
 
 class FakeMcp:
-    TOOLS = [
-        {"name": "knowledgebase_search", "inputSchema": {"properties": {"query": {}, "conversation_id": {}, "datapack_id": {}, "agent_id": {}, "limit": {}}}},
-        {"name": "memory_add", "inputSchema": {"properties": {"text": {}, "conversation_id": {}, "agent_id": {}, "run_id": {}, "metadata": {}, "messages": {}, "datapack_id": {}}}},
-    ]
+    # Meko's real schemas, trimmed, so a required argument can't go missing without a test failing.
+    TOOLS = json.loads((Path(__file__).parent / "meko_tools.json").read_text(encoding="utf-8"))
 
     def __init__(self, failure=None, event_stream=False):
         self.calls = []
@@ -828,7 +827,8 @@ class FakeMcp:
             return httpx.Response(200, json={"jsonrpc": "2.0", "id": json["id"], "result": {"protocolVersion": "2025-06-18"}}, headers={"mcp-session-id": "synthetic-session"})
         if method == "tools/list":
             return httpx.Response(200, json={"jsonrpc": "2.0", "id": json["id"], "result": {"tools": self.TOOLS}})
-        result = {"content": [{"type": "text", "text": '{"results": [{"text": "Synthetic guidance"}]}'}]}
+        text = '{"id": "synthetic-conversation"}' if json["params"]["name"] == "conversation_create" else '{"results": [{"text": "Synthetic guidance"}]}'
+        result = {"content": [{"type": "text", "text": text}], "structuredContent": {"result": text}, "isError": False}
         body = {"jsonrpc": "2.0", "id": json["id"], "result": result}
         if self.event_stream:
             import json as codec
@@ -854,6 +854,59 @@ def test_meko_uses_the_bearer_key_and_the_configured_datapack():
 
 def test_meko_reads_a_streamed_reply_too():
     assert client_for(FakeMcp(event_stream=True)).knowledge("x y").items == [{"text": "Synthetic guidance"}]
+
+
+def test_meko_calls_carry_the_conversation_the_server_requires():
+    server = FakeMcp()
+    client = client_for(server)
+    client.knowledge("x y")
+    client.knowledge("y z")
+    calls = [call["body"]["params"] for call in server.calls if call["body"].get("method") == "tools/call"]
+    assert [call["name"] for call in calls] == ["conversation_create", "knowledgebase_search", "knowledgebase_search"]
+    assert {call["arguments"]["conversation_id"] for call in calls[1:]} == {"synthetic-conversation"}
+
+
+def test_meko_refuses_to_send_without_a_required_argument():
+    server = FakeMcp()
+    with pytest.raises(meko.MekoUnsupported):
+        client_for(server).call("knowledgebase_search", query="x", datapack_id="datapack-synthetic")
+    assert all(call["body"]["method"] != "tools/call" for call in server.calls)
+
+
+def error_reply(error):
+    class Refusing(FakeMcp):
+        def __call__(self, url, headers, json, timeout):
+            if json.get("method") == "tools/call" and json["params"]["name"] != "conversation_create":
+                text = f'{{"error": "{error}", "detail": "synthetic"}}'
+                result = {"content": [{"type": "text", "text": text}], "structuredContent": {"result": text}, "isError": False}
+                return httpx.Response(200, json={"jsonrpc": "2.0", "id": json["id"], "result": result})
+            return super().__call__(url, headers, json, timeout)
+
+    return client_for(Refusing())
+
+
+def test_an_error_inside_a_normal_reply_is_a_failure_not_a_result():
+    found = error_reply("NOT_FOUND").knowledge("x y")
+    assert found.available is False and found.items == []
+
+
+def test_being_refused_a_datapack_is_marked_as_a_rejection():
+    with pytest.raises(meko.MekoRejected):
+        error_reply("datapack_access_denied").search("datapack-other", "x")
+
+
+def test_a_search_failure_raises_so_it_cant_read_as_nothing_found():
+    with pytest.raises(meko.MekoUnavailable):
+        error_reply("NOT_FOUND").search("datapack-synthetic", "x")
+
+
+def test_a_call_can_target_a_given_datapack_but_not_lose_the_default():
+    server = FakeMcp()
+    client = client_for(server)
+    client.search("datapack-patient", "x")
+    client.knowledge("x y")
+    sent = [call["body"]["params"]["arguments"]["datapack_id"] for call in server.calls if call["body"].get("params", {}).get("name") == "knowledgebase_search"]
+    assert sent == ["datapack-patient", "datapack-synthetic"]
 
 
 def test_meko_refuses_a_tool_the_server_does_not_offer():
