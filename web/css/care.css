@@ -430,6 +430,71 @@ button:not(.quiet):not(.danger):not(.link-button):not(.patient-row),
 .schedule { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 .schedule p { margin: .2rem 0; font-size: .925rem; }
 
+.calendar-card {
+  padding: 12px 14px;
+  margin: 10px 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--sheet);
+}
+.calendar-card .slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.calendar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  padding: 12px 14px;
+  margin: 10px 0 14px;
+  background: var(--band);
+  border-radius: 6px;
+}
+.calendar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.calendar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: .88rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity .15s ease-out;
+}
+.calendar-btn:hover { opacity: .92; }
+.calendar-btn.secondary {
+  background: transparent;
+  color: var(--action);
+  border: 1px solid var(--action);
+}
+.calendar-btn.secondary:hover {
+  background: var(--sheet);
+}
+.calendar-import-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--band);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-size: .9rem;
+}
+.calendar-import-note strong { display: block; margin-bottom: 4px; color: var(--brand); }
+.calendar-import-note p { margin: 0; }
+.calendar-link { color: var(--action); font-weight: 600; text-decoration: underline; }
+
 /* Skin Cancer Detection */
 .priority { padding: 8px 12px; margin-bottom: 12px; border-radius: 4px; background: var(--band); font-weight: 500; }
 .priority.refer { background: var(--alert-tint); color: var(--alert); }

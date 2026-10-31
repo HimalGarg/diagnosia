@@ -135,7 +135,7 @@ class RecordingAI:
 
 def guidance():
     return Guidance(
-        medicines=[], foods_to_eat=["Dal"], foods_to_avoid=[], yoga=[], lifestyle=[]
+        medicines=[]
     )
 
 
@@ -340,3 +340,60 @@ def test_more_photos_than_one_vision_request_takes_are_read_in_groups(client, de
     assert response.status_code == 200
     assert [sum(part["type"] == "image" for part in call["content"]) for call in ai.calls] == [3, 1]
     assert len(response.json()["medicines"]) == 2 * len(read_result().medicines)
+
+
+def test_duration_parsing_handles_various_formats():
+    from backend.prescription import shorthand
+
+    assert shorthand.parse_duration_days("5 days") == 5
+    assert shorthand.parse_duration_days("x 5 days") == 5
+    assert shorthand.parse_duration_days("for 2 weeks") == 14
+    assert shorthand.parse_duration_days("1 month") == 30
+    assert shorthand.parse_duration_days("3d") == 3
+    assert shorthand.parse_duration_days("") is None
+
+
+def test_calendar_reminders_build_google_urls_and_ics():
+    med1 = medicine("Amoxicillin", frequency="1-0-1").model_copy(update={"duration": field("5 days")})
+    med2 = medicine("Paracetamol", frequency="SOS").model_copy(update={"duration": field("3 days")})
+    reminders = analyzer.build_calendar_reminders([med1, med2], "en-IN", start_date="2026-11-01")
+
+    assert "morning" in reminders["slots"]
+    assert "night" in reminders["slots"]
+    assert "afternoon" not in reminders["slots"]
+
+    morning = reminders["slots"]["morning"]
+    assert morning["duration_days"] == 5
+    assert "calendar.google.com/calendar/render" in morning["google_url"]
+    assert "20261101T080000" in morning["google_url"]
+
+    # Paracetamol is SOS so it must be in as_needed, not scheduled slots
+    as_needed = reminders["as_needed"]
+    assert len(as_needed) == 1
+    assert as_needed[0]["name"] == "Paracetamol"
+
+    # ICS calendar payload
+    assert "BEGIN:VCALENDAR" in reminders["ics_calendar"]
+    assert "RRULE:FREQ=DAILY;COUNT=5" in reminders["ics_calendar"]
+    assert "TRIGGER:-PT10M" in reminders["ics_calendar"]
+
+
+def test_calendar_endpoint_with_custom_times(client, details):
+    signed_in(client, details)
+    med = medicine("Azithromycin", frequency="1-0-0").model_copy(update={"duration": field("3 days")})
+    response = client.post(
+        "/api/prescription/calendar",
+        json={
+            "medicines": [json.loads(med.model_dump_json())],
+            "language": "hi-IN",
+            "start_date": "2026-11-05",
+            "times": {"morning": "09:15"},
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["times"]["morning"] == "09:15"
+    assert "morning" in data["slots"]
+    assert "20261105T091500" in data["slots"]["morning"]["google_url"]
+    assert data["slots"]["morning"]["duration_days"] == 3
+

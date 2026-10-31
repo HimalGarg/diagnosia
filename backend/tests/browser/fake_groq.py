@@ -48,7 +48,6 @@ PRESCRIPTION = {
 }
 GUIDANCE = {
     "medicines": [{"name": "Amoxicillin", "purpose": "Treats infection.", "how_to_take": "Take it morning and night."}],
-    "foods_to_eat": ["Rice"], "foods_to_avoid": ["Alcohol"], "yoga": [], "lifestyle": ["Rest"],
 }
 REPORT = {
     "chief_complaint": "Fever", "present_illness": "Three days of fever.", "highlights": ["Fever for three days"],

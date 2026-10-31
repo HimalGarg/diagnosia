@@ -70,6 +70,35 @@ def decode(raw: str) -> Optional[str]:
     return ". ".join(dict.fromkeys(parts)) if parts else None
 
 
+def is_as_needed(raw: str) -> bool:
+    """Checks whether a medicine is taken only as needed (SOS/PRN)."""
+    return bool(AS_NEEDED & set(_words(raw)))
+
+
+DURATION_PARSER = re.compile(
+    r"(?:(?:x|for|×)\s*)?(\d+)\s*(days?|d|weeks?|wks?|w|months?|m)\b", re.IGNORECASE
+)
+
+
+def parse_duration_days(raw: str) -> Optional[int]:
+    """Extracts duration in days from shorthand or duration string."""
+    if not raw:
+        return None
+    match = DURATION_PARSER.search(raw)
+    if not match:
+        return None
+    amount = int(match.group(1))
+    unit = match.group(2).lower().rstrip("s")
+    unit = UNITS.get(unit, unit)
+    if unit == "day":
+        return amount
+    if unit == "week":
+        return amount * 7
+    if unit == "month":
+        return amount * 30
+    return None
+
+
 def daily_slots(raw: str, frequency: str = "") -> Dict[str, str]:
     """When to take a medicine, only if the prescription states it exactly.
 
@@ -77,9 +106,10 @@ def daily_slots(raw: str, frequency: str = "") -> Dict[str, str]:
     so no schedule is given rather than a possibly wrong one.
     """
     amounts = _day_amounts(raw)
-    if not amounts or AS_NEEDED & set(_words(frequency)):
+    if not amounts or is_as_needed(frequency):
         return {}
     slots = zip(("morning", "afternoon", "night"), amounts)
     result = {slot: AMOUNTS.get(amount, amount) for slot, amount in slots if amount != "0"}
     expected = next((DOSES_A_DAY[word] for word in _words(frequency) if word in DOSES_A_DAY), None)
     return {} if expected is not None and expected != len(result) else result
+

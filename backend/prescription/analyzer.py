@@ -7,14 +7,18 @@ has checked what was read, and unreadable items never reach the explanation.
 import base64
 import io
 import json
+import re
+import uuid
+from datetime import date, datetime, timedelta, timezone
 from typing import Dict, List, Literal, Optional, Tuple
+from urllib.parse import quote, urlencode
 
 from PIL import Image, ImageOps
 from pydantic import BaseModel
 
 from backend import llm
 from backend.prescription.medicines import check_name
-from backend.prescription.shorthand import daily_slots, decode
+from backend.prescription.shorthand import daily_slots, decode, is_as_needed, parse_duration_days
 from backend.speech import Language
 
 MAX_PHOTO_SIDE = 1568
@@ -53,9 +57,6 @@ Rules that always apply:
 - Don't say to stop or start any medicine.
 - Say what a medicine is usually for. Use its listed ingredients if they're given. If you aren't
   sure what it's for, leave purpose empty.
-- If doctor's notes are given, make the food, exercise and daily tips suit that condition.
-- Diet, yoga and lifestyle tips must be general and safe. Skip yoga poses for anyone who may be
-  frail, pregnant or recovering, and say to check with the doctor first.
 - Write everything in the requested language, using simple words a person who didn't finish
   school can follow.
 
@@ -91,10 +92,6 @@ class MedicineGuidance(BaseModel):
 
 class Guidance(BaseModel):
     medicines: List[MedicineGuidance]
-    foods_to_eat: List[str]
-    foods_to_avoid: List[str]
-    yoga: List[str]
-    lifestyle: List[str]
 
 
 class ConfirmedMedicine(BaseModel):
@@ -165,6 +162,70 @@ def is_explainable(medicine: ConfirmedMedicine) -> bool:
     return all(field.value.strip() and field.legibility != "unreadable" for field in needed)
 
 
+DEFAULT_SLOT_TIMES = {
+    "morning": "08:00",
+    "afternoon": "13:00",
+    "night": "20:30",
+}
+SLOT_TITLES = {
+    "en-IN": {
+        "morning": "Morning Medicines",
+        "afternoon": "Afternoon Medicines",
+        "night": "Night Medicines",
+    },
+    "hi-IN": {
+        "morning": "सुबह की दवाइयाँ (Morning Medicines)",
+        "afternoon": "दोपहर की दवाइयाँ (Afternoon Medicines)",
+        "night": "रात की दवाइयाँ (Night Medicines)",
+    },
+}
+
+
+def generate_ics_calendar(slots: List[dict]) -> str:
+    """Creates a standard RFC 5545 iCalendar payload for multi-slot reminders."""
+    now_stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    events_str = []
+    for item in slots:
+        uid = f"{uuid.uuid4().hex}@diagnosia"
+        clean_desc = (
+            item["description"]
+            .replace("\\", "\\\\")
+            .replace(";", "\\;")
+            .replace(",", "\\,")
+            .replace("\n", "\\n")
+        )
+        clean_summary = (
+            item["title"].replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+        )
+        event = (
+            "BEGIN:VEVENT\r\n"
+            f"UID:{uid}\r\n"
+            f"DTSTAMP:{now_stamp}\r\n"
+            f"DTSTART:{item['dtstart']}\r\n"
+            f"DTEND:{item['dtend']}\r\n"
+            f"RRULE:FREQ=DAILY;COUNT={item['duration_days']}\r\n"
+            f"SUMMARY:{clean_summary}\r\n"
+            f"DESCRIPTION:{clean_desc}\r\n"
+            "BEGIN:VALARM\r\n"
+            "TRIGGER:-PT10M\r\n"
+            "ACTION:DISPLAY\r\n"
+            f"DESCRIPTION:{clean_summary}\r\n"
+            "END:VALARM\r\n"
+            "END:VEVENT"
+        )
+        events_str.append(event)
+    events_block = "\r\n".join(events_str)
+    return (
+        "BEGIN:VCALENDAR\r\n"
+        "VERSION:2.0\r\n"
+        "PRODID:-//Diagnosia//Prescription Reminders//EN\r\n"
+        "CALSCALE:GREGORIAN\r\n"
+        "METHOD:PUBLISH\r\n"
+        f"{events_block}\r\n"
+        "END:VCALENDAR\r\n"
+    )
+
+
 def build_schedule(medicines: List[ConfirmedMedicine]) -> Dict[str, List[dict]]:
     schedule: Dict[str, List[dict]] = {"morning": [], "afternoon": [], "night": []}
     for medicine in medicines:
@@ -172,6 +233,147 @@ def build_schedule(medicines: List[ConfirmedMedicine]) -> Dict[str, List[dict]]:
         for slot, amount in slots.items():
             schedule[slot].append({"name": medicine.name.value, "amount": amount})
     return schedule
+
+
+def build_calendar_reminders(
+    medicines: List[ConfirmedMedicine],
+    language: Language,
+    guidance: Optional[dict] = None,
+    start_date: Optional[str] = None,
+    custom_times: Optional[Dict[str, str]] = None,
+) -> dict:
+    """Builds consolidated daily reminder events and Google Calendar links."""
+    times = dict(DEFAULT_SLOT_TIMES)
+    if custom_times:
+        for k, v in custom_times.items():
+            if k in times and re.match(r"^\d{2}:\d{2}$", str(v)):
+                times[k] = str(v)
+
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else date.today()
+    except (ValueError, TypeError):
+        start = date.today()
+
+    purposes: Dict[str, str] = {}
+    if guidance and isinstance(guidance, dict):
+        for med_guide in guidance.get("medicines", []):
+            if isinstance(med_guide, dict) and med_guide.get("name"):
+                purposes[med_guide["name"].lower().strip()] = med_guide.get("purpose", "")
+
+    slot_medicines: Dict[str, List[dict]] = {"morning": [], "afternoon": [], "night": []}
+
+    for medicine in medicines:
+        if is_as_needed(medicine.frequency.value) or is_as_needed(medicine.day_pattern.value):
+            continue
+        slots = daily_slots(medicine.day_pattern.value or medicine.frequency.value, medicine.frequency.value)
+        duration_days = parse_duration_days(medicine.duration.value) or 7
+        timing_str = decode(medicine.frequency.value) or ""
+        purpose = purposes.get(medicine.name.value.lower().strip(), "")
+
+        for slot, amount in slots.items():
+            if slot in slot_medicines:
+                slot_medicines[slot].append(
+                    {
+                        "name": medicine.name.value,
+                        "amount": amount,
+                        "dose": medicine.dose.value,
+                        "timing": timing_str,
+                        "duration_days": duration_days,
+                        "purpose": purpose,
+                        "notes": medicine.notes.value,
+                    }
+                )
+
+    titles = SLOT_TITLES.get(language, SLOT_TITLES["en-IN"])
+    slot_results: Dict[str, dict] = {}
+
+    for slot in ("morning", "afternoon", "night"):
+        meds = slot_medicines[slot]
+        if not meds:
+            continue
+        duration_days = max(m["duration_days"] for m in meds)
+        hour, minute = map(int, times[slot].split(":"))
+        start_dt = datetime(start.year, start.month, start.day, hour, minute)
+        end_dt = start_dt + timedelta(minutes=15)
+        dtstart_str = start_dt.strftime("%Y%m%dT%H%M%S")
+        dtend_str = end_dt.strftime("%Y%m%dT%H%M%S")
+
+        title = f"{titles[slot]} - Diagnosia"
+        if language == "hi-IN":
+            med_lines = []
+            for m in meds:
+                desc = f"• {m['name']} ({m['amount']}) {m['dose']}".strip()
+                if m["timing"]:
+                    desc += f" - {m['timing']}"
+                if m["purpose"]:
+                    desc += f" (उद्देश्य: {m['purpose']})"
+                med_lines.append(desc)
+            details = (
+                "💊 डॉक्टर द्वारा लिखी गई दवाइयाँ:\n"
+                + "\n".join(med_lines)
+                + "\n\n⚠️ निर्देश:\nडॉक्टर के निर्देशानुसार लें। किसी भी असुविधा पर डॉक्टर या फार्मासिस्ट से संपर्क करें।"
+            )
+        else:
+            med_lines = []
+            for m in meds:
+                desc = f"• {m['name']} ({m['amount']}) {m['dose']}".strip()
+                if m["timing"]:
+                    desc += f" - {m['timing']}"
+                if m["purpose"]:
+                    desc += f" (Purpose: {m['purpose']})"
+                med_lines.append(desc)
+            details = (
+                "💊 Prescribed Medicines:\n"
+                + "\n".join(med_lines)
+                + "\n\n⚠️ Instructions:\nTake as directed by your doctor. Consult your doctor or pharmacist if unsure."
+            )
+
+        params = {
+            "action": "TEMPLATE",
+            "text": title,
+            "details": details,
+            "dates": f"{dtstart_str}/{dtend_str}",
+            "recur": f"RRULE:FREQ=DAILY;COUNT={duration_days}",
+        }
+        google_url = f"https://calendar.google.com/calendar/render?{urlencode(params)}"
+
+        slot_results[slot] = {
+            "slot": slot,
+            "title": title,
+            "time": times[slot],
+            "duration_days": duration_days,
+            "medicines": meds,
+            "google_url": google_url,
+            "description": details,
+            "dtstart": dtstart_str,
+            "dtend": dtend_str,
+        }
+
+    as_needed_meds = [
+        {
+            "name": m.name.value,
+            "dose": m.dose.value,
+            "instructions": (
+                "Only when needed (SOS/PRN) - not scheduled on regular alarms"
+                if language != "hi-IN"
+                else "केवल ज़रूरत पड़ने पर लें (SOS) - नियमित अलार्म में शामिल नहीं"
+            ),
+            "notes": m.notes.value,
+            "purpose": purposes.get(m.name.value.lower().strip(), ""),
+        }
+        for m in medicines
+        if is_as_needed(m.frequency.value) or is_as_needed(m.day_pattern.value)
+    ]
+
+    ics_calendar = generate_ics_calendar(list(slot_results.values())) if slot_results else ""
+
+    return {
+        "start_date": start.isoformat(),
+        "times": times,
+        "slots": slot_results,
+        "as_needed": as_needed_meds,
+        "ics_calendar": ics_calendar,
+    }
 
 
 def explain_prescription(medicines: List[ConfirmedMedicine], language: Language, doctor_notes: str = "") -> dict:
@@ -202,8 +404,12 @@ def explain_prescription(medicines: List[ConfirmedMedicine], language: Language,
             f"Medicines:\n{json.dumps(details, ensure_ascii=False, indent=2)}"
         )
         guidance = llm.ask(EXPLAIN_SYSTEM, request, Guidance, tool="prescription_explain").model_dump()
+    reminders = build_calendar_reminders(explainable, language, guidance)
     return {
         "guidance": guidance,
         "schedule": build_schedule(explainable),
+        "reminders": reminders,
+        "as_needed": reminders.get("as_needed", []),
         "ask_pharmacist": ask_pharmacist,
     }
+

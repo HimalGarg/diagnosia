@@ -2,7 +2,7 @@
 
 Sign-in is required because every request costs money in AI fees.
 """
-from typing import List
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
@@ -25,6 +25,14 @@ class ExplainRequest(BaseModel):
     medicines: List[ConfirmedMedicine] = Field(max_length=30)
     language: Language
     doctor_notes: str = Field(default="", max_length=2000)
+
+
+class CalendarRequest(BaseModel):
+    medicines: List[ConfirmedMedicine] = Field(max_length=30)
+    language: Language
+    guidance: Optional[dict] = None
+    start_date: Optional[str] = None
+    times: Optional[dict] = None
 
 
 class SpeakRequest(BaseModel):
@@ -74,6 +82,18 @@ def explain(request: ExplainRequest, user=Depends(require_user)) -> dict:
     return result
 
 
+@router.post("/calendar")
+def calendar(request: CalendarRequest, _user=Depends(require_user)) -> dict:
+    return analyzer.build_calendar_reminders(
+        request.medicines,
+        request.language,
+        request.guidance,
+        request.start_date,
+        request.times,
+    )
+
+
 @router.post("/speak")
 def read_aloud(request: SpeakRequest, _user=Depends(require_user)) -> Response:
     return Response(speak(request.text, request.language), media_type="audio/wav")
+
