@@ -213,7 +213,9 @@ export function badge(text, kind = '') {
 
 export function when(value) {
     if (!value) return '';
-    const date = new Date(value.length === 10 ? `${value}T00:00:00` : value);
+    // SQLite's datetime('now') is UTC with no zone marked, so a browser would take it as local time.
+    const utc = /^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/.test(value) ? `${value.replace(' ', 'T')}Z` : value;
+    const date = new Date(value.length === 10 ? `${value}T00:00:00` : utc);
     if (Number.isNaN(date.getTime())) return value;
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     if (value.length > 10) Object.assign(options, { hour: 'numeric', minute: '2-digit' });
