@@ -15,11 +15,14 @@ from backend.db import connect
 from backend.tests.conftest import grant, linked_patient, verified_organization
 
 PUBLIC = {("POST", "/api/auth/register"), ("POST", "/api/auth/login"), ("POST", "/api/auth/logout")}
+# Explicit deployment configuration gates self-service visits; no existing chart is exposed.
+PUBLIC |= {("GET", "/api/diagnofast/kiosk"), ("POST", "/api/diagnofast/kiosk/intakes")}
 # DiagnoFast's patient has no account. The single-use link in the path is the credential.
 LINK_ROUTES = {
     ("GET", "/api/diagnofast/patient/{token}"),
     ("POST", "/api/diagnofast/patient/{token}/start"),
     ("POST", "/api/diagnofast/patient/{token}/answer"),
+    ("POST", "/api/diagnofast/patient/{token}/transcribe"),
 }
 FAKE_ID = "00000000-0000-0000-0000-000000000000"
 
@@ -50,7 +53,9 @@ def test_the_sweep_sees_the_whole_api():
 GATES = (
     "open_patient", "lookup", "require_membership", "require_profession", "_verifying_admin", "_staff_gate", "_clinical",
     "_editable", "_side", "_change", "_decide", "_is_receiver", "_require_admin",
+
     "_readable_intake", "_open_intake", "_open_workflow", "_allowed", "gate_staff", "open_pack",
+    "_kiosk_doctor",
 )
 NEEDS_NO_RECORD = {
     "register", "login", "logout", "me", "my_status", "accept_invitation", "system_status", "system_readiness",
@@ -83,6 +88,8 @@ def test_routes_taking_a_patient_in_the_body_still_use_the_gate(name):
 def test_a_made_up_link_opens_nothing(client, method, path):
     client.cookies.clear()
     body = {"json": {"language": "en-IN", "consent": True}} if path.endswith("start") else {"data": {"text": "hello"}}
+    if path.endswith("transcribe"):
+        body = {"files": {"audio": ("answer.webm", b"synthetic", "audio/webm")}}
     response = client.request(method, filled(path), **({} if method == "GET" else body))
     assert response.status_code == 404
 

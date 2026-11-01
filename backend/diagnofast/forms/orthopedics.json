@@ -1,0 +1,299 @@
+{
+  "id": "orthopedics",
+  "title": "Orthopedics",
+  "fields": [
+    {
+      "key": "chief_complaint",
+      "label": "Reason for visit",
+      "required": true,
+      "question": {
+        "en-IN": "Tell me about the bone or joint trouble that brought you here.",
+        "hi-IN": "हड्डी या जोड़ की किस परेशानी के लिए आए हैं?"
+      }
+    },
+    {
+      "key": "location",
+      "label": "Joint or body site",
+      "required": true,
+      "question": {
+        "en-IN": "Where do you feel the discomfort?",
+        "hi-IN": "तकलीफ़ कहाँ महसूस होती है?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Head or neck",
+            "value": "Head or neck"
+          },
+          {
+            "label": "Shoulder",
+            "value": "Shoulder"
+          },
+          {
+            "label": "Arm or hand",
+            "value": "Arm or hand"
+          },
+          {
+            "label": "Back",
+            "value": "Back"
+          },
+          {
+            "label": "Hip",
+            "value": "Hip"
+          },
+          {
+            "label": "Knee",
+            "value": "Knee"
+          },
+          {
+            "label": "Foot or ankle",
+            "value": "Foot or ankle"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "सिर या गर्दन",
+            "value": "सिर या गर्दन"
+          },
+          {
+            "label": "कंधा",
+            "value": "कंधा"
+          },
+          {
+            "label": "बाँह या हाथ",
+            "value": "बाँह या हाथ"
+          },
+          {
+            "label": "पीठ",
+            "value": "पीठ"
+          },
+          {
+            "label": "कूल्हा",
+            "value": "कूल्हा"
+          },
+          {
+            "label": "घुटना",
+            "value": "घुटना"
+          },
+          {
+            "label": "पैर या टखना",
+            "value": "पैर या टखना"
+          }
+        ]
+      }
+    },
+    {
+      "key": "duration",
+      "label": "Onset and duration",
+      "required": true,
+      "question": {
+        "en-IN": "When did this start?",
+        "hi-IN": "यह कब शुरू हुआ?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Today",
+            "value": "Today"
+          },
+          {
+            "label": "2-3 days",
+            "value": "2-3 days"
+          },
+          {
+            "label": "1 week",
+            "value": "1 week"
+          },
+          {
+            "label": "1 month or more",
+            "value": "1 month or more"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "आज",
+            "value": "आज"
+          },
+          {
+            "label": "2-3 दिन",
+            "value": "2-3 दिन"
+          },
+          {
+            "label": "1 सप्ताह",
+            "value": "1 सप्ताह"
+          },
+          {
+            "label": "1 महीना या अधिक",
+            "value": "1 महीना या अधिक"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "trauma",
+      "label": "Injury history",
+      "required": true,
+      "question": {
+        "en-IN": "Was there a fall, injury or unusual activity before it started?",
+        "hi-IN": "इससे पहले गिरना, चोट लगना या असामान्य गतिविधि हुई थी?"
+      }
+    },
+    {
+      "key": "weight_bearing",
+      "label": "Weight-bearing and function",
+      "required": true,
+      "question": {
+        "en-IN": "Can you stand or walk on it, or use the affected limb?",
+        "hi-IN": "क्या आप उस पर खड़े हो सकते हैं, चल सकते हैं या उस अंग का इस्तेमाल कर सकते हैं?"
+      }
+    },
+    {
+      "key": "swelling",
+      "label": "Swelling",
+      "required": true,
+      "question": {
+        "en-IN": "Have you noticed swelling or redness?",
+        "hi-IN": "क्या सूजन या लालिमा दिखी है?"
+      }
+    },
+    {
+      "key": "stiffness",
+      "label": "Stiffness",
+      "required": true,
+      "question": {
+        "en-IN": "Does it feel stiff, especially after resting?",
+        "hi-IN": "क्या आराम के बाद अकड़न महसूस होती है?"
+      }
+    },
+    {
+      "key": "severity",
+      "label": "Pain score",
+      "required": true,
+      "question": {
+        "en-IN": "On a scale of 1 to 10, how much does it hurt?",
+        "hi-IN": "1 से 10 के पैमाने पर दर्द कितना है?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "1",
+            "value": "1"
+          },
+          {
+            "label": "2",
+            "value": "2"
+          },
+          {
+            "label": "3",
+            "value": "3"
+          },
+          {
+            "label": "4",
+            "value": "4"
+          },
+          {
+            "label": "5",
+            "value": "5"
+          },
+          {
+            "label": "6",
+            "value": "6"
+          },
+          {
+            "label": "7",
+            "value": "7"
+          },
+          {
+            "label": "8",
+            "value": "8"
+          },
+          {
+            "label": "9",
+            "value": "9"
+          },
+          {
+            "label": "10",
+            "value": "10"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "1",
+            "value": "1"
+          },
+          {
+            "label": "2",
+            "value": "2"
+          },
+          {
+            "label": "3",
+            "value": "3"
+          },
+          {
+            "label": "4",
+            "value": "4"
+          },
+          {
+            "label": "5",
+            "value": "5"
+          },
+          {
+            "label": "6",
+            "value": "6"
+          },
+          {
+            "label": "7",
+            "value": "7"
+          },
+          {
+            "label": "8",
+            "value": "8"
+          },
+          {
+            "label": "9",
+            "value": "9"
+          },
+          {
+            "label": "10",
+            "value": "10"
+          }
+        ]
+      }
+    },
+    {
+      "key": "past_illnesses",
+      "label": "Past illnesses",
+      "required": false,
+      "question": {
+        "en-IN": "Do you have any long-term illness, such as diabetes or high blood pressure?",
+        "hi-IN": "क्या आपको कोई पुरानी बीमारी है, जैसे शुगर या ब्लड प्रेशर?"
+      }
+    },
+    {
+      "key": "current_medicines",
+      "label": "Current medicines",
+      "required": true,
+      "question": {
+        "en-IN": "What medicines are you taking right now?",
+        "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"
+      }
+    },
+    {
+      "key": "allergies",
+      "label": "Allergies",
+      "required": true,
+      "question": {
+        "en-IN": "Are you allergic to any medicine or food?",
+        "hi-IN": "क्या आपको किसी दवा या खाने से एलर्जी है?"
+      }
+    }
+  ]
+}

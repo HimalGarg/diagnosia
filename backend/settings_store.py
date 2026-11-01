@@ -30,17 +30,18 @@ TOOLS = {
     "discharge": "DischargeCare",
 }
 PROVIDERS = {"groq": "Groq", "gemini": "Google Gemini"}
-# Reading handwriting and scanned reports is where Gemini does best, so these three prefer it.
+# Reading tools and clinical intake normalization prefer Gemini, with provider fallback.
 # Anything else follows the general provider setting.
 READING_TOOLS = {
     "prescription_read": "Prescription: reading photos",
     "prescription_explain": "Prescription: explaining to patients",
     "prescription_plan": "Prescription: planning the daily times",
     "lablens_read": "LabLens: reading scanned reports",
+    "diagnofast_turn": "DiagnoFast: understanding confirmed answers",
 }
 # Chosen by comparing models on synthetic photos (backend/tests/ai_eval). The larger model was the
 # only one to keep every value on its own row in a tilted, glared lab photo. Explaining needs no eyes.
-READING_MODELS = {"prescription_read": "gemini-3.5-flash", "prescription_explain": "gemini-3.5-flash-lite", "prescription_plan": "gemini-3.5-flash", "lablens_read": "gemini-3.5-flash"}
+READING_MODELS = {"prescription_read": "gemini-3.5-flash", "prescription_explain": "gemini-3.5-flash-lite", "prescription_plan": "gemini-3.5-flash", "lablens_read": "gemini-3.5-flash", "diagnofast_turn": "gemini-3.5-flash-lite"}
 GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
 TEXT_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
 VISION_MODELS = ["qwen/qwen3.8-27b", "meta-models/muse-spark-open"]

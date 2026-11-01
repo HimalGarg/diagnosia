@@ -4,6 +4,7 @@ Groq has no Hindi voice, so Hindi reading is done by the browser's own voice.
 Whisper can invent words from silence, so segments it marks as probably not speech
 are dropped rather than written into a clinical transcript.
 """
+import asyncio
 import re
 import time
 from typing import Literal, Optional
@@ -28,6 +29,8 @@ LANGUAGE_CODES = {"en-IN": "en", "hi-IN": "hi"}
 
 Language = Literal["en-IN", "hi-IN"]
 VOICED_LANGUAGES = ("en-IN",)  # anything else is read by the browser
+NEURAL_VOICES = {"en-IN": "en-IN-NeerjaNeural", "hi-IN": "hi-IN-SwaraNeural"}
+NEURAL_TIMEOUT_SECONDS = 8
 
 
 class SpeechUnavailable(Exception):
@@ -129,3 +132,38 @@ def speak(text: str, language: Language) -> bytes:
     if not response.content:
         raise SpeechUnavailable("The speech service sent no audio")
     return response.content
+
+
+def speak_neural(text: str, language: Language) -> bytes:
+    """MP3 question audio. The caller falls back when the optional service is unavailable.
+
+    Kept separate from speak(), whose WAV contract is also used by prescriptions.
+    Called from synchronous route workers, never from an event loop.
+    """
+    if len(text) > MAX_SPEECH_CHARS:
+        raise SpeechRejected("Text is too long to read aloud in one request")
+    if not settings.neural_tts_enabled or language not in NEURAL_VOICES:
+        raise SpeechUnavailable("Neural voice is disabled")
+    try:
+        import edge_tts
+
+        async def collect():
+            voice = edge_tts.Communicate(text, NEURAL_VOICES[language], rate="-8%", pitch="+0Hz")
+            chunks = []
+            async for chunk in voice.stream():
+                if chunk["type"] == "audio":
+                    chunks.append(chunk["data"])
+            return b"".join(chunks)
+
+        async def bounded():
+            return await asyncio.wait_for(collect(), timeout=NEURAL_TIMEOUT_SECONDS)
+
+        data = asyncio.run(bounded())
+        if not data:
+            raise SpeechUnavailable("Neural voice returned no audio")
+        return data
+    except SpeechUnavailable:
+        raise
+    except Exception as error:
+        # Service exceptions can contain request text; expose only the exception type.
+        raise SpeechUnavailable(type(error).__name__) from None

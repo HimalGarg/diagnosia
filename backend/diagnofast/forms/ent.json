@@ -1,0 +1,142 @@
+{
+  "id": "ent",
+  "title": "ENT",
+  "fields": [
+    {
+      "key": "chief_complaint",
+      "label": "Reason for visit",
+      "required": true,
+      "question": {
+        "en-IN": "What ear, nose or throat discomfort can you tell me about?",
+        "hi-IN": "कान, नाक या गले में क्या परेशानी है?"
+      }
+    },
+    {
+      "key": "duration",
+      "label": "Onset and duration",
+      "required": true,
+      "question": {
+        "en-IN": "When did this begin?",
+        "hi-IN": "यह कब शुरू हुआ?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Today",
+            "value": "Today"
+          },
+          {
+            "label": "2-3 days",
+            "value": "2-3 days"
+          },
+          {
+            "label": "1 week",
+            "value": "1 week"
+          },
+          {
+            "label": "1 month or more",
+            "value": "1 month or more"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "आज",
+            "value": "आज"
+          },
+          {
+            "label": "2-3 दिन",
+            "value": "2-3 दिन"
+          },
+          {
+            "label": "1 सप्ताह",
+            "value": "1 सप्ताह"
+          },
+          {
+            "label": "1 महीना या अधिक",
+            "value": "1 महीना या अधिक"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "ear_pain",
+      "label": "Ear pain or discharge",
+      "required": true,
+      "question": {
+        "en-IN": "Have you had ear pain or fluid coming from an ear?",
+        "hi-IN": "क्या कान में दर्द या कान से पानी आता है?"
+      }
+    },
+    {
+      "key": "nasal_discharge",
+      "label": "Nasal blockage or discharge",
+      "required": true,
+      "question": {
+        "en-IN": "Have you had a blocked or runny nose?",
+        "hi-IN": "क्या नाक बंद रहती है या बहती है?"
+      }
+    },
+    {
+      "key": "throat",
+      "label": "Throat pain or swallowing difficulty",
+      "required": true,
+      "question": {
+        "en-IN": "Is your throat sore, or is swallowing difficult?",
+        "hi-IN": "क्या गले में दर्द या निगलने में परेशानी है?"
+      }
+    },
+    {
+      "key": "hoarseness",
+      "label": "Voice changes",
+      "required": true,
+      "question": {
+        "en-IN": "Has your voice changed or become hoarse?",
+        "hi-IN": "क्या आवाज़ बदली या बैठ गई है?"
+      }
+    },
+    {
+      "key": "hearing",
+      "label": "Hearing changes",
+      "required": true,
+      "question": {
+        "en-IN": "Have you noticed any change in hearing, especially a sudden change?",
+        "hi-IN": "क्या सुनाई देने में बदलाव आया है, खासकर अचानक?"
+      }
+    },
+    {
+      "key": "past_illnesses",
+      "label": "Past illnesses",
+      "required": false,
+      "question": {
+        "en-IN": "Do you have any long-term illness, such as diabetes or high blood pressure?",
+        "hi-IN": "क्या आपको कोई पुरानी बीमारी है, जैसे शुगर या ब्लड प्रेशर?"
+      }
+    },
+    {
+      "key": "current_medicines",
+      "label": "Current medicines",
+      "required": true,
+      "question": {
+        "en-IN": "What medicines are you taking right now?",
+        "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"
+      }
+    },
+    {
+      "key": "allergies",
+      "label": "Allergies",
+      "required": true,
+      "question": {
+        "en-IN": "Are you allergic to any medicine or food?",
+        "hi-IN": "क्या आपको किसी दवा या खाने से एलर्जी है?"
+      }
+    }
+  ]
+}
