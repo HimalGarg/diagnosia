@@ -8,6 +8,7 @@
       <meta content="summary_large_image" name="twitter:card">
       <meta content="width=device-width, initial-scale=1" name="viewport">
       <link href="./css/index.css" rel="stylesheet" type="text/css">
+      <link href="./css/liquid-metal.css" rel="stylesheet" type="text/css">
       <link
          rel="apple-touch-icon"
          sizes="180x180"
@@ -34,20 +35,28 @@
       </script>
    </head>
    <body class="body">
+      <!-- Fullscreen Edge-to-Edge ECG Loader (Zero Text) -->
       <div id="loader" class="loader">
          <div class="spinner"></div>
-     </div>
-   <script>
-      document.addEventListener("DOMContentLoaded", function() {
-         setTimeout(function() {
-             document.getElementById('loader').style.display = 'none';
-         }, 0);
-     });
-     
-     </script>
+      </div>
+      <script>
+         document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                var l = document.getElementById('loader');
+                if (l) {
+                   l.style.transition = 'opacity 300ms ease';
+                   l.style.opacity = '0';
+                   setTimeout(function() { l.style.display = 'none'; }, 300);
+                }
+            }, 300);
+         });
+      </script>
       <div class="fixed-cta-container">
-         <a id="account-cta" href="login.html" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
-            <div>LOGIN</div>
+         <a id="account-cta" href="login.html" class="fixed-cta flow-button" aria-label="Login">
+            <span class="flow-btn-text">LOGIN</span>
+            <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            <span class="flow-btn-circle"></span>
+            <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
          </a>
       </div>
       <div class="page-wrapper">
@@ -67,47 +76,36 @@
                      </svg>
                   </div>
                </a>
-               <div class="nav-menu">
-                  <a href="#How-It-works" data-w-id="b282fa53-c876-a363-d487-995c7a38630d" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">tools</div>
-                        <div class="nav-text-hover">tools</div>
-                     </div>
-                  </a>
-                  <a href="#FAQ" data-w-id="b282fa53-c876-a363-d487-995c7a38631f" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">faq</div>
-                        <div class="nav-text-hover">faq</div>
-                     </div>
-                  </a>
-                  <a href="#Get-Started" data-w-id="b282fa53-c876-a363-d487-995c7a386325" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">about&nbsp;us</div>
-                        <div class="nav-text-hover">about&nbsp;us</div>
-                     </div>
-                  </a>
+               <div class="nav-menu premium-dock">
+                  <a href="#How-It-works" class="nav-item-premium" title="Tools"><span>tools</span></a>
+                  <a href="#FAQ" class="nav-item-premium" title="FAQ"><span>faq</span></a>
+                  <a href="#Get-Started" class="nav-item-premium" title="About Us"><span>about us</span></a>
                </div>
                <a id="w-node-b282fa53-c876-a363-d487-995c7a38632b-a954070d" data-w-id="b282fa53-c876-a363-d487-995c7a38632b" href="" class="button secondary small nav-cta hide w-button">get in touch</a>
             </div>
          </div>
-         <div data-w-id="b282fa53-c876-a363-d487-995c7a38632d" class="section grain top-140">
+         <div class="hero-interactive-stage" id="hero-interactive-stage">
+            <div class="hero-live-gradient-container" aria-hidden="true">
+               <div class="hero-live-orb orb-primary" id="live-orb-1"></div>
+               <div class="hero-live-orb orb-secondary" id="live-orb-2"></div>
+               <div class="hero-live-orb orb-accent" id="live-orb-3"></div>
+               <div class="hero-live-orb orb-cursor" id="live-orb-cursor"></div>
+            </div>
+            <div data-w-id="b282fa53-c876-a363-d487-995c7a38632d" class="section grain top-140">
             <div class="container">
-               <img src="./images/6063c4d42832005277eed0ff_See for yourself.svg" loading="lazy" style="opacity: 1;" data-w-id="b282fa53-c876-a363-d487-995c7a38632f" alt="" class="label-arrow on-d">
                <div class="w-layout-grid hero-grid">
                   <div id="w-node-b282fa53-c876-a363-d487-995c7a386331-a954070d" class="hero-content-wrap design-to-webflow">
                      <h1 class="hero-heading">Revolutionizing healthcare with <span class="with-underline long-underline">Advanced </span> Diagnosis</h1>
-                     <p class="paragraph-m max-560w margin-l margin-0-t-m">Seven AI tools on one patient record, from the waiting room to discharge. Doctors get back their time, and patients understand their care.</p>
-                     <div class="hero-actions"><a class="use-now" href="care.html">Open Diagnosia</a><a class="hero-link" href="#How-It-works">See all eight tools</a></div>
+                     <p class="paragraph-m max-560w margin-l margin-0-t-m">AI tools on one patient record, from the waiting room to long-term care. Doctors get back their time, and patients understand their care.</p>
+                     <div class="hero-actions"><a class="use-now flow-button" href="care.html"><span class="flow-btn-text">Open Diagnosia</span><svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg><span class="flow-btn-circle"></span><svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><a class="hero-link" href="#How-It-works">See all AI tools</a></div>
                   </div>
-                  <ol class="visit-path" aria-label="The tools, in the order of a visit">
-                     <li><strong>Before the visit</strong><span>DiagnoFast</span></li>
-                     <li><strong>During the visit</strong><span>ClinScribe, LabLens, Skin Cancer Detection</span></li>
-                     <li><strong>After the visit</strong><span>Prescription Analyzer, ReferralLoop, DischargeCare</span></li>
-                     <li><strong>Access for everyone</strong><span>OptiKinesis</span></li>
-                  </ol>
+                  <div class="hero-spiral-stage">
+                     <div id="infiniteSpiralHero" class="infinite-spiral" style="perspective: 1000px; --infinite-spiral-card-width: 110px; --infinite-spiral-card-height: 110px; --infinite-spiral-card-radius: 12px;">
+                        <div class="infinite-spiral__stage" role="list" aria-label="Infinite spiral gallery"></div>
+                     </div>
+                  </div>
                </div>
             </div>
-            <div class="circle-blur-top-left-2 safari"></div>
          </div>
          <div class="section grain padding-top-40">
             <div class="container">
@@ -142,75 +140,424 @@
                   </div>
                </div>
             </div>
-            <div class="circle-blur-bottom-right-2 safari"></div>
          </div>
+      </div>
          <div id="How-It-works" data-w-id="30c8d968-55fe-8251-987b-0e377becbfbb" class="section black">
+            <div class="tools-ambient-glow tools-glow-left"></div>
+            <div class="tools-ambient-glow tools-glow-right"></div>
             <div class="container">
-               <div class="center-div max-720w margin-l">
-                  <h2 class="heading-2-small text-white">One platform for the whole visit</h2>
-                  <p class="paragraph-m text-white">Eight tools. Seven share one patient record and one sign-in. They draft, read and flag. Doctors and patients review and decide. Everything here is in pilot and pending clinical validation.</p>
+               <div class="catalogue-header-wrap">
+                  <h2 class="heading-2-small text-white">Medical Suite</h2>
+                  <p class="paragraph-m text-white" style="max-width: 720px; margin: 0 auto;">Our advanced diagnostic tools are designed to provide you with accurate insights and convenient access to healthcare professionals.</p>
                </div>
+
+               <div class="catalogue-filter-bar" role="tablist" aria-label="Tool Stage Filter">
+                  <button type="button" class="filter-tab-btn active" data-filter="all">All AI Tools (8)</button>
+                  <button type="button" class="filter-tab-btn" data-filter="before">Before Visit (1)</button>
+                  <button type="button" class="filter-tab-btn" data-filter="during">During Visit (3)</button>
+                  <button type="button" class="filter-tab-btn" data-filter="after">After Visit (3)</button>
+                  <button type="button" class="filter-tab-btn" data-filter="accessibility">Accessibility (1)</button>
+               </div>
+
                <div class="catalogue">
-                  <section class="catalogue-stage">
-                     <h3>Before the visit</h3>
-                     <div class="catalogue-tools">
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/diagnofast">DiagnoFast</a></h4>
-                           <p>A spoken interview in the waiting room, in Hindi or English, ready as a one-page report. Urgent symptoms stop it and go straight to reception.</p>
-                           <p class="catalogue-who">For clinics <a class="catalogue-more" href="diagnofast_hiw.html">How it works</a></p>
-                        </article>
-                     </div>
-                  </section>
-                  <section class="catalogue-stage">
-                     <h3>During the visit</h3>
-                     <div class="catalogue-tools">
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/clinscribe">ClinScribe</a></h4>
-                           <p>Turns a consultation into a draft note, checks it against the transcript, and waits for the doctor to sign.</p>
-                           <p class="catalogue-who">For doctors</p>
-                        </article>
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/lablens">LabLens</a></h4>
-                           <p>Reads lab reports into results you can check against the original and follow over time.</p>
-                           <p class="catalogue-who">For clinics</p>
-                        </article>
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/skin">Skin Cancer Detection</a></h4>
-                           <p>A research screening aid that gives doctors an early second opinion, with a heatmap of what it looked at.</p>
-                           <p class="catalogue-who">For doctors <a class="catalogue-more" href="skin_cancer_hiw.html">How it works</a></p>
-                        </article>
-                     </div>
-                  </section>
-                  <section class="catalogue-stage">
-                     <h3>After the visit</h3>
-                     <div class="catalogue-tools">
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/prescription">Prescription Analyzer</a></h4>
-                           <p>Reads a prescription photo, asks you to confirm each medicine, then explains it in plain words.</p>
-                           <p class="catalogue-who">For patients <a class="catalogue-more" href="prescription_analyzer_hiw.html">How it works</a></p>
-                        </article>
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/referrals">ReferralLoop</a></h4>
-                           <p>Follows a referral from request to returned outcome, so it can't quietly get lost.</p>
-                           <p class="catalogue-who">For clinics</p>
-                        </article>
-                        <article class="catalogue-tool">
-                           <h4><a href="care.html#/discharge">DischargeCare</a></h4>
-                           <p>Turns a discharge plan into a checklist for the family and tracked tasks for the team.</p>
-                           <p class="catalogue-who">For patients and clinics</p>
-                        </article>
-                     </div>
-                  </section>
-                  <section class="catalogue-stage">
-                     <h3>Access for everyone</h3>
-                     <div class="catalogue-tools">
-                        <article class="catalogue-tool">
-                           <h4><a href="optikinesis_hiw.html">OptiKinesis</a></h4>
-                           <p>Control a computer with head movements and blinks, using an ordinary webcam. A free beta for Windows.</p>
-                           <p class="catalogue-who">For people who can't use their hands</p>
-                        </article>
-                     </div>
-                  </section>
+                                    <div class="catalogue-cards-grid">
+                     <!-- 1. DiagnoFast -->
+                     <article class="catalogue-card" data-stage="before">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                          <line x1="12" x2="12" y1="19" y2="22"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">Before Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/diagnofast">DiagnoFast</a></h4>
+                                 <p class="card-short-desc">Voice-guided intake in Hindi or English that structures patient symptoms into a ready-to-review clinical summary.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For clinics</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">DiagnoFast</span>
+                                    <span class="card-back-audience">For clinics</span>
+                                 </div>
+                                 <p class="card-back-detail">A spoken interview conducted in the waiting room before consultation. Screens for critical red-flag symptoms with immediate routing to reception, producing a unified one-page FHIR summary.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/diagnofast" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                                 <a class="catalogue-more" href="diagnofast_hiw.html">How it works &rarr;</a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 2. ClinScribe -->
+                     <article class="catalogue-card" data-stage="during">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                          <polyline points="14 2 14 8 20 8"/>
+                                          <line x1="16" x2="8" y1="13" y2="13"/>
+                                          <line x1="16" x2="8" y1="17" y2="17"/>
+                                          <polyline points="10 9 9 9 8 9"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">During Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/clinscribe">ClinScribe</a></h4>
+                                 <p class="card-short-desc">Ambient clinical scribe listening to consultations and drafting verified SOAP notes in real time.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For doctors</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">ClinScribe</span>
+                                    <span class="card-back-audience">For doctors</span>
+                                 </div>
+                                 <p class="card-back-detail">Converts doctor-patient dialogue into structured clinical encounter notes. Automatically validates every drafted line against original audio transcripts and holds for physician signature.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/clinscribe" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 3. LabLens -->
+                     <article class="catalogue-card" data-stage="during">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M10 2v7.31L4.62 18.5A2 2 0 0 0 6.34 21h11.32a2 2 0 0 0 1.72-2.5L14 9.31V2"/>
+                                          <line x1="8.5" x2="15.5" y1="2" y2="2"/>
+                                          <line x1="7" x2="17" y1="14" y2="14"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">During Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/lablens">LabLens</a></h4>
+                                 <p class="card-short-desc">Intelligent report reader parsing PDF and photographed lab results into longitudinal biomarker trends.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For clinics</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">LabLens</span>
+                                    <span class="card-back-audience">For clinics</span>
+                                 </div>
+                                 <p class="card-back-detail">Extracts raw diagnostic laboratory reports into standardized biomarker tables. Flags abnormal reference ranges, cross-checks against source images, and tracks patient values over time.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/lablens" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 5. Skin Cancer Detection -->
+                     <article class="catalogue-card" data-stage="during">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+                                          <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+                                          <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+                                          <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+                                          <circle cx="12" cy="12" r="3"/>
+                                          <path d="m16 16-.9-.9"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">During Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/skin">Skin Cancer Detection</a></h4>
+                                 <p class="card-short-desc">AI dermatological screening assistant providing malignancy risk stratification and interpretability heatmaps.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For doctors</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">Skin Cancer Detection</span>
+                                    <span class="card-back-audience">For doctors</span>
+                                 </div>
+                                 <p class="card-back-detail">Analyzes clinical dermoscopic photographs to estimate lesion malignancy risks. Generates visual saliency heatmaps highlighting suspicious morphological features for diagnostic second opinion.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/skin" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                                 <a class="catalogue-more" href="skin_cancer_hiw.html">How it works &rarr;</a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 6. Prescription Analyzer -->
+                     <article class="catalogue-card" data-stage="after">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                          <path d="M7 7h10v10H7z"/>
+                                          <path d="M10 10h4"/>
+                                          <path d="M12 8v4"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">After Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/prescription">Prescription Analyzer</a></h4>
+                                 <p class="card-short-desc">Prescription OCR scanner translating handwritten regimens into plain-language schedules and precautions.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For patients</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">Prescription Analyzer</span>
+                                    <span class="card-back-audience">For patients</span>
+                                 </div>
+                                 <p class="card-back-detail">Scans paper prescription photos, verifies detected medications with the patient, and produces plain-language dosing instructions, dietary contraindications, and scheduled reminders.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/prescription" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                                 <a class="catalogue-more" href="prescription_analyzer_hiw.html">How it works &rarr;</a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 7. ReferralLoop -->
+                     <article class="catalogue-card" data-stage="after">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="m17 2 4 4-4 4"/>
+                                          <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
+                                          <path d="m7 22-4-4 4-4"/>
+                                          <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">After Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/referrals">ReferralLoop</a></h4>
+                                 <p class="card-short-desc">End-to-end referral management tracking outpatient specialist consults from order to outcome.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For clinics</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">ReferralLoop</span>
+                                    <span class="card-back-audience">For clinics</span>
+                                 </div>
+                                 <p class="card-back-detail">Maintains full visibility over external specialist referrals to close the loop. Tracks patient appointments, collects specialist notes upon return, and prevents clinical drop-offs.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/referrals" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 8. DischargeCare -->
+                     <article class="catalogue-card" data-stage="after">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M9 11l3 3L22 4"/>
+                                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">After Visit</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="care.html#/discharge">DischargeCare</a></h4>
+                                 <p class="card-short-desc">Care transition manager turning inpatient discharge paperwork into clear home recovery checklists.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">For patients & clinics</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">DischargeCare</span>
+                                    <span class="card-back-audience">For patients & clinics</span>
+                                 </div>
+                                 <p class="card-back-detail">Translates complex hospital discharge documentation into daily recovery checklists for patients and family members, tracking wound care, red-flag symptoms, and team follow-up tasks.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="care.html#/discharge" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+
+                     <!-- 12. OptiKinesis -->
+                     <article class="catalogue-card" data-stage="accessibility">
+                        <div class="card-flip-inner">
+                           <div class="card-face card-front">
+                              <div class="card-front-top">
+                                 <div class="card-header-row">
+                                    <div class="card-icon-box" aria-hidden="true">
+                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <circle cx="12" cy="12" r="10"/>
+                                          <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                                          <line x1="12" y1="2" x2="12" y2="4"/>
+                                          <line x1="12" y1="20" x2="12" y2="22"/>
+                                          <line x1="2" y1="12" x2="4" y2="12"/>
+                                          <line x1="20" y1="12" x2="22" y2="12"/>
+                                       </svg>
+                                    </div>
+                                    <div class="card-badges-wrap">
+                                       <span class="card-stage-badge">Accessibility</span>
+                                    </div>
+                                 </div>
+                                 <h4><a href="optikinesis_hiw.html">OptiKinesis</a></h4>
+                                 <p class="card-short-desc">Accessible vision interface enabling full cursor control and clicking via head movement and blinks.</p>
+                              </div>
+                              <div class="card-front-footer">
+                                 <span class="card-who-label">Hands-free control</span>
+                                 <span class="card-flip-prompt">
+                                    <span>Details</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                 </span>
+                              </div>
+                           </div>
+                           <div class="card-face card-back">
+                              <div class="card-back-top">
+                                 <div class="card-back-header">
+                                    <span class="card-back-title">OptiKinesis</span>
+                                    <span class="card-back-audience">Hands-free control</span>
+                                 </div>
+                                 <p class="card-back-detail">Uses an ordinary webcam to translate subtle head movements and eye blinks into responsive cursor navigation and clicks. Provides an accessible hands-free interface for Windows.</p>
+                              </div>
+                              <div class="card-back-actions">
+                                 <a href="optikinesis_hiw.html" class="tool-btn-launch flow-button" aria-label="USE NOW">
+                                    <span class="flow-btn-text">USE NOW</span>
+                                    <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    <span class="flow-btn-circle"></span>
+                                    <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                 </a>
+                                 <a class="catalogue-more" href="optikinesis_download.html">Download &rarr;</a>
+                              </div>
+                           </div>
+                        </div>
+                     </article>
+                  </div>
                </div>
             </div>
          </div>
@@ -226,7 +573,7 @@
                         <img src="./images/6063c4d428320096bceed0fd_Chevron.svg" loading="lazy" alt="Chevron" class="faq-arrow" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
                      </div>
                      <div class="faq-bottom" style="height: 0px;">
-                        <p class="faq-answer">A healthcare platform for India with seven AI tools on one patient record. It follows a patient from the waiting room through the visit, referral and discharge, gives doctors back their time, and helps patients understand their care.</p>
+                        <p class="faq-answer">A healthcare platform for India with AI tools on one patient record. It follows a patient from the waiting room to long-term care, gives doctors back their time, and helps patients understand their care.</p>
                      </div>
                   </div>
                   <div class="faq-block">
@@ -350,10 +697,23 @@
                   <h2 class="text-white text-centred margin-m">About us</h2>
                   <div class="container-about">
                      <div class="map1">
-                       <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3500.256277381642!2d77.16827687541627!3d28.68197947563779!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0244ccdd9561%3A0x3df6d72cef2f0888!2sMaharaja%20Agarsain%20Public%20School!5e0!3m2!1sen!2sin!4v1716310555324!5m2!1sen!2sin" style="border:1px; border-radius: 15px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                       <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3499.778847842636!2d77.11585507549925!3d28.749539075624765!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0138a748c0e7%3A0x455ffb27f87256d4!2sDelhi%20Technological%20University!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" style="border:1px solid rgba(255,255,255,0.12); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                      </div>
                      <div class="text1">
-                       <p style="font-size: 18px;">At Diagnosia, we are a passionate team of two students—Tanish Tomar, Khushal Goel of Maharaja Agarsain Public School. Diagnosia brings seven tools together around one patient record, so doctors get back their time and patients understand their care. Driven by innovation and a commitment to improving healthcare access, we strive to provide a user-friendly platform that supports better health outcomes for everyone.</p>
+                       <div class="team-meta" style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 9999px; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #a1a1aa; margin-bottom: 14px;">
+                         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                         Team Brackets &bull; Delhi Technological University
+                       </div>
+                       <div style="font-size: 15px; font-weight: 500; color: #e4e4e7; margin-bottom: 16px; letter-spacing: 0.02em;">
+                         <span style="color: #71717a; text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; display: block; margin-bottom: 4px;">Builders</span>
+                         Himal Garg &nbsp;&bull;&nbsp; Khushal Goel &nbsp;&bull;&nbsp; Aditya Kumar
+                       </div>
+                       <p style="font-size: 17px; line-height: 1.65; color: #d4d4d8; margin-bottom: 14px;">
+                         In a country of 1.4 billion people, doctor consultations are crushed into brutal two-minute transactions. Overburdened physicians drown in repetitive administrative chaos, while patients leave clutching unreadable prescriptions they can't decode, paralyzed by uncertainty.
+                       </p>
+                       <p style="font-size: 17px; line-height: 1.65; color: #d4d4d8; margin: 0;">
+                         <strong>Diagnosia</strong> dismantles this crisis. Built by <strong>Team Brackets</strong> at <strong>Delhi Technological University</strong>, it is an uncompromising, clinical-grade ecosystem uniting 8 specialized AI tools around a single patient timeline. From voice-driven waiting-room triage and ambient clinical transcription to deep dermoscopy screening and instant vernacular prescription decoding with clear dietary guidance—we don't build toy chatbots. We engineer clinical weapons that put hours back into doctors' hands and give patients unequivocal clarity over their care.
+                       </p>
                      </div>
                    </div>
                </div>
@@ -380,5 +740,9 @@
       </div>
       <script src="./js/jquery.min.js" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script><script src="./js/index.js" type="text/javascript"></script>
       <script src="js/site.js"></script>
+      <script src="./js/navbar-interactive.js"></script>
+      <script src="./js/hero-gradient.js"></script>
+      <script src="./js/catalogue-interactive.js"></script>
+   <script src="./js/infinite-spiral.js"></script>
    </body>
 </html>

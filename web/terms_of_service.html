@@ -35,19 +35,28 @@
       <link rel="stylesheet" href="css/terms_of_service.css">
    </head>
    <body class="body">
+      <!-- Fullscreen Edge-to-Edge ECG Loader (Zero Text) -->
       <div id="loader" class="loader">
          <div class="spinner"></div>
-     </div>
-   <script>
-      document.addEventListener("DOMContentLoaded", function() {
-         setTimeout(function() {
-             document.getElementById('loader').style.display = 'none';
-         }, 0);
-     });
-     </script>
+      </div>
+      <script>
+         document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                var l = document.getElementById('loader');
+                if (l) {
+                   l.style.transition = 'opacity 300ms ease';
+                   l.style.opacity = '0';
+                   setTimeout(function() { l.style.display = 'none'; }, 300);
+                }
+            }, 300);
+         });
+      </script>
       <div class="fixed-cta-container">
-         <a href="index.html" class="fixed-cta migration w-inline-block" style="color: rgb(255, 255, 255); border-color: rgb(10, 10, 10); will-change: background, opacity; background-color: rgb(10, 10, 10); opacity: 1;">
-            <div>home</div>
+         <a href="index.html" class="fixed-cta flow-button" aria-label="Home">
+            <span class="flow-btn-text">home</span>
+            <svg class="flow-btn-arr-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            <span class="flow-btn-circle"></span>
+            <svg class="flow-btn-arr-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
          </a>
       </div>
       <div class="page-wrapper">
@@ -67,25 +76,10 @@
                      </svg>
                   </div>
                </a>
-               <div class="nav-menu">
-                  <a href="index.html#How-It-works" data-w-id="b282fa53-c876-a363-d487-995c7a38630d" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">tools</div>
-                        <div class="nav-text-hover">tools</div>
-                     </div>
-                  </a>
-                  <a href="index.html#FAQ" data-w-id="b282fa53-c876-a363-d487-995c7a38631f" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">faq</div>
-                        <div class="nav-text-hover">faq</div>
-                     </div>
-                  </a>
-                  <a href="index.html#Get-Started" data-w-id="b282fa53-c876-a363-d487-995c7a386325" class="nav-link-dope-edition right-32 w-inline-block">
-                     <div class="nav-text-wrap">
-                        <div class="nav-text">about&nbsp;us</div>
-                        <div class="nav-text-hover">about&nbsp;us</div>
-                     </div>
-                  </a>
+               <div class="nav-menu premium-dock">
+                  <a href="index.html#How-It-works" class="nav-item-premium" title="Tools"><span>tools</span></a>
+                  <a href="index.html#FAQ" class="nav-item-premium" title="FAQ"><span>faq</span></a>
+                  <a href="index.html#Get-Started" class="nav-item-premium" title="About Us"><span>about us</span></a>
                </div>
                <a id="w-node-b282fa53-c876-a363-d487-995c7a38632b-a954070d" data-w-id="b282fa53-c876-a363-d487-995c7a38632b" href="" class="button secondary small nav-cta hide w-button">get in touch</a>
             </div>
@@ -146,5 +140,6 @@
       <script src="./js/jquery.min.js" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
       <script src="./js/index.js" type="text/javascript"></script>
       <script src="js/site.js"></script>
+      <script src="./js/navbar-interactive.js"></script>
    </body>
 </html>

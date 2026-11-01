@@ -1,0 +1,214 @@
+/* Liquid Metal Button Styles matching @paper-design/shaders official component */
+.liquid-metal-nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin: 0 auto !important;
+}
+
+.liquid-metal-btn-link {
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.liquid-metal-button-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.liquid-metal-3d-scene {
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
+}
+
+.liquid-metal-plane {
+  position: relative;
+  width: 130px;
+  height: 46px;
+  transform-style: preserve-3d;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease;
+  transform: none;
+}
+
+.liquid-metal-plane.faq {
+  width: 104px;
+}
+
+.liquid-metal-plane.about {
+  width: 142px;
+}
+
+/* Layer 3: Text Label (translateZ: 20px) */
+.lm-layer-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transform-style: preserve-3d;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease, gap 0.4s ease;
+  transform: translateZ(20px);
+  z-index: 30;
+  pointer-events: none;
+}
+
+.lm-label {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #71717a;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(1);
+  white-space: nowrap;
+}
+
+.liquid-metal-plane:hover .lm-label {
+  color: #d4d4d8;
+  text-shadow: 0px 1px 4px rgba(255, 255, 255, 0.2), 0px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Layer 2: Inner Pill (translateZ: 10px) */
+.lm-layer-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease;
+  transform: translateZ(10px) translateY(0) scale(1);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.liquid-metal-plane.is-pressed .lm-layer-inner {
+  transform: translateZ(10px) translateY(1px) scale(0.98);
+}
+
+.lm-pill-surface {
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  margin: 2px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #202020 0%, #000000 100%);
+  box-shadow: none;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease, box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-metal-plane.is-pressed .lm-pill-surface {
+  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.4), inset 0px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Layer 1: Outer Container & Shader (translateZ: 0px) */
+.lm-layer-base {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease;
+  transform: translateZ(0px) translateY(0) scale(1);
+  z-index: 10;
+}
+
+.liquid-metal-plane.is-pressed .lm-layer-base {
+  transform: translateZ(0px) translateY(1px) scale(0.98);
+}
+
+.lm-base-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 100px;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.3),
+              0px 36px 14px 0px rgba(0, 0, 0, 0.02),
+              0px 20px 12px 0px rgba(0, 0, 0, 0.08),
+              0px 9px 9px 0px rgba(0, 0, 0, 0.12),
+              0px 2px 5px 0px rgba(0, 0, 0, 0.15);
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease, box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgb(0 0 0 / 0);
+  position: relative;
+}
+
+.liquid-metal-plane:hover .lm-base-container {
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.4),
+              0px 12px 6px 0px rgba(0, 0, 0, 0.05),
+              0px 8px 5px 0px rgba(0, 0, 0, 0.1),
+              0px 4px 4px 0px rgba(0, 0, 0, 0.15),
+              0px 1px 2px 0px rgba(0, 0, 0, 0.2);
+}
+
+.liquid-metal-plane.is-pressed .lm-base-container {
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.5), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+.shader-container-exploded {
+  border-radius: 100px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.shader-container-exploded canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  border-radius: 100px !important;
+}
+
+/* Layer 4: Interactive Click & Ripple Surface (translateZ: 25px) */
+.lm-click-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  z-index: 40;
+  transform-style: preserve-3d;
+  transform: translateZ(25px);
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease;
+  overflow: hidden;
+  border-radius: 100px;
+}
+
+.lm-ripple {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-animation 0.6s ease-out forwards;
+}
+
+@keyframes ripple-animation {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
