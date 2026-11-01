@@ -5,6 +5,8 @@ been made. Replaces `DATA_RETENTION_AND_CONSENT.md`.
 
 ## Consent purposes
 
+**In demo mode no person gives these.** Every purpose is recorded automatically, marked `demo_default`, and the workspace has no consent panel, so revoking needs the API. This switches off with `ALLOW_REAL_PATIENT_DATA`, outside demo mode, or with `DIAGNOSIA_DEFAULT_CONSENT=0`. Tools then ask for each agreement when they need it.
+
 Each is checked by code when it matters, and revoking takes effect at once. Every grant
 keeps who recorded it, how, when, and the policy version (`2026-10-draft`). Consents are
 revoked, never deleted.

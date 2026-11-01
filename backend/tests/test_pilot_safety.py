@@ -120,9 +120,10 @@ def test_no_route_can_change_a_safety_setting():
         assert word not in paths
 
 
-def test_the_banner_is_in_the_page_before_any_script_runs(client):
-    page = client.get("/care.html").text
-    assert "Use synthetic data only" in page
+def test_the_workspace_carries_no_pilot_banner(client):
+    """Taken out for the demo. The server still reports pilot mode, and must before any real use."""
+    assert "Use synthetic data only" not in client.get("/care.html").text
+    assert client.get("/care.html").status_code == 200
 
 
 def test_every_required_signoff_starts_missing(db):

@@ -155,6 +155,7 @@ def create_patient(
         granted_at=timestamp,
     )
     audit.record(db, user, "patient.create", patient_id)
+    care.grant_default_consents(db, patient_id)
     patient = db.execute("SELECT * FROM patients WHERE id = ?", (patient_id,)).fetchone()
     return _patient_payload(patient, "clinician")
 
@@ -182,6 +183,7 @@ def create_my_record(
         created_at=now_iso(),
     )
     audit.record(db, user, "patient.create_self", patient_id)
+    care.grant_default_consents(db, patient_id)
     return _patient_payload(db.execute("SELECT * FROM patients WHERE id = ?", (patient_id,)).fetchone(), "self")
 
 

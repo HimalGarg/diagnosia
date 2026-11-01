@@ -48,39 +48,6 @@ function startScreen(container, context) {
     );
 }
 
-async function consentPanel(context) {
-    const { patient, refresh } = context;
-    const { purposes, consents } = await api(`/api/patients/${patient.id}/consents`);
-    const active = Object.fromEntries(consents.filter((item) => !item.revoked_at).map((item) => [item.purpose, item]));
-    return table(
-        [
-            { label: 'Use of information', cell: ([purpose]) => purposes[purpose] },
-            { label: 'Status', cell: ([purpose]) => (active[purpose] ? badge(`Agreed ${when(active[purpose].granted_at)}`, 'good') : badge('Not agreed')) },
-            {
-                label: '',
-                cell: ([purpose]) => (active[purpose]
-                    ? h('button', {
-                        type: 'button',
-                        class: 'quiet',
-                        onclick: async () => {
-                            await act(() => api(`/api/patients/${patient.id}/consents/${active[purpose].id}/revoke`, { method: 'POST' }), context, 'Consent revoked');
-                            refresh();
-                        },
-                    }, 'Revoke')
-                    : h('button', {
-                        type: 'button',
-                        class: 'quiet',
-                        onclick: async () => {
-                            await act(() => api(`/api/patients/${patient.id}/consents`, { method: 'POST', body: { purpose } }), context, 'Consent recorded');
-                            refresh();
-                        },
-                    }, 'Record agreement')),
-            },
-        ],
-        Object.entries(purposes),
-    );
-}
-
 async function careTeamPanel(context) {
     const { patient, refresh, me } = context;
     const team = await api(`/api/patients/${patient.id}/care-team`);
@@ -128,11 +95,10 @@ export async function renderOverview(container, context) {
     const { patient, isClinician, refresh } = context;
     if (!patient) return startScreen(container, context);
     const showInterviews = context.isStaff && canUse({ id: 'diagnofast', audience: 'staff' }, context);
-    const [timeline, encounters, documents, audit, interviews] = await Promise.all([
+    const [timeline, encounters, documents, interviews] = await Promise.all([
         api(`/api/patients/${patient.id}/timeline`),
         api(`/api/patients/${patient.id}/encounters`),
         api(`/api/patients/${patient.id}/documents`),
-        patient.relationship === 'caregiver' ? [] : api(`/api/patients/${patient.id}/audit-events`),
         showInterviews ? api(`/api/diagnofast/intakes?patient_id=${patient.id}`).catch(() => []) : [],
     ]);
     const allergyForm = patient.relationship === 'caregiver' ? null : form(
@@ -208,7 +174,6 @@ export async function renderOverview(container, context) {
                 : h('p', { class: 'muted' }, 'None yet. ', h('a', { href: '#/diagnofast' }, 'Send a DiagnoFast link'))) : null,
         patient.relationship !== 'caregiver' ? section('Patient pack', await packPanel(patient.id, context)) : null,
         ...section('Allergies', allergyForm),
-        ...section('Consent', h('p', { class: 'muted' }, 'Tools check this list before they run. Revoking takes effect at once.'), await consentPanel(context)),
         ...section('Who can see this record', await careTeamPanel(context)),
         ...section('Documents',
             patient.relationship !== 'caregiver' ? upload : null,
@@ -221,20 +186,6 @@ export async function renderOverview(container, context) {
                 documents,
                 'No documents yet.',
             )),
-        ...section('Export',
-            h('p', { class: 'muted' }, 'Reviewed information as a generic FHIR R4 bundle. It has not been validated against ABDM profiles.'),
-            h('a', { class: 'button', href: `/api/patients/${patient.id}/fhir`, download: `patient-${patient.id.slice(0, 8)}.json` }, 'Download FHIR bundle')),
-        audit.length ? h('div', {}, ...section('Who opened this record'),
-            h('details', {}, h('summary', {}, `Show the last ${audit.length} events`),
-                table(
-                    [
-                        { label: 'When', cell: (row) => when(row.created_at) },
-                        { label: 'Who', cell: (row) => (row.first_name ? `${row.first_name} ${row.last_name}` : 'Unknown') },
-                        { label: 'Action', cell: (row) => row.action },
-                        { label: 'Result', cell: (row) => (row.outcome === 'success' ? '' : badge(row.outcome, 'bad')) },
-                    ],
-                    audit,
-                ))) : null,
     );
     return undefined;
 }

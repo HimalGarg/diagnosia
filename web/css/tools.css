@@ -22,15 +22,6 @@ body.body {
   margin: 0 auto;
 }
 
-.tool-notice {
-  margin-bottom: 20px;
-  padding: 12px 16px;
-  border: 1.5px solid #e0b64a;
-  border-radius: 8px;
-  color: #ffe9b0;
-  font-size: 14px;
-}
-
 .tool-panel {
   margin-bottom: 20px;
   padding: 24px;

@@ -99,9 +99,9 @@ def test_old_tool_pages_lead_into_the_workspace(client, path, target):
     assert f"url={target}" in client.get(path).text
 
 
-def test_skin_keeps_its_research_labels_and_licence_credits(client):
+def test_skin_keeps_its_safety_statement_and_licence_credits(client):
     source = client.get("/js/care/skin.js").text
-    assert "Research demo, not for clinical use" in source
+    assert "This is not a diagnosis" in source
     assert "PanDerm" in source and "CC-BY-NC-ND 4.0" in source and "ISIC 2019" in source
 
 

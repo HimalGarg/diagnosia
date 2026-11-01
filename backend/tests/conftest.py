@@ -22,7 +22,7 @@ def no_real_ai_keys(request, monkeypatch, tmp_path):
     if request.node.get_closest_marker("live") or request.node.get_closest_marker("local_stack"):
         return
     monkeypatch.setattr(settings, "db_path", tmp_path / "isolated.db")  # no test touches the real AI run records
-    for switch in ("mongodb_enabled", "yugabyte_enabled", "meko_enabled", "meko_patient_packs_enabled", "mongodb_change_streams"):
+    for switch in ("mongodb_enabled", "yugabyte_enabled", "meko_enabled", "meko_patient_packs_enabled", "mongodb_change_streams", "default_consent"):
         monkeypatch.setattr(settings, switch, False)  # nor a service switched on in a developer's .env
     monkeypatch.setattr(settings, "groq_api_key", "")
     monkeypatch.setattr(settings, "gemini_api_key", "")

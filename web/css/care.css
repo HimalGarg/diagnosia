@@ -79,15 +79,6 @@ a { color: var(--action); }
 .skip { position: absolute; left: -999px; }
 .skip:focus { left: 12px; top: 12px; background: var(--sheet); padding: 8px; z-index: 5; }
 
-.pilot-banner {
-  background: var(--highlighter);
-  color: var(--highlighter-ink);
-  padding: 6px 20px;
-  font-weight: 500;
-  font-size: .9rem;
-  text-align: center;
-}
-
 .topbar {
   display: flex;
   align-items: center;
@@ -331,7 +322,6 @@ details > summary { cursor: pointer; color: var(--action); font-size: .9rem; }
   .shell { display: block; }
   .wristband { position: static; }
   mark, .unreviewed { background: none; border-bottom: 2px dashed currentColor; }
-  .pilot-banner { background: none; border: 1px solid; }
   body.printing-list .wristband, body.printing-list .chart > *:not(.print-holder) { display: none !important; }
 }
 

@@ -24,7 +24,7 @@ function resultView(analysis, photoUrl) {
             [[photoUrl, 'Uploaded image'], [analysis.heatmap, 'Red areas raised the concern score']].map(([src, caption]) => h('figure', {},
                 h('img', { src, alt: caption }),
                 h('figcaption', { class: 'muted' }, caption)))),
-        h('p', { class: 'muted' }, "This is a research demo, not a diagnosis. The decision stays with the doctor."));
+        h('p', { class: 'muted' }, "This is not a diagnosis. The decision stays with the doctor."));
 }
 
 export function renderSkin(container, context) {
@@ -65,7 +65,7 @@ export function renderSkin(container, context) {
     show(container,
         h('h1', {}, 'Skin Cancer Detection'),
         h('p', { class: 'lede' }, 'A screening aid that gives doctors an early second opinion.'),
-        h('div', { class: 'banner' }, "Research demo, not for clinical use. This is not a diagnosis, and it isn't an approved medical device. A doctor's judgement and a biopsy are still needed."),
+        h('div', { class: 'banner' }, "This is not a diagnosis, and it isn't an approved medical device. A doctor's judgement and a biopsy are still needed."),
         h('div', { class: 'sheet' }, upload),
         output,
         h('p', { class: 'muted' }, 'Built on PanDerm (Yan et al., Nature Medicine, 2025), used under CC-BY-NC-ND 4.0 for non-commercial research. Trained on the ISIC 2019 dataset (BCN20000, HAM10000, MSK), CC-BY-NC. ',

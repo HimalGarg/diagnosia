@@ -101,7 +101,7 @@ export async function packPanel(patientId, context) {
             ? h('ul', {}, pack.items.map((item) => h('li', {}, `${item.label}, ${when(item.created_at)}: ${STATE_WORDS[item.state]}`)))
             : h('p', { class: 'muted' }, 'Nothing yet.'));
     if (!pack.stored) {
-        return h('div', {}, h('p', { class: 'muted' }, 'Records are kept in Diagnosia only. A pack needs the patient\'s agreement, under Consent.'), list);
+        return h('div', {}, h('p', { class: 'muted' }, "Records are kept in Diagnosia only. A pack needs the patient's agreement."), list);
     }
     if (!isDoctor) return h('div', {}, list);
     const output = h('div', {});

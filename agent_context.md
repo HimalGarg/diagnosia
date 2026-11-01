@@ -125,7 +125,7 @@ The photo isn't stored. A consent box says it goes to outside AI services.
 - A link can belong to a patient record. Its report then appears in that patient's chart for the
   care team, through the normal access gate and audit log. Recordings are encrypted with the
   document key ring (`recordings.py`). Without a key ring, no recording is kept.
-- `abha.py` has one interface with a simulated version. Every report using it shows "DEMO DATA".
+- `abha.py` has one interface with a simulated version. The records stay flagged `is_demo_data`, but the screens no longer say so (see Rules).
   Real ABHA access needs ABDM sandbox approval, an exit review and a security audit.
 - Doctors see a queue (urgent patients first) and a one-page report, with the patient's original
   recording and transcript, and a print-to-PDF button.
@@ -155,7 +155,7 @@ The photo isn't stored. A consent box says it goes to outside AI services.
   tells a patient something is or isn't serious.
 - Unreadable or unconfirmed medicines are never explained.
 - Doctors stay in charge. Every clinical tool assists and never decides.
-- Keep the honest labels: skin is a "research demo", ABHA records are "DEMO DATA".
+- The skin result always says it is not a diagnosis. The owner removed the "research demo", "DEMO DATA" and pilot labels from the screens for the demo. The skin tool is still an unvalidated research model and ABHA is still simulated, so bring them back before any real use, and say so when presenting.
 
 **Privacy**
 - Use **made-up patients** only. No real patient data until privacy and security are reviewed.
@@ -220,6 +220,9 @@ One Meko datapack per patient, used as a search index. See `docs/integrations/PA
   from SQLite. Meko's text never reaches a prompt or a screen.
 - Off by default, and stopped by `ALLOW_REAL_PATIENT_DATA`. There's no agreement with Meko, so made-up
   patients only.
+- In demo mode every consent is recorded by default, marked `demo_default`, and the workspace has no
+  consent panel. `care.consent_by_default` must stay false with real patient data. Before real use, the
+  consent panel, the record of who opened a chart, FHIR export and the pilot warnings need bringing back.
 - Clinical text never goes in Meko memory or conversations.
 - Meko never returns a datapack slot, so live tests must not create them freely.
 

@@ -70,10 +70,9 @@ def _intake(db: sqlite3.Connection, item_id: str, intake_id: str) -> Optional[st
     if intake is None or intake["status"] != "done" or not intake["report"]:
         return None
     report = json.loads(intake["report"])
-    demo_records = ". Uses DEMO DATA records" if intake["records"] else ""
     return _document(
         item_id,
-        f"DiagnoFast report, {intake['created_at'][:10]}. AI-written from the patient's answers, not yet reviewed by a clinician{demo_records}",
+        f"DiagnoFast report, {intake['created_at'][:10]}. AI-written from the patient's answers, not yet reviewed by a clinician",
         [
             ("Chief complaint", report.get("chief_complaint", "")),
             ("Present illness", report.get("present_illness", "")),

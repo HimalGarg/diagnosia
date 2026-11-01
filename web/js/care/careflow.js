@@ -129,7 +129,6 @@ export async function renderCareFlow(container, context) {
     show(container,
         h('h1', {}, 'CareFlow'),
         h('p', { class: 'lede' }, 'What happened across the tools, in order. This is an activity view. The patient record stays the official source.'),
-        list.synthetic_demo && h('div', { class: 'banner' }, 'Synthetic demo data'),
         h('div', { class: 'filters' },
             picker('Workflow', 'workflow', [['', 'All my workflows'], ...list.workflows.map((item) => [item.workflow_ref, `${item.label} (${item.event_count})`])]),
             picker('Tool', 'module', [['', 'All tools'], ...list.modules.map((name) => [name, name])]),

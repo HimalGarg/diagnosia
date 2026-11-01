@@ -49,7 +49,7 @@ Other staff at the receiving service can't open it, and neither can caregivers. 
 | `patient_pack` | Storing a copy with Meko, and sending records to our AI services when a doctor asks | Access ends at once, and the worker deletes the datapack |
 | `pack_sharing` | A doctor who accepts a referral opening the whole pack | Access ends at once |
 
-Consent is checked when reading and again when sending. References are kept locally without consent, so earlier records follow if consent is given later.
+In demo mode both are recorded automatically for every patient, so every patient with a finished record uses a datapack slot, up to `MEKO_PACK_LIMIT`. Consent is checked when reading and again when sending. References are kept locally without consent, so earlier records follow if consent is given later.
 
 ## The brief and questions
 

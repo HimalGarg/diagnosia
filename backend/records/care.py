@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from fastapi import HTTPException, status
 
+from backend.config import settings
 from backend.records.store import insert, now_iso, rows, update
 
 POLICY_VERSION = "2026-10-draft"
@@ -18,6 +19,30 @@ CONSENT_PURPOSES = {
     "patient_pack": "Keeping a searchable copy of this patient's finished records with Meko, an outside provider, and sending them to our AI services when their doctor asks for a summary",
     "pack_sharing": "Letting a doctor who accepts this patient's referral see their whole pack until the referral closes",
 }
+
+
+def consent_by_default() -> bool:
+    """Only ever for made-up patients. With real patient data, a person has to record each agreement."""
+    return settings.default_consent and settings.demo_mode and not settings.allow_real_patient_data
+
+
+def grant_default_consents(db: sqlite3.Connection, patient_id: str) -> None:
+    """Marked demo_default, so these can never be mistaken for a person's agreement. A purpose that
+    was ever recorded is left alone, so a revocation stays revoked."""
+    if not consent_by_default():
+        return
+    known = {row["purpose"] for row in db.execute("SELECT purpose FROM consents WHERE patient_id = ?", (patient_id,))}
+    for purpose in CONSENT_PURPOSES:
+        if purpose not in known:
+            insert(
+                db, "consents", patient_id=patient_id, purpose=purpose, scope="demo_default", method="clinician_recorded",
+                policy_version=POLICY_VERSION, recorded_by=0, granted_at=now_iso(),
+            )
+
+
+def grant_default_consents_to_all(db: sqlite3.Connection) -> None:
+    for row in db.execute("SELECT id FROM patients").fetchall():
+        grant_default_consents(db, row["id"])
 
 
 def active_consent(db: sqlite3.Connection, patient_id: str, purpose: str) -> Optional[sqlite3.Row]:

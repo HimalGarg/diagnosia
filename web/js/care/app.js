@@ -110,7 +110,7 @@ function askConsent(detail) {
     const notice = h('div', { class: 'sheet alert-card' },
         h('h2', { style: 'margin-top:0' }, 'Consent needed'),
         h('p', {}, detail.message),
-        h('p', { class: 'muted' }, 'Record this only after the patient has agreed. It can be revoked from the patient record.'),
+        h('p', { class: 'muted' }, 'Record this only after the patient has agreed.'),
         h('div', { class: 'row' },
             h('button', {
                 type: 'button',
@@ -235,16 +235,9 @@ async function renderOnboarding() {
                 ))));
 }
 
-async function showPilotStatus() {
-    // The banner is in the page by default, so a failed request leaves it showing.
-    const status = await api('/api/system/status').catch(() => null);
-    if (status && !status.pilot_mode) document.getElementById('pilot-banner').hidden = true;
-}
-
 async function start() {
     state.me = await api('/api/me');
     document.getElementById('who').textContent = `${state.me.first_name} ${state.me.last_name}`;
-    showPilotStatus();
     if (state.me.role === 'doctor' && state.me.account_status !== 'verified') {
         await renderOnboarding();
         return;

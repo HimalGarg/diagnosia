@@ -17,6 +17,7 @@ from backend.diagnofast import routes as diagnofast_routes
 from backend.diagnofast.agent import Report
 from backend.integrations import knowledge, meko
 from backend.patient_pack import brief, render, sync
+from backend.records import care
 from backend.tests.conftest import FakeAI, grant
 from backend.tests.test_careflow import client_for
 from backend.tests.test_clinscribe import draft, fake_draft, ready_session
@@ -173,6 +174,52 @@ def test_real_patient_data_stops_all_sending(server, doctor, patient, monkeypatc
     run_worker(server)
     assert server.datapacks == {}
     assert doctor.post(f"/api/patients/{patient['id']}/pack/brief").status_code == 503
+
+
+@pytest.fixture
+def default_consent(client, monkeypatch):
+    monkeypatch.setattr(settings, "default_consent", True)
+    monkeypatch.setattr(settings, "demo_mode", True)
+    monkeypatch.setattr(settings, "allow_real_patient_data", False)
+
+
+def consents_of(patient_id):
+    db = connect()
+    try:
+        return [dict(row) for row in db.execute("SELECT * FROM consents WHERE patient_id = ?", (patient_id,))]
+    finally:
+        db.close()
+
+
+def test_a_new_demo_patient_has_every_consent_marked_as_a_default(default_consent, doctor):
+    created = doctor.post("/api/patients", json={"first_name": "Lata", "last_name": "Rao"}).json()
+    found = consents_of(created["id"])
+    assert {row["purpose"] for row in found} == set(care.CONSENT_PURPOSES)
+    assert {row["scope"] for row in found} == {"demo_default"}
+
+
+def test_real_patient_data_turns_default_consent_off(default_consent, doctor, monkeypatch):
+    monkeypatch.setattr(settings, "allow_real_patient_data", True)
+    created = doctor.post("/api/patients", json={"first_name": "Lata", "last_name": "Rao"}).json()
+    assert consents_of(created["id"]) == []
+
+
+def test_leaving_demo_mode_turns_default_consent_off(default_consent, doctor, monkeypatch):
+    monkeypatch.setattr(settings, "demo_mode", False)
+    created = doctor.post("/api/patients", json={"first_name": "Lata", "last_name": "Rao"}).json()
+    assert consents_of(created["id"]) == []
+
+
+def test_a_revoked_consent_isnt_granted_back_by_default(default_consent, doctor):
+    created = doctor.post("/api/patients", json={"first_name": "Lata", "last_name": "Rao"}).json()
+    row = next(item for item in consents_of(created["id"]) if item["purpose"] == "patient_pack")
+    assert doctor.post(f"/api/patients/{created['id']}/consents/{row['id']}/revoke").status_code == 200
+    db = connect()
+    care.grant_default_consents_to_all(db)
+    db.commit()
+    db.close()
+    active = [item for item in consents_of(created["id"]) if item["purpose"] == "patient_pack" and item["revoked_at"] is None]
+    assert active == []
 
 
 def test_packs_are_off_by_default(client, doctor, patient):

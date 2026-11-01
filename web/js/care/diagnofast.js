@@ -1,5 +1,5 @@
 // DiagnoFast: reception sends a single-use link, and the doctor reads the report.
-import { act, api, badge, form, h, show, when } from './ui.js';
+import { act, api, form, h, show, when } from './ui.js';
 import { packPanel } from './pack.js';
 
 const STATUS_TEXT = {
@@ -52,7 +52,7 @@ function reportView(detail, context) {
         h('h3', {}, `${detail.form_title} form`),
         detail.answers.map((answer) => row(answer.label, answer.value)),
         detail.records && [
-            h('h3', {}, 'Past records from ABHA ', detail.records.is_demo_data && badge('DEMO DATA', 'bad')),
+            h('h3', {}, 'Past records from ABHA'),
             bullets('Conditions', detail.records.conditions),
             bullets('Prescriptions', detail.records.prescriptions),
             bullets('Lab reports', detail.records.lab_reports),

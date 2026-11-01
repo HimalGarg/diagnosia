@@ -172,14 +172,9 @@ function newReferral(context, organizations, documents, duplicate) {
             { name: 'manual_destination', label: 'If by phone, fax or paper: who' },
             { name: 'reason', label: 'Reason', type: 'textarea', required: true },
             { name: 'clinical_question', label: 'Your question for the specialist', type: 'textarea' },
-            { name: 'share_pack', label: 'The patient agrees to share their whole pack with the doctor who accepts, until the referral closes', type: 'checkbox' },
         ],
         'Send referral',
         async (values) => {
-            if (values.share_pack) {
-                const agreed = await act(() => api(`/api/patients/${patient.id}/consents`, { method: 'POST', body: { purpose: 'pack_sharing' } }), context);
-                if (!agreed) return;
-            }
             const body = {
                 patient_id: patient.id,
                 specialty: values.specialty,

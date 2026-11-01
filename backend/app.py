@@ -101,6 +101,7 @@ def _prepare_content() -> None:
     connection = connect()
     try:
         lablens_mappings.seed(connection)
+        care.grant_default_consents_to_all(connection)
         connection.commit()
         safety.assert_safe_to_start(connection)
     finally:
