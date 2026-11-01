@@ -197,7 +197,7 @@ function startMeter(mic) {
         const draw = () => {
             analyser.getByteFrequencyData(data);
             context.clearRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = '#b1edda';
+            context.fillStyle = '#eaa3cd';
             for (let i = 0; i < 40; i += 1) {
                 const height = Math.max(2, data[i * 2] / 255 * 36);
                 context.fillRect(i * 12 + 2, (40 - height) / 2, 8, height);

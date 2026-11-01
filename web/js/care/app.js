@@ -33,15 +33,14 @@ const RENDERERS = {
     referrals: renderReferrals,
     discharge: renderDischarge,
 };
-const LABELS = { inbox: 'Inbox', account: 'Account' };
+// Left off the rail, but still reachable by address: staff verification only happens on Governance.
+const LABELS = { inbox: 'Inbox', account: 'Account', governance: 'Governance', tasks: 'Tasks', reminders: 'Reminders' };
 const GROUPS = [
     { tools: [{ id: 'home', label: 'Home' }] },
     {
         title: 'This patient',
         tools: [
             { id: 'overview', label: 'Patient record' },
-            { id: 'tasks', label: 'Tasks' },
-            { id: 'reminders', label: 'Reminders' },
             { id: 'careflow', label: 'CareFlow' },
         ],
     },
@@ -49,7 +48,6 @@ const GROUPS = [
     {
         title: 'Manage',
         tools: [
-            { id: 'governance', label: 'Governance', audience: 'staff' },
             { id: 'settings', label: 'Settings', audience: 'staff' },
         ],
     },
@@ -86,9 +84,11 @@ async function renderWristband() {
     },
     h('option', { value: '' }, state.patients.length ? 'Choose a patient' : 'No patients yet'),
     state.patients.map((item) => h('option', { value: item.id, selected: item.id === patient?.id }, `${item.first_name} ${item.last_name}`)));
+    // A patient with only their own record has nobody to switch to. Caregivers can have several.
+    const chooser = state.me.role === 'doctor' || state.patients.length > 1 ? picker : null;
 
     if (!patient) {
-        show(band, h('span', { class: 'facts' }, 'No patient open'), picker);
+        show(band, h('span', { class: 'facts' }, 'No patient open'), chooser);
         return;
     }
     const allergies = await api(`/api/patients/${patient.id}/allergies`).catch(() => []);
@@ -102,7 +102,7 @@ async function renderWristband() {
         active.length
             ? h('span', { class: 'allergy-band' }, `Allergies: ${active.map((item) => item.substance).join(', ')}`)
             : h('span', { class: 'facts' }, 'No allergies recorded'),
-        picker,
+        chooser,
     );
 }
 
