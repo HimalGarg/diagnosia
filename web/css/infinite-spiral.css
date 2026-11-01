@@ -1,0 +1,125 @@
+/* Diagnosia - Infinite 3D Spiral Component */
+
+.hero-spiral-stage {
+  position: relative !important;
+  width: 100% !important;
+  height: 620px !important;
+  margin-top: -30px !important;
+  margin-bottom: -30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  /* Smooth vertical gradient mask so cards organically dissolve into thin air at top and bottom */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 8%, rgba(0, 0, 0, 1) 18%, rgba(0, 0, 0, 1) 82%, rgba(0, 0, 0, 0.4) 92%, transparent 100%) !important;
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 8%, rgba(0, 0, 0, 1) 18%, rgba(0, 0, 0, 1) 82%, rgba(0, 0, 0, 0.4) 92%, transparent 100%) !important;
+  pointer-events: auto !important;
+}
+
+.infinite-spiral {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.infinite-spiral__stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.infinite-spiral__item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: var(--infinite-spiral-card-width, 110px);
+  height: var(--infinite-spiral-card-height, 110px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--infinite-spiral-card-radius, 12px);
+  background: rgba(12, 14, 20, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.22);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+  text-decoration: none;
+  cursor: grab;
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.infinite-spiral__item:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(255, 255, 255, 0.2);
+}
+
+.infinite-spiral__image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  user-select: none;
+  pointer-events: none;
+}
+
+.spiral-item-label {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  padding: 3px 6px;
+  background: rgba(8, 9, 13, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f4f4f5;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 200ms ease, background 200ms ease;
+}
+
+.infinite-spiral__item:hover .spiral-item-label {
+  opacity: 1;
+  background: rgba(8, 9, 13, 0.96);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .infinite-spiral__item {
+    transition: none;
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .hero-spiral-stage {
+    height: 480px !important;
+    margin-top: 20px !important;
+    margin-bottom: 20px !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .hero-spiral-stage {
+    height: 380px !important;
+  }
+}

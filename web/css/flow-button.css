@@ -1,0 +1,211 @@
+/* FlowButton Component Styles for Diagnosia */
+/* Black-to-White Reversal: Black base with white text, morphs and fills with white on hover */
+
+.flow-button {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  border-radius: 100px !important;
+  border: 1.5px solid #111111 !important;
+  background-color: #111111 !important;
+  padding: 12px 32px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 600ms cubic-bezier(0.23, 1, 0.32, 1) !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16) !important;
+}
+
+.flow-button:hover {
+  border-color: rgba(0, 0, 0, 0.22) !important;
+  color: #111111 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+.flow-button:active {
+  transform: scale(0.95) !important;
+}
+
+/* Left Arrow (arr-2) - slides in on hover */
+.flow-btn-arr-left {
+  position: absolute !important;
+  width: 16px !important;
+  height: 16px !important;
+  left: -25% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+  stroke-width: 2.2 !important;
+  z-index: 9 !important;
+  transition: all 800ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  pointer-events: none !important;
+}
+
+.flow-button:hover .flow-btn-arr-left {
+  left: 16px !important;
+  stroke: #111111 !important;
+}
+
+/* Text */
+.flow-btn-text {
+  position: relative !important;
+  z-index: 1 !important;
+  transform: translateX(-10px) !important;
+  transition: all 800ms ease-out !important;
+  display: inline-block !important;
+  color: inherit !important;
+  white-space: nowrap !important;
+}
+
+.flow-button:hover .flow-btn-text {
+  transform: translateX(10px) !important;
+  color: #111111 !important;
+}
+
+/* Expanding White Circle - expands out on hover to fill background with white */
+.flow-btn-circle {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-color: #ffffff !important;
+  border-radius: 50% !important;
+  opacity: 0 !important;
+  transition: all 800ms cubic-bezier(0.19, 1, 0.22, 1) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.flow-button:hover .flow-btn-circle {
+  width: 340px !important;
+  height: 340px !important;
+  opacity: 1 !important;
+}
+
+/* Right Arrow (arr-1) - slides out on hover */
+.flow-btn-arr-right {
+  position: absolute !important;
+  width: 16px !important;
+  height: 16px !important;
+  right: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+  stroke-width: 2.2 !important;
+  z-index: 9 !important;
+  transition: all 800ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  pointer-events: none !important;
+}
+
+.flow-button:hover .flow-btn-arr-right {
+  right: -25% !important;
+  stroke: #111111 !important;
+}
+
+/* Specific overrides when applied to fixed-cta */
+.fixed-cta.flow-button {
+  position: fixed !important;
+  top: 24px !important;
+  right: 5vw !important;
+  z-index: 500 !important;
+  min-width: 110px !important;
+  height: 42px !important;
+  padding: 0 28px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Specific overrides when applied to hero-actions use-now */
+.hero-actions .use-now.flow-button {
+  min-width: 170px !important;
+  height: 48px !important;
+  margin-right: 20px !important;
+}
+
+/* Specific overrides when applied to download-button use-now */
+.download-button.flow-button {
+  min-width: 220px !important;
+  height: 50px !important;
+}
+
+/* Specific overrides when applied to login page form buttons */
+.btn.flow-button {
+  width: 100% !important;
+  height: 48px !important;
+  margin-top: 10px !important;
+}
+
+/* Specific overrides when applied to tool card launch button (identical to LOGIN animation) */
+.tool-btn-launch.flow-button {
+  height: 38px !important;
+  min-width: 122px !important;
+  padding: 0 24px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  border-radius: 9999px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  background-color: #0b0d14 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+.tool-btn-launch.flow-button:hover {
+  border-color: #ffffff !important;
+  border-radius: 10px !important;
+  color: #0b0d14 !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25) !important;
+}
+
+.tool-btn-launch.flow-button .flow-btn-text {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  color: #ffffff !important;
+  transform: translateX(-8px) !important;
+}
+
+.tool-btn-launch.flow-button:hover .flow-btn-text {
+  transform: translateX(8px) !important;
+  color: #0b0d14 !important;
+}
+
+.tool-btn-launch.flow-button .flow-btn-arr-left {
+  width: 13px !important;
+  height: 13px !important;
+  stroke: #ffffff !important;
+}
+
+.tool-btn-launch.flow-button:hover .flow-btn-arr-left {
+  left: 12px !important;
+  stroke: #0b0d14 !important;
+}
+
+.tool-btn-launch.flow-button .flow-btn-arr-right {
+  width: 13px !important;
+  height: 13px !important;
+  right: 12px !important;
+  stroke: #ffffff !important;
+}
+
+.tool-btn-launch.flow-button:hover .flow-btn-arr-right {
+  right: -25% !important;
+  stroke: #0b0d14 !important;
+}
+
+.tool-btn-launch.flow-button .flow-btn-circle {
+  background-color: #ffffff !important;
+}
+

@@ -220,7 +220,7 @@ def both(monkeypatch):
     monkeypatch.setattr(settings, "groq_api_key", "groq-test-key")
     monkeypatch.setattr(settings, "gemini_api_key", "gemini-test-key")
     monkeypatch.setattr(settings_store, "model_for", lambda tool: "openai/gpt-oss-120b")
-    monkeypatch.setattr(settings_store, "get", lambda key, db=None: {"ai.primary": "groq", "ai.strategy": "fallback", "ai.model.gemini": "gemini-3.5-flash-lite"}[key])
+    monkeypatch.setattr(settings_store, "get", lambda key, db=None: {"ai.primary": "groq", "ai.strategy": "fallback", "ai.model.gemini": "gemini-3.5-flash-lite"}.get(key, ""))
     return monkeypatch
 
 

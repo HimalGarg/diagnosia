@@ -1,0 +1,84 @@
+/* Diagnosia - Fullscreen Edge-to-Edge ECG Line Loader (Zero Text) */
+
+.loader.ecg-loader-wrapper {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #050608 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 999999 !important;
+  opacity: 1;
+  filter: blur(0px);
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+              filter 500ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  pointer-events: all;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.loader.ecg-loader-wrapper.ecg-loaded {
+  opacity: 0 !important;
+  filter: blur(12px) !important;
+  pointer-events: none !important;
+}
+
+.ecg-fullscreen-container {
+  width: 100vw !important;
+  height: 180px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.ecg-fullscreen-canvas {
+  width: 100vw !important;
+  height: 180px !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Faint baseline track across full screen (edge-to-edge) */
+.ecg-baseline-guide {
+  position: absolute !important;
+  top: 50% !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, 
+    rgba(255, 18, 68, 0.05) 0%, 
+    rgba(255, 255, 255, 0.08) 20%, 
+    rgba(255, 18, 68, 0.25) 50%, 
+    rgba(255, 255, 255, 0.08) 80%, 
+    rgba(255, 18, 68, 0.05) 100%) !important;
+  pointer-events: none !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Fallback SVG in case canvas is initializing */
+.ecg-fullscreen-svg.ecg-svg-fallback {
+  width: 100vw !important;
+  height: 100% !important;
+  display: none !important;
+  overflow: visible !important;
+}
+
+.ecg-fs-track {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+  stroke-width: 1.5 !important;
+  fill: none !important;
+}
