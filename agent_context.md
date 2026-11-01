@@ -39,7 +39,7 @@ backend/    One FastAPI app: accounts and one folder per tool.
   settings_store.py Models, tool switches and defaults, set in the app
   operator_cli.py   Command-line setup, keys, backups, first administrator
   llm.py            Groq and Gemini calls, with fallback. ask(system, content, schema, tool)
-  speech.py         Groq speech: transcribe() and speak()
+  speech.py         Groq transcription/WAV speech; Edge neural question playback
   images.py         Upload checks (JPG/PNG, size)
   config.py         Settings from environment / .env
   prescription/     analyzer.py, shorthand.py, medicines.py, routes.py
@@ -109,24 +109,36 @@ Handwriting reading is the risky part, so **nothing is explained until the patie
 The photo isn't stored. A consent box says it goes to outside AI services.
 
 ### DiagnoFast (`backend/diagnofast/`)
-- Each doctor has a form in `forms/*.json` (the team writes these by hand, no form builder).
+- Six specialty forms live in `forms/*.json`: general medicine, dermatology, cardiology, orthopedics, ENT and pediatrics (no form builder).
 - Reception creates a **single-use link** for each patient. The patient needs no account. The
   link stops working when the interview ends. Only a hash of each link is stored.
+- `intake.html` without a token opens the self-service specialty grid when
+  `DIAGNOFAST_KIOSK_DOCTOR_ID` names a verified doctor. New visits go only to that doctor;
+  public callers cannot attach a chart, choose a doctor or fetch ABHA records. The kiosk is
+  unavailable when unconfigured or when that doctor loses verification.
 - The interview is a **controlled loop**, not a free-running agent. The AI picks the next question
   and extracts fields. `agent.apply_turn` keeps the rules in code: only fields on the form are
   kept, required fields must be filled, there's a maximum of 12 questions, and urgent symptoms
   (chest pain, trouble breathing and similar) end the interview at once and send the patient to
   reception. The AI never diagnoses.
-- Voice: Groq speaks English questions and transcribes answers. Groq has no Hindi voice, so the
-  browser reads Hindi aloud. Typing is always available as a fallback. Each recorded answer is
-  capped near 28 seconds.
+- Voice: Edge neural voices read questions in Indian English (Neerja) and Hindi (Swara).
+  `DIAGNOSIA_NEURAL_TTS=0` disables this service. After an 8-second neural timeout, English
+  can use Groq WAV and Hindi uses the browser. Browser voice and typing remain fallbacks.
+- The two-column interview shows live browser recognition and optional answer chips. Recordings
+  stop at 28 seconds. Where live recognition is unavailable or incomplete, Groq prepares a
+  transcript preview. Patients edit and confirm before sending. Confirmed text wins over audio
+  recognition; original audio is retained only when encryption is configured. Gemini is preferred
+  for the next-turn field normalization, with the normal configurable provider fallback.
 - A link can belong to a patient record. Its report then appears in that patient's chart for the
   care team, through the normal access gate and audit log. Recordings are encrypted with the
   document key ring (`recordings.py`). Without a key ring, no recording is kept.
 - `abha.py` has one interface with a simulated version. Every report using it shows "DEMO DATA".
   Real ABHA access needs ABDM sandbox approval, an exit review and a security audit.
-- Doctors see a queue (urgent patients first) and a one-page report, with the patient's original
-  recording and transcript, and a print-to-PDF button.
+- Doctors see a queue (urgent patients first) and a printable requisition: local intake barcode,
+  demographics, reported ROS, provenance-labeled history, investigation suggestions for physician
+  review, and a blank physician workspace. H*/L* require supplied measured values and ranges;
+  unasked symptoms are never normal. Original answers and recordings remain expandable. Reports print on one A4 page; if entries do not fit, the printout explicitly says it is incomplete
+  and directs the doctor to the full report, original answers and transcript on screen. AI output remains unreviewed.
 
 ### Skin Cancer Detection (`backend/skin/`)
 - PanDerm (ViT-L) encoder, plus a classifier trained on ISIC 2019 by `training/` scripts (split by

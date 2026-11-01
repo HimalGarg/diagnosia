@@ -39,6 +39,9 @@ class Settings:
     enable_external_messaging: bool = field(default_factory=lambda: os.environ.get("ENABLE_EXTERNAL_MESSAGING") == "1")
     # Set DIAGNOSIA_HTTPS=1 in production so session cookies are HTTPS-only.
     cookie_secure: bool = field(default_factory=lambda: os.environ.get("DIAGNOSIA_HTTPS") == "1")
+    # A self-service kiosk sends new visits only to this verified doctor's queue.
+    diagnofast_kiosk_doctor_id: str = field(default_factory=lambda: os.environ.get("DIAGNOFAST_KIOSK_DOCTOR_ID", ""))
+    neural_tts_enabled: bool = field(default_factory=lambda: os.environ.get("DIAGNOSIA_NEURAL_TTS", "1") != "0")
     # A real key, or leave empty and add one in Settings. Placeholders count as empty.
     groq_api_key: str = field(default_factory=lambda: _real_key(os.environ.get("GROQ_API_KEY", "")))
     # A second provider, used as a fallback or in turn. Its OpenAI-compatible endpoint is the default.

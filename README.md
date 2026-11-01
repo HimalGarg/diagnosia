@@ -123,10 +123,13 @@ DiagnoFast helps collect a patient's history before or during a clinical visit. 
 **Existing workflow and technology**
 
 - Voice-first patient history capture.
-- Speech to text through Groq Whisper.
-- English voice through Groq Orpheus, and the browser's voice for Hindi.
+- Live browser speech recognition with an editable preview; Groq Whisper supplies a preview when live recognition is unavailable. Patients confirm each answer.
+- Neural Indian English (Neerja) and Hindi (Swara) question playback through Edge-TTS, with Groq English and browser voice fallbacks.
+- Six department choices, optional quick-answer chips, and a printable clinical requisition with source labels and physician workspace.
 - AI-assisted extraction into structured intake fields and a concise clinician-facing draft.
 - Intended support for Hindi and Indian English workflows.
+
+**Self-service kiosk:** set `DIAGNOFAST_KIOSK_DOCTOR_ID` to the numeric user ID of a verified clinic doctor, restart the server, and open `/intake.html`. No patient links need to be created in advance. Visits enter that doctor's queue. Without this setting, reception-created links still work. The kiosk cannot attach existing charts or fetch ABHA history. Neural speech is enabled by default; set `DIAGNOSIA_NEURAL_TTS=0` to disable Microsoft question playback.
 
 **Integration status**
 
@@ -254,7 +257,7 @@ Atlas stores one safe event for each workflow step and a prepared summary for ea
 
 | Tool | AI | CareFlow events | Handoff |
 |---|---|---|---|
-| DiagnoFast | Groq, then Gemini | Yes | None |
+| DiagnoFast | Gemini first for confirmed-answer extraction; configurable fallback | Yes | None |
 | Skin Cancer Detection | Local model | Yes, with no finding recorded | None |
 | Prescription Analyzer | Gemini, then Groq | Yes | None |
 | ClinScribe | Groq, then Gemini | Yes | None |
@@ -374,7 +377,7 @@ The stack as implemented.
 | Frontend | HTML, CSS, JavaScript | Landing pages, auth, dashboards and care workspace |
 | Clinical image pipeline | PanDerm-based visual representation, PyTorch and scikit-learn classifier components | Existing skin-image workflow |
 | Language models | Google Gemini and Groq, with fallback | Structured extraction, drafting and reading |
-| Speech | Groq Whisper and Orpheus, and the browser voice for Hindi | Voice interview and read-aloud |
+| Speech | Edge neural questions, Groq Whisper/Orpheus, browser speech | Voice interview, transcript preview and read-aloud |
 | Shared context | Meko, through MCP | Approved knowledge, memory and handoff notes |
 | Execution records | YugabyteDB, through YSQL | AI runs, attempts and handoffs |
 | Workflow event store | MongoDB Atlas | Events and CareFlow timeline projections |

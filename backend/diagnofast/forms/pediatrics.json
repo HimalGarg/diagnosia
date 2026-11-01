@@ -1,0 +1,181 @@
+{
+  "id": "pediatrics",
+  "title": "Pediatrics",
+  "fields": [
+    {
+      "key": "chief_complaint",
+      "label": "Child’s main problem",
+      "required": true,
+      "question": {
+        "en-IN": "Please tell me what has been troubling your child.",
+        "hi-IN": "कृपया बताइए बच्चे को क्या परेशानी हो रही है।"
+      }
+    },
+    {
+      "key": "age",
+      "label": "Child’s age",
+      "required": true,
+      "question": {
+        "en-IN": "How old is your child, in months or years?",
+        "hi-IN": "बच्चे की उम्र कितने महीने या साल है?"
+      }
+    },
+    {
+      "key": "duration",
+      "label": "Onset and duration",
+      "required": true,
+      "question": {
+        "en-IN": "When did you first notice this?",
+        "hi-IN": "आपने यह पहली बार कब देखा?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Today",
+            "value": "Today"
+          },
+          {
+            "label": "2-3 days",
+            "value": "2-3 days"
+          },
+          {
+            "label": "1 week",
+            "value": "1 week"
+          },
+          {
+            "label": "1 month or more",
+            "value": "1 month or more"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "आज",
+            "value": "आज"
+          },
+          {
+            "label": "2-3 दिन",
+            "value": "2-3 दिन"
+          },
+          {
+            "label": "1 सप्ताह",
+            "value": "1 सप्ताह"
+          },
+          {
+            "label": "1 महीना या अधिक",
+            "value": "1 महीना या अधिक"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "fever_curve",
+      "label": "Fever pattern and measured temperature",
+      "required": true,
+      "question": {
+        "en-IN": "Has there been fever? If measured, what temperature and when?",
+        "hi-IN": "क्या बुखार है? अगर नापा है तो कितना और कब?"
+      }
+    },
+    {
+      "key": "feeding",
+      "label": "Feeding and fluids",
+      "required": true,
+      "question": {
+        "en-IN": "How has your child been feeding or drinking compared with usual?",
+        "hi-IN": "बच्चा सामान्य के मुकाबले कितना खा या पी रहा है?"
+      }
+    },
+    {
+      "key": "activity",
+      "label": "Activity and alertness",
+      "required": true,
+      "question": {
+        "en-IN": "How active and alert has your child been?",
+        "hi-IN": "बच्चा कितना सक्रिय और सतर्क है?"
+      }
+    },
+    {
+      "key": "urine",
+      "label": "Urine or wet nappies",
+      "required": true,
+      "question": {
+        "en-IN": "Have you noticed fewer wet nappies or less urine?",
+        "hi-IN": "क्या गीले नैपी या पेशाब कम हुए हैं?"
+      }
+    },
+    {
+      "key": "immunizations",
+      "label": "Immunization history",
+      "required": true,
+      "question": {
+        "en-IN": "Are your child’s vaccinations up to date, or are you unsure?",
+        "hi-IN": "क्या बच्चे के सभी टीके समय पर लगे हैं, या आपको पक्का नहीं पता?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Up to date",
+            "value": "Up to date"
+          },
+          {
+            "label": "Some missed",
+            "value": "Some missed"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "सभी टीके लगे हैं",
+            "value": "सभी टीके लगे हैं"
+          },
+          {
+            "label": "कुछ टीके छूट गए हैं",
+            "value": "कुछ टीके छूट गए हैं"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "past_illnesses",
+      "label": "Past illnesses",
+      "required": false,
+      "question": {
+        "en-IN": "Do you have any long-term illness, such as diabetes or high blood pressure?",
+        "hi-IN": "क्या आपको कोई पुरानी बीमारी है, जैसे शुगर या ब्लड प्रेशर?"
+      }
+    },
+    {
+      "key": "current_medicines",
+      "label": "Current medicines",
+      "required": true,
+      "question": {
+        "en-IN": "What medicines are you taking right now?",
+        "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"
+      }
+    },
+    {
+      "key": "allergies",
+      "label": "Allergies",
+      "required": true,
+      "question": {
+        "en-IN": "Are you allergic to any medicine or food?",
+        "hi-IN": "क्या आपको किसी दवा या खाने से एलर्जी है?"
+      }
+    }
+  ]
+}

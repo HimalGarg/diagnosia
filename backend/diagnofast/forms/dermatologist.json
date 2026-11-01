@@ -2,23 +2,194 @@
   "id": "dermatologist",
   "title": "Dermatologist",
   "fields": [
-    {"key": "chief_complaint", "label": "Main skin problem", "required": true,
-     "question": {"en-IN": "What is the problem with your skin? Please tell me in your own words.", "hi-IN": "आपकी त्वचा में क्या परेशानी है? अपने शब्दों में बताइए।"}},
-    {"key": "location", "label": "Where on the body", "required": true,
-     "question": {"en-IN": "Where on your body is it?", "hi-IN": "यह शरीर पर कहाँ है?"}},
-    {"key": "duration", "label": "Since when", "required": true,
-     "question": {"en-IN": "Since when have you had it?", "hi-IN": "यह कब से है?"}},
-    {"key": "changes", "label": "Changes in size or color", "required": true,
-     "question": {"en-IN": "Has it changed in size, shape or color?", "hi-IN": "क्या इसका आकार या रंग बदला है?"}},
-    {"key": "itching_pain_bleeding", "label": "Itching, pain or bleeding", "required": true,
-     "question": {"en-IN": "Does it itch, hurt or bleed?", "hi-IN": "क्या इसमें खुजली, दर्द या खून आता है?"}},
-    {"key": "family_history", "label": "Family history of skin problems", "required": false,
-     "question": {"en-IN": "Has anyone in your family had a similar skin problem or skin cancer?", "hi-IN": "क्या परिवार में किसी को ऐसी त्वचा की बीमारी या त्वचा का कैंसर हुआ है?"}},
-    {"key": "treatments_tried", "label": "Treatments tried", "required": false,
-     "question": {"en-IN": "Have you applied or taken anything for it?", "hi-IN": "क्या आपने इसके लिए कुछ लगाया या खाया है?"}},
-    {"key": "current_medicines", "label": "Current medicines", "required": true,
-     "question": {"en-IN": "What medicines are you taking right now?", "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"}},
-    {"key": "allergies", "label": "Allergies", "required": true,
-     "question": {"en-IN": "Are you allergic to any medicine?", "hi-IN": "क्या आपको किसी दवा से एलर्जी है?"}}
+    {
+      "key": "chief_complaint",
+      "label": "Main skin problem",
+      "required": true,
+      "question": {
+        "en-IN": "What is the problem with your skin? Please tell me in your own words.",
+        "hi-IN": "आपकी त्वचा में क्या परेशानी है? अपने शब्दों में बताइए।"
+      }
+    },
+    {
+      "key": "location",
+      "label": "Where on the body",
+      "required": true,
+      "question": {
+        "en-IN": "Where on your body is it?",
+        "hi-IN": "यह शरीर पर कहाँ है?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Head or neck",
+            "value": "Head or neck"
+          },
+          {
+            "label": "Shoulder",
+            "value": "Shoulder"
+          },
+          {
+            "label": "Arm or hand",
+            "value": "Arm or hand"
+          },
+          {
+            "label": "Back",
+            "value": "Back"
+          },
+          {
+            "label": "Hip",
+            "value": "Hip"
+          },
+          {
+            "label": "Knee",
+            "value": "Knee"
+          },
+          {
+            "label": "Foot or ankle",
+            "value": "Foot or ankle"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "सिर या गर्दन",
+            "value": "सिर या गर्दन"
+          },
+          {
+            "label": "कंधा",
+            "value": "कंधा"
+          },
+          {
+            "label": "बाँह या हाथ",
+            "value": "बाँह या हाथ"
+          },
+          {
+            "label": "पीठ",
+            "value": "पीठ"
+          },
+          {
+            "label": "कूल्हा",
+            "value": "कूल्हा"
+          },
+          {
+            "label": "घुटना",
+            "value": "घुटना"
+          },
+          {
+            "label": "पैर या टखना",
+            "value": "पैर या टखना"
+          }
+        ]
+      }
+    },
+    {
+      "key": "duration",
+      "label": "Since when",
+      "required": true,
+      "question": {
+        "en-IN": "Since when have you had it?",
+        "hi-IN": "यह कब से है?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Today",
+            "value": "Today"
+          },
+          {
+            "label": "2-3 days",
+            "value": "2-3 days"
+          },
+          {
+            "label": "1 week",
+            "value": "1 week"
+          },
+          {
+            "label": "1 month or more",
+            "value": "1 month or more"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "आज",
+            "value": "आज"
+          },
+          {
+            "label": "2-3 दिन",
+            "value": "2-3 दिन"
+          },
+          {
+            "label": "1 सप्ताह",
+            "value": "1 सप्ताह"
+          },
+          {
+            "label": "1 महीना या अधिक",
+            "value": "1 महीना या अधिक"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "changes",
+      "label": "Changes in size or color",
+      "required": true,
+      "question": {
+        "en-IN": "Has it changed in size, shape or color?",
+        "hi-IN": "क्या इसका आकार या रंग बदला है?"
+      }
+    },
+    {
+      "key": "itching_pain_bleeding",
+      "label": "Itching, pain or bleeding",
+      "required": true,
+      "question": {
+        "en-IN": "Does it itch, hurt or bleed?",
+        "hi-IN": "क्या इसमें खुजली, दर्द या खून आता है?"
+      }
+    },
+    {
+      "key": "family_history",
+      "label": "Family history of skin problems",
+      "required": false,
+      "question": {
+        "en-IN": "Has anyone in your family had a similar skin problem or skin cancer?",
+        "hi-IN": "क्या परिवार में किसी को ऐसी त्वचा की बीमारी या त्वचा का कैंसर हुआ है?"
+      }
+    },
+    {
+      "key": "treatments_tried",
+      "label": "Treatments tried",
+      "required": false,
+      "question": {
+        "en-IN": "Have you applied or taken anything for it?",
+        "hi-IN": "क्या आपने इसके लिए कुछ लगाया या खाया है?"
+      }
+    },
+    {
+      "key": "current_medicines",
+      "label": "Current medicines",
+      "required": true,
+      "question": {
+        "en-IN": "What medicines are you taking right now?",
+        "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"
+      }
+    },
+    {
+      "key": "allergies",
+      "label": "Allergies",
+      "required": true,
+      "question": {
+        "en-IN": "Are you allergic to any medicine?",
+        "hi-IN": "क्या आपको किसी दवा से एलर्जी है?"
+      }
+    }
   ]
 }

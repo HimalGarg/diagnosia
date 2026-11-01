@@ -7,6 +7,8 @@ argon2-cffi==23.*
 numpy<2.3
 pillow>=10
 httpx==0.27.*
+# Neural Indian English and Hindi question playback; browser voice remains the fallback.
+edge-tts>=7.2,<8
 pdfplumber==0.11.*
 cryptography>=46
 rapidfuzz==3.*

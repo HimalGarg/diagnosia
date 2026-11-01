@@ -1,0 +1,142 @@
+{
+  "id": "cardiology",
+  "title": "Cardiology",
+  "fields": [
+    {
+      "key": "chief_complaint",
+      "label": "Reason for visit",
+      "required": true,
+      "question": {
+        "en-IN": "I’m here to listen. What brought you to cardiology today?",
+        "hi-IN": "मैं आपकी बात सुनने के लिए हूँ। आज हृदय विभाग में आने की क्या वजह है?"
+      }
+    },
+    {
+      "key": "chest_pain",
+      "label": "Chest pain and radiation",
+      "required": true,
+      "question": {
+        "en-IN": "Have you had chest discomfort, and does it spread anywhere?",
+        "hi-IN": "क्या सीने में तकलीफ़ है, और क्या यह कहीं और फैलती है?"
+      }
+    },
+    {
+      "key": "duration",
+      "label": "Onset and duration",
+      "required": true,
+      "question": {
+        "en-IN": "When did this start?",
+        "hi-IN": "यह कब शुरू हुआ?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Today",
+            "value": "Today"
+          },
+          {
+            "label": "2-3 days",
+            "value": "2-3 days"
+          },
+          {
+            "label": "1 week",
+            "value": "1 week"
+          },
+          {
+            "label": "1 month or more",
+            "value": "1 month or more"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "आज",
+            "value": "आज"
+          },
+          {
+            "label": "2-3 दिन",
+            "value": "2-3 दिन"
+          },
+          {
+            "label": "1 सप्ताह",
+            "value": "1 सप्ताह"
+          },
+          {
+            "label": "1 महीना या अधिक",
+            "value": "1 महीना या अधिक"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "breathlessness",
+      "label": "Shortness of breath",
+      "required": true,
+      "question": {
+        "en-IN": "Have you felt short of breath, at rest or while moving?",
+        "hi-IN": "क्या आराम करते या चलते समय साँस फूलती है?"
+      }
+    },
+    {
+      "key": "palpitations",
+      "label": "Palpitations",
+      "required": true,
+      "question": {
+        "en-IN": "Have you noticed a racing or uneven heartbeat?",
+        "hi-IN": "क्या धड़कन तेज़ या अनियमित महसूस हुई है?"
+      }
+    },
+    {
+      "key": "edema",
+      "label": "Swelling",
+      "required": true,
+      "question": {
+        "en-IN": "Have your feet or ankles been swollen?",
+        "hi-IN": "क्या पैरों या टखनों में सूजन है?"
+      }
+    },
+    {
+      "key": "syncope",
+      "label": "Fainting or dizziness",
+      "required": true,
+      "question": {
+        "en-IN": "Have you felt faint or passed out?",
+        "hi-IN": "क्या चक्कर आया या बेहोशी हुई है?"
+      }
+    },
+    {
+      "key": "past_illnesses",
+      "label": "Past illnesses",
+      "required": false,
+      "question": {
+        "en-IN": "Do you have any long-term illness, such as diabetes or high blood pressure?",
+        "hi-IN": "क्या आपको कोई पुरानी बीमारी है, जैसे शुगर या ब्लड प्रेशर?"
+      }
+    },
+    {
+      "key": "current_medicines",
+      "label": "Current medicines",
+      "required": true,
+      "question": {
+        "en-IN": "What medicines are you taking right now?",
+        "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"
+      }
+    },
+    {
+      "key": "allergies",
+      "label": "Allergies",
+      "required": true,
+      "question": {
+        "en-IN": "Are you allergic to any medicine or food?",
+        "hi-IN": "क्या आपको किसी दवा या खाने से एलर्जी है?"
+      }
+    }
+  ]
+}

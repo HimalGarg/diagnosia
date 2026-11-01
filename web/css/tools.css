@@ -374,3 +374,49 @@ body.body {
     padding: 0 !important;
   }
 }
+
+/* DiagnoFast: calm, touch-friendly waiting-room interview. */
+.intake-page { margin: 0; background: #10151b; color: #f4f5f7; font: 16px/1.55 system-ui, sans-serif; }
+.intake-page * { box-sizing: border-box; }
+.intake-page h1 { font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.2; margin: 0 0 16px; }
+.intake-page button, .intake-page input, .intake-page select, .intake-page textarea { font: inherit; }
+.intake-page button, .intake-page .use-now { cursor: pointer; min-height: 48px; }
+.intake-page :focus-visible { outline: 3px solid #bce7df; outline-offset: 4px; }
+.intake-page button:disabled { cursor: wait; opacity: .5; }
+.intake-header { max-width: 1220px; margin: auto; padding: 28px 24px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.intake-header span { text-align: right; font-weight: 650; }
+.intake-header small { display: block; color: #a8b4c2; font-size: 12px; font-weight: 400; }
+.intake-shell { max-width: 1220px; padding: 0 24px 40px; margin: auto; }
+.intake-page .tool-panel { border: 1px solid #35424e; border-radius: 20px; background: #19222c; padding: 32px; }
+.intake-page .tool-panel p { color: #c2ccd7; }
+.intake-page .tool-notice { font-size: 12px; border-color: #675b38; color: #e9d49c; background: #29261e; }
+.intake-page .intake-eyebrow { color: #9fdbd0; letter-spacing: .12em; font-size: 12px; font-weight: 650; margin: 0 0 24px; }
+.specialty-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 28px; }
+.specialty-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 22px; gap: 8px; background: #222f3c; border: 1px solid #425463; border-radius: 14px; color: #f4f5f7; }
+.specialty-card:hover { background: #2e4150; border-color: #9fdbd0; }
+.specialty-card .specialty-symbol { color: #9fdbd0; font-size: 26px; }
+.specialty-card small { color: #becad7; }
+.demographics { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 18px; }
+.intake-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.intake-columns .tool-panel { min-width: 0; margin-bottom: 0; }
+.assistant-orb { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; margin: 32px 0; background: radial-gradient(circle at 30% 25%, #b1edda, #558f9f 50%, #3c4e69); box-shadow: 0 0 30px #72b6ba20; }
+.assistant-orb span { font-size: 40px; color: #f4fffd; }
+.assistant-orb.speaking { animation: intake-breathe 1.8s ease-in-out infinite; }
+@keyframes intake-breathe { 50% { box-shadow: 0 0 0 12px #9fdbd01a, 0 0 40px #72b6ba40; } }
+.intake-page .tool-panel .intake-question { color: #f4f5f7; font-size: clamp(1.4rem, 2.4vw, 1.85rem); line-height: 1.4; font-weight: 550; }
+.answer-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 28px; }
+.answer-chips button { padding: 10px 17px; border: 1px solid #647887; border-radius: 30px; background: #263747; color: #f2f6fa; }
+.answer-chips button[aria-pressed="true"] { background: #b1edda; color: #14231f; border-color: #b1edda; }
+.intake-page .intake-hint { font-size: 13px; color: #b4c2ce; }
+.intake-page .tool-secondary { background: transparent; border: 1px solid #647887; border-radius: 8px; color: #edf5fa; padding: 10px 18px; }
+.intake-page .use-now { display: inline-flex; align-items: center; justify-content: center; background: #b1edda; color: #14231f; border: 0; border-radius: 8px; padding: 12px 22px; text-decoration: none; font-weight: 650; }
+.intake-page .record-button { display: block; width: 100%; background: #b1edda; color: #14231f; border: 0; border-radius: 10px; font-size: 17px; padding: 15px; margin: 10px 0 24px; }
+.intake-page .record-button.recording { background: #f6bcac; color: #40160e; }
+.intake-page .tool-panel textarea { resize: vertical; min-height: 180px; background: #101922; font-size: 18px; line-height: 1.6; }
+.transcript-meta { display: flex; justify-content: space-between; gap: 10px; color: #b1edda; font-size: 13px; }
+#intake-meter { display: block; width: 100%; height: 40px; margin-top: 16px; border-radius: 6px; background: #101922; }
+.intake-help { text-align: center; font-size: 13px; color: #a8b4c2; margin: 26px 0; }
+.intake-page .tool-error, .intake-page .urgent-banner { color: #ffcdc0; background: #41251e; padding: 14px; border-radius: 8px; }
+@media (max-width: 800px) { .specialty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .intake-columns { gap: 14px; } .intake-page .tool-panel { padding: 22px; } }
+@media (max-width: 620px) { .intake-columns, .demographics { grid-template-columns: 1fr; } .intake-shell { padding: 0 14px 24px; } .intake-header { padding: 20px 14px; } .specialty-card { padding: 16px; } .assistant-orb { margin: 12px 0 20px; width: 60px; height: 60px; } }
+@media (prefers-reduced-motion: reduce) { .assistant-orb.speaking { animation: none; } }

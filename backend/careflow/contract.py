@@ -264,6 +264,8 @@ AUDIT_EVENTS: Dict[str, Mapping] = {
 # Write routes that deliberately record no event, and why. A test fails if a new write route is
 # neither mapped nor listed here, so nothing can be missed quietly.
 UNTRACKED_ROUTES: Dict[str, str] = {
+    "kiosk_intake": "Delegates to create_intake, which emits intake.link_created",
+    "preview_transcript": "Transient preview only; confirmed answers are recorded by answer",
     "add_typed_segment": "A line of transcript. Too small a step to show, and its content can't be recorded",
     "transcribe_chunk": "Runs every 25 seconds while recording. Only a failure is recorded",
     "read_aloud": "Reads text aloud and stores nothing",

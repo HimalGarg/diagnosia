@@ -518,3 +518,87 @@ button:not(.quiet):not(.danger):not(.link-button):not(.patient-row),
 @media print {
   .no-print, .visit-strip { display: none !important; }
 }
+
+/* DiagnoFast requisition: compact clinical scan and A4 printing. */
+.requisition { max-width: 1080px; font-size: .875rem; line-height: 1.4; }
+.requisition p { max-width: none; margin: .3rem 0 .55rem; overflow-wrap: anywhere; }
+.requisition-header { display: flex; justify-content: space-between; gap: 20px; align-items: center; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.requisition-header h2 { margin: 2px 0; font-size: 1.55rem; }
+.requisition-brand { font-size: .72rem; letter-spacing: .12em; font-weight: 700; color: var(--action); }
+.requisition-demographics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; border: 1px solid var(--rule); padding: 10px 12px; margin: 16px 0 10px; }
+.requisition h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; padding: 7px 0 5px; margin-top: 12px; border-bottom: 1px solid var(--rule); }
+.requisition-disclaimer, .requisition-demo { border-left: 3px solid var(--action); padding-left: 8px; font-size: .78rem; }
+.requisition-table-wrap { overflow-x: auto; }
+.requisition-table { border-collapse: collapse; width: 100%; font-size: .8rem; margin: 5px 0; table-layout: fixed; }
+.requisition-table th, .requisition-table td { border: 1px solid var(--rule); padding: 6px 8px; vertical-align: top; overflow-wrap: anywhere; text-align: left; }
+.requisition-table th { background: var(--band); font-size: .74rem; }
+.ros-flag { font-weight: 700; }
+.flag-alert { color: var(--alert); }
+.requisition .requisition-legend { font-size: .68rem; color: var(--ink-soft); }
+.investigation-checklist { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 10px; }
+.investigation-checklist label { display: flex; gap: 7px; align-items: baseline; font-size: .8rem; }
+.investigation-checklist input { width: 13px; height: 13px; margin: 0; }
+.physician-workspace { break-inside: avoid; }
+.physician-workspace p { display: flex; gap: 12px; padding: 5px 0; }
+.writing-line { flex: 1; border-bottom: 1px solid var(--rule); min-width: 30px; }
+.physician-workspace .plan-line { min-height: 45px; }
+.signoff { display: flex; justify-content: space-between; flex-wrap: wrap; }
+.intake-barcode { display: flex; height: 35px; background: #fff; padding: 0 12px; }
+.intake-barcode i { display: block; width: 1px; background: #fff; }
+.intake-barcode .bar { background: #000; }
+.intake-barcode .wide { width: 3px; }
+.barcode-label { text-align: center; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.requisition-original { margin-top: 20px; }
+@media (max-width: 620px) {
+  .requisition-header { flex-wrap: wrap; }
+  .requisition-demographics { grid-template-columns: 1fr; }
+  .requisition-table { min-width: 480px; }
+}
+@media print {
+  @page { size: A4; margin: 10mm; }
+  body:has(.requisition) { --paper: #fff; --sheet: #fff; --ink: #000; --ink-soft: #333; --rule: #888; --band: #eee; --action: #222; --alert: #900; background: #fff; color: #000; }
+  body:has(.requisition) .wristband, body:has(.requisition) .pilot-banner { display: none !important; }
+  body:has(.requisition) .chart { padding: 0; margin: 0; max-width: none; }
+  .requisition { border: 0; box-shadow: none; padding: 0; margin: 0; max-width: none; font: 9pt/1.25 Arial, sans-serif; }
+  .requisition-header { padding-bottom: 6px; }
+  .requisition-header h2 { font-size: 16pt; }
+  .requisition-demographics { grid-template-columns: 1fr 1fr; margin: 8px 0; padding: 5px 8px; }
+  .requisition p { margin: 3px 0 5px; }
+  .requisition h3 { margin-top: 7px; padding: 4px 0; font-size: 8pt; break-after: avoid; }
+  .requisition-table-wrap { overflow: visible; }
+  .requisition-table { min-width: 0; font-size: 8pt; }
+  .requisition-table th { font-size: 7.5pt; }
+  .requisition-table td, .requisition-table th { padding: 4px 6px; }
+  .requisition-table tr { break-inside: avoid; }
+  .requisition-table thead { display: table-header-group; }
+  .requisition .requisition-legend { font-size: 7pt; }
+  .requisition-disclaimer, .requisition-demo, .investigation-checklist label { font-size: 8pt; }
+  .requisition-alert { padding: 6px 8px; margin: 5px 0; }
+  .requisition .intake-barcode { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .requisition .plan-line { min-height: 30px; }
+  .requisition-original { break-before: page; }
+}
+
+/* The same fixed A4 geometry is used for measuring and printing. */
+.intake-print-page {
+  position: absolute; left: -10000px; top: 0; box-sizing: border-box;
+  width: 190mm; height: 275mm; display: grid;
+  grid-template-rows: minmax(0, 1fr) 15mm 27mm;
+  font: 9pt/1.25 Arial, sans-serif; color: #000; background: #fff;
+}
+.intake-print-content { min-height: 0; overflow: hidden; }
+.intake-print-page p { max-width: none; margin: 1mm 0; overflow-wrap: anywhere; }
+.intake-print-page h2 { font-size: 15pt; margin: 1mm 0; }
+.intake-print-page h3 { font-size: 9pt; text-transform: uppercase; margin: 2mm 0 1mm; border-bottom: 1px solid #888; }
+.intake-print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 1mm; }
+.intake-print-header .intake-barcode { height: 8mm; }
+.intake-print-urgent, .intake-print-warning { border: 1px solid #900; padding: 1mm; font-weight: bold; }
+.intake-print-warning { font-size: 8pt; align-self: center; }
+.intake-print-workspace { border-top: 1px solid #555; padding-top: 1mm; }
+.intake-print-workspace p { margin: 2mm 0; }
+.intake-fit-notice { border-left: 3px solid var(--action); padding: 8px; background: var(--band); }
+@media print {
+  body:has(.requisition) > :not(.intake-print-page) { display: none !important; }
+  body:has(.requisition) .intake-print-page { position: static; display: grid; margin: 0; }
+  body:not(:has(.requisition)) .intake-print-page { display: none; }
+}

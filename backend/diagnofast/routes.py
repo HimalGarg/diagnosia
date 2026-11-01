@@ -31,6 +31,7 @@ from pydantic import BaseModel, Field
 from backend import llm, speech
 from backend.auth import require_doctor
 from backend.careflow import events
+from backend.config import settings
 from backend.db import connect, get_db
 from backend.diagnofast import abha, agent, recordings
 from backend.records.access import READ, WRITE, open_patient
@@ -60,6 +61,32 @@ class StartRequest(BaseModel):
     abha_consent: bool = False
 
 
+class KioskIntake(BaseModel):
+    # Public visits cannot claim an existing chart or choose their own reviewing doctor.
+    model_config = {"extra": "forbid"}
+    form_id: str
+    patient_name: str = Field(min_length=1, max_length=120)
+    patient_age: Optional[int] = Field(default=None, ge=0, le=130)
+    patient_sex: Optional[Literal["female", "male", "other"]] = None
+    consent: bool
+
+
+def _kiosk_doctor(db: sqlite3.Connection) -> sqlite3.Row:
+    doctor = None
+    if settings.diagnofast_kiosk_doctor_id:
+        doctor = db.execute(
+            "SELECT * FROM users WHERE id = ? AND role = 'doctor' AND account_status = 'verified'",
+            (settings.diagnofast_kiosk_doctor_id,),
+        ).fetchone()
+    if doctor is None and settings.demo_mode:
+        doctor = db.execute(
+            "SELECT * FROM users WHERE role = 'doctor' AND account_status = 'verified' ORDER BY id ASC LIMIT 1"
+        ).fetchone()
+    if doctor is None:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "The kiosk is not available. Please ask reception for a patient link.")
+    return doctor
+
+
 def _workflow(db: sqlite3.Connection, row: sqlite3.Row) -> sqlite3.Row:
     """A link for a patient joins that patient's workflow. A loose link is its own."""
     return events.for_patient(db, row["patient_id"]) if row["patient_id"] else events.for_intake(db, row["id"], row["doctor_id"])
@@ -71,6 +98,11 @@ def _hash(token: str) -> str:
 
 def _spoken(text: str, language: speech.Language) -> Optional[str]:
     """The question as audio. Without it, the page reads the words in the browser's voice."""
+    if settings.neural_tts_enabled:
+        try:
+            return "data:audio/mpeg;base64," + base64.b64encode(speech.speak_neural(text, language)).decode()
+        except (speech.SpeechUnavailable, speech.SpeechRejected):
+            pass
     if language not in speech.VOICED_LANGUAGES:
         return None
     try:
@@ -102,12 +134,28 @@ def forms(_doctor=Depends(require_doctor)) -> List[dict]:
     return agent.list_forms()
 
 
+@router.get("/kiosk")
+def kiosk_config(db: sqlite3.Connection = Depends(get_db)) -> dict:
+    _kiosk_doctor(db)
+    return {"forms": agent.list_forms()}
+
+
+@router.post("/kiosk/intakes", status_code=status.HTTP_201_CREATED)
+def kiosk_intake(details: KioskIntake, db: sqlite3.Connection = Depends(get_db)) -> dict:
+    doctor = _kiosk_doctor(db)
+    if not details.consent:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Consent is needed to continue.")
+    return create_intake(NewIntake(**details.model_dump(exclude={"consent"})), doctor, db)
+
+
 @router.post("/intakes", status_code=status.HTTP_201_CREATED)
 def create_intake(
     details: NewIntake,
     doctor: sqlite3.Row = Depends(require_doctor),
     db: sqlite3.Connection = Depends(get_db),
 ) -> dict:
+    if not details.patient_name.strip():
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Please enter a patient name.")
     if agent.load_form(details.form_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown form.")
     if details.patient_id:
@@ -170,6 +218,7 @@ def intake_detail(
     return {
         "id": row["id"],
         "status": row["status"],
+        "created_at": row["created_at"],
         "patient": {
             "name": row["patient_name"],
             "age": row["patient_age"],
@@ -237,7 +286,34 @@ def start_interview(
         (request.language, json.dumps(records) if records else None, question, row["id"]),
     )
     events.emit(db, MODULE, "intake.started", _workflow(db, row), "started", actor="patient", key=str(row["id"]), metadata={"language": request.language})
-    return {"question": question, "audio": _spoken(question, request.language)}
+    return {"question": question, "suggested_chips": [chip.model_dump() for chip in agent.field_chips(form["fields"][0], request.language)], "audio": _spoken(question, request.language)}
+
+
+def _read_audio(audio: UploadFile) -> tuple:
+    content_type = (audio.content_type or "").split(";")[0].strip()
+    if content_type not in recordings.EXTENSIONS:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "This audio format isn't supported.")
+    data = audio.file.read(MAX_AUDIO_BYTES + 1)
+    if len(data) > MAX_AUDIO_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "This recording is too long.")
+    if not data:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "This recording is empty.")
+    return data, content_type
+
+
+@router.post("/patient/{token}/transcribe")
+def preview_transcript(token: str, audio: UploadFile = File(...), db: sqlite3.Connection = Depends(get_db)) -> dict:
+    row = _open_intake(token, db)
+    if row["status"] != "in_progress":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Please start the interview first.")
+    data, content_type = _read_audio(audio)
+    said = speech.transcribe(data, content_type, row["language"]).strip()
+    if not said:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "We couldn't hear that. Please try again, or type your answer.")
+    if len(said) > MAX_TYPED_ANSWER:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Please give a shorter answer.")
+    # Preview only: no answer or recording is stored before the patient confirms.
+    return {"text": said}
 
 
 def _build_report(intake_id: int) -> None:
@@ -286,20 +362,17 @@ def answer(
 
     audio_name = None
     if audio is not None:
-        content_type = (audio.content_type or "").split(";")[0].strip()
-        if content_type not in recordings.EXTENSIONS:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "This audio format isn't supported.")
-        data = audio.file.read(MAX_AUDIO_BYTES + 1)
-        if len(data) > MAX_AUDIO_BYTES:
-            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "This recording is too long.")
-        said = speech.transcribe(data, content_type, language).strip()
+        data, content_type = _read_audio(audio)
+        # Explicitly confirmed/edited text wins over automatic speech recognition.
+        said = text.strip() if text is not None else speech.transcribe(data, content_type, language).strip()
         if not said:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "We couldn't hear that. Please try again, or type your answer.")
-        audio_name = recordings.save(row["id"], len(transcript), data, content_type)
     elif text and text.strip():
         said = text.strip()
     else:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Please answer the question.")
+    if len(said) > MAX_TYPED_ANSWER:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Please give a shorter answer.")
 
     transcript.append({"question": row["current_question"], "answer": said, "audio": audio_name})
     form = agent.load_form(row["form_id"])
@@ -311,6 +384,9 @@ def answer(
         events.emit_separately(MODULE, "intake.failed", lambda connection: _workflow(connection, row), "failed", metadata={"error_category": events.category_of(error)})
         raise
     step = agent.apply_turn(form, answers, turn, row["questions_asked"], language)
+    if audio is not None:
+        audio_name = recordings.save(row["id"], len(transcript) - 1, data, content_type)
+        transcript[-1]["audio"] = audio_name
 
     finished = step.question is None
     flow = _workflow(db, row)
@@ -338,4 +414,4 @@ def answer(
         background.add_task(_build_report, row["id"])
         message = agent.URGENT_MESSAGE[language] if step.urgent else agent.THANK_YOU[language]
         return {"finished": True, "urgent": bool(step.urgent), "message": message, "audio": _spoken(message, language)}
-    return {"finished": False, "question": step.question, "audio": _spoken(step.question, language)}
+    return {"finished": False, "question": step.question, "suggested_chips": [chip.model_dump() for chip in step.suggested_chips], "audio": _spoken(step.question, language)}

@@ -2,21 +2,153 @@
   "id": "general_physician",
   "title": "General physician",
   "fields": [
-    {"key": "chief_complaint", "label": "Main problem", "required": true,
-     "question": {"en-IN": "What is the problem? Please tell me in your own words.", "hi-IN": "क्या बीमारी है? अपनी परेशानी अपने शब्दों में बताइए।"}},
-    {"key": "duration", "label": "Since when", "required": true,
-     "question": {"en-IN": "Since when have you had this problem?", "hi-IN": "यह परेशानी कब से है?"}},
-    {"key": "severity", "label": "How severe", "required": true,
-     "question": {"en-IN": "How bad is it? Is it getting better or worse?", "hi-IN": "यह कितनी ज़्यादा है? ठीक हो रही है या बढ़ रही है?"}},
-    {"key": "fever", "label": "Fever", "required": true,
-     "question": {"en-IN": "Have you had a fever?", "hi-IN": "क्या आपको बुखार आया है?"}},
-    {"key": "related_symptoms", "label": "Other symptoms", "required": false,
-     "question": {"en-IN": "Are you having any other trouble along with this?", "hi-IN": "क्या इसके साथ कोई और तकलीफ़ भी है?"}},
-    {"key": "past_illnesses", "label": "Past illnesses", "required": false,
-     "question": {"en-IN": "Do you have any long-term illness, such as diabetes or high blood pressure?", "hi-IN": "क्या आपको कोई पुरानी बीमारी है, जैसे शुगर या ब्लड प्रेशर?"}},
-    {"key": "current_medicines", "label": "Current medicines", "required": true,
-     "question": {"en-IN": "What medicines are you taking right now?", "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"}},
-    {"key": "allergies", "label": "Allergies", "required": true,
-     "question": {"en-IN": "Are you allergic to any medicine or food?", "hi-IN": "क्या आपको किसी दवा या खाने से एलर्जी है?"}}
+    {
+      "key": "chief_complaint",
+      "label": "Main problem",
+      "required": true,
+      "question": {
+        "en-IN": "I’m here to listen. What has been troubling you?",
+        "hi-IN": "मैं आपकी बात सुनने के लिए हूँ। आपको क्या परेशानी हो रही है?"
+      }
+    },
+    {
+      "key": "duration",
+      "label": "Since when",
+      "required": true,
+      "question": {
+        "en-IN": "Since when have you had this problem?",
+        "hi-IN": "यह परेशानी कब से है?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Today",
+            "value": "Today"
+          },
+          {
+            "label": "2-3 days",
+            "value": "2-3 days"
+          },
+          {
+            "label": "1 week",
+            "value": "1 week"
+          },
+          {
+            "label": "1 month or more",
+            "value": "1 month or more"
+          },
+          {
+            "label": "Not sure",
+            "value": "Not sure"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "आज",
+            "value": "आज"
+          },
+          {
+            "label": "2-3 दिन",
+            "value": "2-3 दिन"
+          },
+          {
+            "label": "1 सप्ताह",
+            "value": "1 सप्ताह"
+          },
+          {
+            "label": "1 महीना या अधिक",
+            "value": "1 महीना या अधिक"
+          },
+          {
+            "label": "पक्का नहीं पता",
+            "value": "पक्का नहीं पता"
+          }
+        ]
+      }
+    },
+    {
+      "key": "severity",
+      "label": "How severe",
+      "required": true,
+      "question": {
+        "en-IN": "How bad is it? Is it getting better or worse?",
+        "hi-IN": "यह कितनी ज़्यादा है? ठीक हो रही है या बढ़ रही है?"
+      },
+      "chips": {
+        "en-IN": [
+          {
+            "label": "Mild",
+            "value": "Mild"
+          },
+          {
+            "label": "Moderate",
+            "value": "Moderate"
+          },
+          {
+            "label": "Severe",
+            "value": "Severe"
+          }
+        ],
+        "hi-IN": [
+          {
+            "label": "हल्का",
+            "value": "हल्का"
+          },
+          {
+            "label": "मध्यम",
+            "value": "मध्यम"
+          },
+          {
+            "label": "ज़्यादा",
+            "value": "ज़्यादा"
+          }
+        ]
+      }
+    },
+    {
+      "key": "fever",
+      "label": "Fever",
+      "required": true,
+      "question": {
+        "en-IN": "Have you had a fever?",
+        "hi-IN": "क्या आपको बुखार आया है?"
+      }
+    },
+    {
+      "key": "related_symptoms",
+      "label": "Other symptoms",
+      "required": false,
+      "question": {
+        "en-IN": "Are you having any other trouble along with this?",
+        "hi-IN": "क्या इसके साथ कोई और तकलीफ़ भी है?"
+      }
+    },
+    {
+      "key": "past_illnesses",
+      "label": "Past illnesses",
+      "required": false,
+      "question": {
+        "en-IN": "Do you have any long-term illness, such as diabetes or high blood pressure?",
+        "hi-IN": "क्या आपको कोई पुरानी बीमारी है, जैसे शुगर या ब्लड प्रेशर?"
+      }
+    },
+    {
+      "key": "current_medicines",
+      "label": "Current medicines",
+      "required": true,
+      "question": {
+        "en-IN": "What medicines are you taking right now?",
+        "hi-IN": "आप अभी कौन सी दवाइयाँ ले रहे हैं?"
+      }
+    },
+    {
+      "key": "allergies",
+      "label": "Allergies",
+      "required": true,
+      "question": {
+        "en-IN": "Are you allergic to any medicine or food?",
+        "hi-IN": "क्या आपको किसी दवा या खाने से एलर्जी है?"
+      }
+    }
   ]
 }

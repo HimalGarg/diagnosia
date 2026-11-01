@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/web/css/care.css"></head><body><main id="main"></main><script type="module">
+import {reportView, preparePrintReport} from '/web/js/care/diagnofast.js';
+const kind = new URLSearchParams(location.search).get('kind') || 'typical';
+const count = kind === 'short' ? 2 : kind === 'long' ? 100 : 8;
+const detail = {id:123, status:'done', created_at:'2026-10-01T10:00:00Z', patient:{name:'Synthetic Patient',age:42,sex:'Female',record_id:'chart-1',abha_id:'demo-123'},form_title:'Orthopedics',urgent:['Chest pain'],records:{is_demo_data:true,conditions:['Demo condition'],prescriptions:['Demo medicine'],lab_reports:['Demo past result']},answers:Array.from({length:count},(_,i)=>({label:`Specialty detail ${i+1}`,value:`Patient reported knee pain ${i+1}, no fever, onset uncertain.`})),transcript:[{question:'What happened?',answer:'Original patient words: knee pain and no fever.'}],report:{chief_complaint:'Knee pain',present_illness:'Three days of pain on walking; onset uncertain.',highlights:[],past_history:'Patient reports asthma',current_medicines:['Inhaler, dose uncertain'],allergies:['Penicillin'],gaps:['Verify onset'],review_of_systems:[{system:'Musculoskeletal',parameter:'Knee',finding:'Pain on walking, no fever',flag:'NOT_ASSESSED',norm:'Not applicable (symptom)'}],suggested_investigations:['Consider imaging after examination']}};
+if(kind === 'old') { delete detail.report.review_of_systems; delete detail.report.suggested_investigations; detail.records = null; }
+if(kind === 'failed') {detail.status='report_failed';detail.report=null;}
+const main=document.querySelector('#main');main.append(reportView(detail));preparePrintReport(main,detail);
+</script></body></html>
