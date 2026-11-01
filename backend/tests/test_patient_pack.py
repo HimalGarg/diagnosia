@@ -22,6 +22,9 @@ from backend.tests.test_careflow import client_for
 from backend.tests.test_clinscribe import draft, fake_draft, ready_session
 
 
+ONE_PASS = sync.run_once
+
+
 class FakePackServer:
     """Holds uploads per datapack and searches them by word, as a real one would by meaning."""
 
@@ -103,12 +106,14 @@ def server(client, monkeypatch):
     monkeypatch.setattr(settings, "demo_mode", True)
     monkeypatch.setattr(settings, "allow_real_patient_data", False)
     monkeypatch.setattr(meko, "pack_client", lambda: connection)
+    # The app's own 5-second loop would otherwise race the test and post to a made-up URL.
+    monkeypatch.setattr(sync, "run_once", lambda *_arguments, **_options: {})
     return fake
 
 
 def run_worker(fake, passes=4):
     for _ in range(passes):
-        sync.run_once(post=fake.upload)
+        ONE_PASS(post=fake.upload)
 
 
 def signed_note(doctor, patient, text="Rash after penicillin in 2019."):
